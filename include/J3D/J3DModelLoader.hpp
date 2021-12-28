@@ -20,4 +20,5 @@ protected:
 	virtual ~J3DModelLoader() {}
 
 	void ReadInformationBlock(bStream::CStream* stream, uint32_t flags);
+	void ReadVertexBlock(bStream::CStream* stream, uint32_t flags);
 };

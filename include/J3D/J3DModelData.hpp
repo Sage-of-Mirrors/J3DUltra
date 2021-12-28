@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <vector>
 
+#include "J3DVertexData.hpp"
+
 class J3DModelLoader;
 
 class J3DModelData {
@@ -10,8 +12,9 @@ class J3DModelData {
 
 	uint32_t mFlags;
 	uint32_t mMatrixGroupCount;
-
 	std::vector<J3DModelHierarchy> mHierarchyNodes;
+
+	J3DVertexData mVertexData;
 
 	void MakeHierarchy(void* const root, std::vector<J3DModelHierarchy>* nodes);
 

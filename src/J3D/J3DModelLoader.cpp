@@ -1,6 +1,8 @@
 #include "J3D/J3DModelLoader.hpp"
 #include "J3D/J3DModelData.hpp"
 #include "../lib/bStream/bstream.h"
+#include "GX/GXEnum.hpp"
+#include "GX/GXStruct.hpp"
 
 J3DModelLoader::J3DModelLoader() : mModelData(nullptr) {
 
@@ -63,4 +65,46 @@ void J3DModelLoader::ReadInformationBlock(bStream::CStream* stream, uint32_t fla
     }
 
     stream->seek(currentStreamPos + infoBlock.BlockSize);
+}
+
+void J3DModelLoader::ReadVertexBlock(bStream::CStream* stream, uint32_t flags) {
+    size_t currentStreamPos = stream->tell();
+
+    J3DVertexBlock vtxBlock;
+    vtxBlock.Deserialize(stream);
+
+    // Load the attribute data
+    std::vector<GXVertexAttributeList> attributes;
+    stream->seek(vtxBlock.AttributeTableOffset);
+
+    while ((EGXAttribute)stream->peekUInt32(0) != EGXAttribute::Null) {
+        GXVertexAttributeList attribute {
+            (EGXAttribute)stream->readUInt32(),
+            (EGXComponentCount)stream->readUInt32(),
+            (EGXComponentType)stream->readUInt32(),
+            stream->readUInt8()
+        };
+
+        attributes.push_back(attribute);
+
+        stream->skip(3);
+    }
+
+    J3DVertexData* vtxData = &mModelData->mVertexData;
+
+    // Now load the vertex data, converting from whatever format it's in to vec2/3/4
+    for (auto it = attributes.begin(); it != attributes.end(); it++)
+    {
+        GXVertexAttributeList nextAttribute { EGXAttribute::Null };
+        if (it + 1 != attributes.end())
+            nextAttribute = *(it + 1);
+
+        switch (it->Attribute) {
+        case EGXAttribute::Position:
+            vtxBlock.LoadAttributeData<glm::vec3>(vtxData->Positions, *it, nextAttribute);
+            break;
+        }
+    }
+    
+    stream->seek(currentStreamPos + vtxBlock.BlockSize);
 }

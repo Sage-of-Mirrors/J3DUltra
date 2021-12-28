@@ -1,7 +1,9 @@
 #pragma once
 
 #include <cstdint>
+#include <vector>
 #include "J3DData.hpp"
+#include "GX/GXStruct.hpp"
 #include "glm/mat4x4.hpp"
 #include "glm/vec3.hpp"
 
@@ -54,6 +56,7 @@ enum class EJ3DHierarchyType : uint16_t {
 
 // Represents a section of a J3D file (INF1, JNT1, ANK1, etc)
 struct J3DBlock {
+  uint32_t BlockOffset;
   EJ3DBlockType BlockType;
   uint32_t BlockSize;
 
@@ -84,6 +87,19 @@ struct J3DVertexBlock : public J3DBlock {
   uint32_t TexCoordTablesOffset[8]; // 0x0020
 
   virtual bool Deserialize(bStream::CStream* stream) override;
+
+  template<typename T>
+  void LoadAttributeData(std::vector<T>& dest, GXVertexAttributeList& curAttribute, GXVertexAttributeList& nextAttribute) {
+
+  }
+
+private:
+	template<typename T>
+	void AddElementToVector(std::vector<T>& dest, T element) {
+		dest.push_back(element);
+	}
+
+	uint32_t CalculateAttributeCount(GXVertexAttributeList& curAttribute, GXVertexAttributeList& nextAttribute);
 };
 
 struct J3DEnvelopeBlock : public J3DBlock {
