@@ -5,6 +5,7 @@
 
 #include "J3DVertexData.hpp"
 #include "J3DEnvelope.hpp"
+#include "J3DJoint.hpp"
 
 class J3DModelLoader;
 
@@ -26,6 +27,10 @@ class J3DModelData {
 	// DRW1 data, maps shapes to skinning envelopes
 	std::vector<bool> mDrawBools;
 	std::vector<uint16_t> mEnvelopeIndices;
+
+	// JNT1 data, joints
+	J3DJoint* mRootJoint;
+	std::vector<J3DJoint*> mJoints;
 
 	void MakeHierarchy(void* const root, std::vector<J3DModelHierarchy>* nodes);
 

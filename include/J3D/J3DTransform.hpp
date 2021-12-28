@@ -1,10 +1,13 @@
 #pragma once
 
 #include "glm/glm.hpp"
+#include "glm/gtx/quaternion.hpp"
+
+namespace bStream { class CStream; }
 
 struct J3DTransformInfo {
 	glm::vec3 Scale;
-	glm::vec3 Rotation;
+	glm::quat Rotation;
 	glm::vec3 Translation;
 
 	J3DTransformInfo& operator=(J3DTransformInfo const& info) {
@@ -14,6 +17,12 @@ struct J3DTransformInfo {
 
 		return *this;
 	}
+
+	void Deserialize(bStream::CStream* stream);
+
+private:
+	float U16ToFloat(uint16_t val);
+	uint16_t FloatToU16(float val);
 };
 
 struct J3DTextureSRTInfo {

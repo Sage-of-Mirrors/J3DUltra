@@ -3,6 +3,8 @@
 #include "../lib/bStream/bstream.h"
 #include "GX/GXEnum.hpp"
 #include "GX/GXStruct.hpp"
+#include "J3D/J3DJoint.hpp"
+#include "J3D/J3DNameTable.hpp"
 
 J3DModelLoader::J3DModelLoader() : mModelData(nullptr) {
 
@@ -18,6 +20,18 @@ J3DModelData* J3DModelLoader::Load(bStream::CStream* stream, uint32_t flags) {
         switch ((EJ3DBlockType)stream->peekUInt32(0)) {
             case EJ3DBlockType::INF1:
                 ReadInformationBlock(stream, flags);
+                break;
+            case EJ3DBlockType::VTX1:
+                ReadVertexBlock(stream, flags);
+                break;
+            case EJ3DBlockType::EVP1:
+                ReadEnvelopeBlock(stream, flags);
+                break;
+            case EJ3DBlockType::DRW1:
+                ReadDrawBlock(stream, flags);
+                break;
+            case EJ3DBlockType::JNT1:
+                ReadJointBlock(stream, flags);
                 break;
         }
     }
@@ -205,7 +219,31 @@ void J3DModelLoader::ReadJointBlock(bStream::CStream* stream, uint32_t flags) {
     J3DJointBlock jointBlock;
     jointBlock.Deserialize(stream);
 
+    stream->seek(jointBlock.NameTableOffset);
 
+    J3DNameTable nameTable;
+    nameTable.Deserialize(stream);
+
+    stream->seek(jointBlock.InitDataTableOffset);
+    for (int i = 0; i < jointBlock.Count; i++) {
+        J3DJoint* newJoint = new J3DJoint();
+        
+        newJoint->mJointName = nameTable.GetName(i);
+        newJoint->mJointID = i;
+
+        newJoint->mMatrixFlag = stream->readUInt16();
+        newJoint->mAttachFlag = stream->readUInt8();
+
+        stream->skip(1);
+
+        newJoint->mTransform.Deserialize(stream);
+
+        newJoint->mBoundingSphereRadius = stream->readFloat();
+        newJoint->mBoundingBoxMin = glm::vec3(stream->readFloat(), stream->readFloat(), stream->readFloat());
+        newJoint->mBoundingBoxMax = glm::vec3(stream->readFloat(), stream->readFloat(), stream->readFloat());
+
+        mModelData->mJoints.push_back(newJoint);
+    }
 
     stream->seek(currentStreamPos + jointBlock.BlockSize);
 }
