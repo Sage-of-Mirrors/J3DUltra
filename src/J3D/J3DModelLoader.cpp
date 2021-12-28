@@ -100,9 +100,38 @@ void J3DModelLoader::ReadVertexBlock(bStream::CStream* stream, uint32_t flags) {
             nextAttribute = *(it + 1);
 
         switch (it->Attribute) {
-        case EGXAttribute::Position:
-            vtxBlock.LoadAttributeData<glm::vec3>(vtxData->Positions, *it, nextAttribute);
-            break;
+            case EGXAttribute::Position:
+                stream->seek(vtxBlock.PositionTableOffset);
+                vtxBlock.LoadAttributeData(vtxData, stream, *it, nextAttribute);
+                break;
+            case EGXAttribute::Normal:
+                stream->seek(vtxBlock.NormalTableOffset);
+                vtxBlock.LoadAttributeData(vtxData, stream, *it, nextAttribute);
+                break;
+            case EGXAttribute::Color0:
+            case EGXAttribute::Color1:
+            {
+                uint32_t colorIndex = (uint32_t)it->Attribute - (uint32_t)EGXAttribute::Color0;
+
+                stream->seek(vtxBlock.ColorTablesOffset[colorIndex]);
+                vtxBlock.LoadAttributeData(vtxData, stream, *it, nextAttribute);
+                break;
+            }
+            case EGXAttribute::TexCoord0:
+            case EGXAttribute::TexCoord1:
+            case EGXAttribute::TexCoord2:
+            case EGXAttribute::TexCoord3:
+            case EGXAttribute::TexCoord4:
+            case EGXAttribute::TexCoord5:
+            case EGXAttribute::TexCoord6:
+            case EGXAttribute::TexCoord7:
+            {
+                uint32_t texCoordIndex = (uint32_t)it->Attribute - (uint32_t)EGXAttribute::TexCoord0;
+
+                stream->seek(vtxBlock.TexCoordTablesOffset[texCoordIndex]);
+                vtxBlock.LoadAttributeData(vtxData, stream, *it, nextAttribute);
+                break;
+            }
         }
     }
     

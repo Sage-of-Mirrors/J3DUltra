@@ -8,6 +8,7 @@
 #include "glm/vec3.hpp"
 
 namespace bStream { class CStream; }
+struct J3DVertexData;
 
 enum class EJ3DBlockType : uint32_t {
   ANF1 = 0x414E4631, // Joint full animation
@@ -88,17 +89,10 @@ struct J3DVertexBlock : public J3DBlock {
 
   virtual bool Deserialize(bStream::CStream* stream) override;
 
-  template<typename T>
-  void LoadAttributeData(std::vector<T>& dest, GXVertexAttributeList& curAttribute, GXVertexAttributeList& nextAttribute) {
-
-  }
+  void LoadAttributeData(J3DVertexData* vertexData, bStream::CStream* stream, GXVertexAttributeList& curAttribute, GXVertexAttributeList& nextAttribute);
 
 private:
-	template<typename T>
-	void AddElementToVector(std::vector<T>& dest, T element) {
-		dest.push_back(element);
-	}
-
+	uint32_t GetAttributeElementCount(GXVertexAttributeList& curAttribute);
 	uint32_t CalculateAttributeCount(GXVertexAttributeList& curAttribute, GXVertexAttributeList& nextAttribute);
 };
 
