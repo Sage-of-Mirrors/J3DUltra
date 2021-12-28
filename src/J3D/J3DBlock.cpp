@@ -124,7 +124,6 @@ void J3DVertexBlock::LoadAttributeData(J3DVertexData* vertexData, bStream::CStre
     uint32_t attributeCount = CalculateAttributeCount(curAttribute, nextAttribute);
     uint32_t elementCount = GetAttributeElementCount(curAttribute);
 
-    //std::vector<float> floatBuffer;
     float scaleFactor = powf(0.5f, curAttribute.Fraction);
 
     for (int i = 0; i < attributeCount; i++) {

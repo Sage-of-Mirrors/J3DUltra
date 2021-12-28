@@ -137,3 +137,75 @@ void J3DModelLoader::ReadVertexBlock(bStream::CStream* stream, uint32_t flags) {
     
     stream->seek(currentStreamPos + vtxBlock.BlockSize);
 }
+
+void J3DModelLoader::ReadEnvelopeBlock(bStream::CStream* stream, uint32_t flags) {
+    size_t currentStreamPos = stream->tell();
+
+    J3DEnvelopeBlock envBlock;
+    envBlock.Deserialize(stream);
+
+    for (int i = 0; i < envBlock.Count; i++) {
+        J3DEnvelope envelope;
+
+        uint8_t curJointCount = stream->readUInt8();
+
+        // Go to the joint index data and read this envelope's joint indices
+        stream->seek(envBlock.EnvelopeIndexTableOffset + (i * sizeof(uint16_t)));
+        for (int j = 0; j < curJointCount; j++)
+            envelope.JointIndices.push_back(stream->readUInt16());
+
+        // Go to the weight data and read this joint's weights
+        stream->seek(envBlock.WeightTableOffset + (i * sizeof(float)));
+        for (int j = 0; j < curJointCount; j++)
+            envelope.Weights.push_back(stream->readFloat());
+
+        mModelData->mJointEnvelopes.push_back(envelope);
+        stream->seek(envBlock.JointIndexTableOffset + (i + sizeof(uint8_t)));
+    }
+
+    // Read the joints' inverse bind matrices
+    uint32_t matrixCount = ((envBlock.BlockOffset + envBlock.BlockSize) - envBlock.MatrixTableOffset) / sizeof(glm::mat4x3);
+    for (int i = 0; i < matrixCount; i++) {
+        glm::mat4 matrix;
+
+        for (int x = 0; x < 3; x++) {
+            for (int y = 0; y < 4; y++) {
+                matrix[x][y] = stream->readFloat();
+            }
+        }
+
+        mModelData->mInverseBindMatrices.push_back(matrix);
+    }
+
+    stream->seek(currentStreamPos + envBlock.BlockSize);
+}
+
+void J3DModelLoader::ReadDrawBlock(bStream::CStream* stream, uint32_t flags) {
+    size_t currentStreamPos = stream->tell();
+
+    J3DDrawBlock drawBlock;
+    drawBlock.Deserialize(stream);
+
+    stream->seek(drawBlock.DrawTableOffset);
+
+    for (int i = 0; i < drawBlock.Count; i++) {
+        mModelData->mDrawBools.push_back(stream->readUInt8());
+        stream->seek(drawBlock.IndexTableOffset + (i * sizeof(uint16_t)));
+
+        mModelData->mEnvelopeIndices.push_back(stream->readUInt16());
+        stream->seek(drawBlock.DrawTableOffset + (i * sizeof(uint8_t)));
+    }
+
+    stream->seek(currentStreamPos + drawBlock.BlockSize);
+}
+
+void J3DModelLoader::ReadJointBlock(bStream::CStream* stream, uint32_t flags) {
+    size_t currentStreamPos = stream->tell();
+
+    J3DJointBlock jointBlock;
+    jointBlock.Deserialize(stream);
+
+
+
+    stream->seek(currentStreamPos + jointBlock.BlockSize);
+}

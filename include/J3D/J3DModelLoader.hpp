@@ -21,4 +21,7 @@ protected:
 
 	void ReadInformationBlock(bStream::CStream* stream, uint32_t flags);
 	void ReadVertexBlock(bStream::CStream* stream, uint32_t flags);
+	void ReadEnvelopeBlock(bStream::CStream* stream, uint32_t flags);
+	void ReadDrawBlock(bStream::CStream* stream, uint32_t flags);
+	void ReadJointBlock(bStream::CStream* stream, uint32_t flags);
 };
