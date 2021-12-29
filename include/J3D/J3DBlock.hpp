@@ -135,29 +135,6 @@ struct J3DJointBlock : public J3DBlock {
   virtual bool Deserialize(bStream::CStream* stream) override;
 };
 
-struct J3DShapeInitData {
-  uint8_t MatrixType;
-  uint16_t MatrixNum;
-  uint16_t VCDOffset;
-  uint16_t MatrixOffset;
-  uint16_t DrawOffset;
-  
-  float BoundingSphereRadius;
-  glm::vec3 BoundingBoxMin;
-  glm::vec3 BoundingBoxMax;
-};
-
-struct J3DShapeMatrixInitData {
-  uint16_t ID;
-  uint16_t Count;
-  uint32_t Start;
-};
-
-struct J3DShapeDrawInitData {
-  uint32_t Size;
-  uint32_t Start;
-};
-
 struct J3DShapeBlock : public J3DBlock {
   uint16_t Count; // 0x0008
 

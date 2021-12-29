@@ -5,6 +5,7 @@
 #include "GX/GXStruct.hpp"
 #include "J3D/J3DJoint.hpp"
 #include "J3D/J3DNameTable.hpp"
+#include "J3D/J3DShapeFactory.hpp"
 
 J3DModelLoader::J3DModelLoader() : mModelData(nullptr) {
 
@@ -32,6 +33,9 @@ J3DModelData* J3DModelLoader::Load(bStream::CStream* stream, uint32_t flags) {
                 break;
             case EJ3DBlockType::JNT1:
                 ReadJointBlock(stream, flags);
+                break;
+            case EJ3DBlockType::SHP1:
+                ReadShapeBlock(stream, flags);
                 break;
         }
     }
@@ -246,4 +250,18 @@ void J3DModelLoader::ReadJointBlock(bStream::CStream* stream, uint32_t flags) {
     }
 
     stream->seek(currentStreamPos + jointBlock.BlockSize);
+}
+
+void J3DModelLoader::ReadShapeBlock(bStream::CStream* stream, uint32_t flags) {
+    size_t currentStreamPos = stream->tell();
+
+    J3DShapeBlock shapeBlock;
+    shapeBlock.Deserialize(stream);
+
+    J3DShapeFactory shapeFactory(&shapeBlock);
+    for (int i = 0; i < shapeBlock.Count; i++) {
+        mModelData->mShapes.push_back(shapeFactory.Create(stream, i));
+    }
+
+    stream->seek(currentStreamPos + shapeBlock.BlockSize);
 }

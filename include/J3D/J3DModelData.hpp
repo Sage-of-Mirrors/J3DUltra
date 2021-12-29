@@ -6,6 +6,7 @@
 #include "J3DVertexData.hpp"
 #include "J3DEnvelope.hpp"
 #include "J3DJoint.hpp"
+#include "J3DShape.hpp"
 
 class J3DModelLoader;
 
@@ -31,6 +32,9 @@ class J3DModelData {
 	// JNT1 data, joints
 	J3DJoint* mRootJoint;
 	std::vector<J3DJoint*> mJoints;
+
+	// SHP1 data, geometry
+	std::vector<J3DShape*> mShapes;
 
 	void MakeHierarchy(void* const root, std::vector<J3DModelHierarchy>* nodes);
 
