@@ -37,11 +37,13 @@ struct J3DShapeDrawInitData {
 
 struct J3DVCDData {
 	EGXAttribute Attribute;
-	EGXComponentType Type;
+	EGXAttributeType Type;
 };
 
 class J3DShapeFactory {
 	J3DShapeBlock* mBlock;
+
+	void ReadMatrixInitData(bStream::CStream* stream, J3DShapeMatrixInitData& data, uint32_t index);
 
 	std::vector<J3DVertex> TriangulatePrimitive(EGXPrimitiveType primType, std::vector<J3DVertex> const& vertices);
 	std::vector<J3DVertex> TriangulateTriangleStrip(std::vector<J3DVertex> const& vertices);

@@ -66,6 +66,13 @@ enum class EGXComponentType : uint32_t {
 	RGBA8
 };
 
+enum class EGXAttributeType : uint32_t {
+	None,
+	Direct,
+	Index8,
+	Index16
+};
+
 enum class EGXPrimitiveType : uint8_t {
 	None = 0,
 

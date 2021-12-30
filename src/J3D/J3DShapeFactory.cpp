@@ -36,7 +36,7 @@ J3DShape* J3DShapeFactory::Create(bStream::CStream* stream, uint32_t index) {
 	while ((EGXAttribute)stream->peekUInt32(stream->tell()) != EGXAttribute::Null) {
 		J3DVCDData vcd = {
 			(EGXAttribute)stream->readUInt32(),
-			(EGXComponentType)stream->readUInt32()
+			(EGXAttributeType)stream->readUInt32()
 		};
 
 		vertexAttributes.push_back(vcd);
@@ -45,6 +45,7 @@ J3DShape* J3DShapeFactory::Create(bStream::CStream* stream, uint32_t index) {
 	// Now load the packet data. This'll be a doozy
 	for (int i = 0; i < initData.MatrixNum; i++) {
 		J3DPacket newPacket;
+		newPacket.EnableAttributes(vertexAttributes);
 
 		uint32_t drawInitOffset = (initData.DrawOffset + i) * sizeof(J3DShapeDrawInitData);
 		stream->seek(mBlock->DrawInitDataTableOffset + drawInitOffset);
@@ -72,25 +73,66 @@ J3DShape* J3DShapeFactory::Create(bStream::CStream* stream, uint32_t index) {
 				J3DVertex newVtx;
 
 				for (auto attribute : vertexAttributes) {
-					int16_t value = 0;
+					uint16_t value = 0;
 
 					// Read the index value
 					switch (attribute.Type) {
-						case EGXComponentType::Unsigned16:
-						case EGXComponentType::Signed16:
-							value = stream->readInt16();
+						case EGXAttributeType::Index16:
+							value = stream->readUInt16();
 							break;
-						case EGXComponentType::Unsigned8:
-						case EGXComponentType::Signed8:
-							value = stream->readInt8();
+						case EGXAttributeType::Index8:
+							value = stream->readUInt8();
 							break;
+						case EGXAttributeType::Direct:
+							if (attribute.Attribute != EGXAttribute::PositionMatrixIdx) {
+								std::cout << "Found a Direct attribute that wasn't PnMtxIdx!!! (Value: " << (uint32_t)attribute.Attribute << ")\n";
+								continue;
+							}
+
+							value = stream->readUInt8();
+							break;
+						case EGXAttributeType::None:
+						default:
+							continue;
 					}
 
 					// Assign it to the proper member of the vertex
 					switch (attribute.Attribute) {
 						case EGXAttribute::PositionMatrixIdx:
-							// Special case! Need to process this into 2 values.
+						// Special case! We will calculate the index into DRW1 to use later, and store it in the SkinWeight member.
+						{
+							// Divide by 3 because ???
+							value /= 3;
+
+							uint32_t currentStreamPos = stream->tell();
+							stream->seek(mBlock->MatrixInitTableOffset + (initData.MatrixOffset * sizeof(J3DShapeMatrixInitData)));
+
+							uint16_t matrixInitIndex = initData.MatrixOffset;
+							J3DShapeMatrixInitData matrixInitData;
+
+							while (matrixInitIndex >= 0) {
+								// Grab the matrix data
+								ReadMatrixInitData(stream, matrixInitData, matrixInitIndex * sizeof(J3DShapeMatrixInitData));
+
+								// calculate the offset to read from
+								uint16_t matrixTableOffset = mBlock->MatrixTableOffset + (matrixInitData.Start + value) * sizeof(uint16_t);
+								
+								// Read the value !
+								uint16_t matrixEntry = stream->peekUInt16(matrixTableOffset);
+								// If the index we read isn't 0xFFFF, we can finish early because we have our value.
+								if (matrixEntry != 0xFFFF) {
+									newVtx.SkinWeight = matrixEntry;
+									break;
+								}
+
+								// The value we read was 0xFFFF, which means we need to move up a matrix entry to try and grab
+								// another value in the same position. This can happen multiple times. :(
+								matrixInitIndex--;
+							}
+
+							stream->seek(currentStreamPos);
 							break;
+						}
 						case EGXAttribute::Position:
 							newVtx.Position = value;
 							break;
@@ -127,6 +169,17 @@ J3DShape* J3DShapeFactory::Create(bStream::CStream* stream, uint32_t index) {
 	return newShape;
 }
 
+void J3DShapeFactory::ReadMatrixInitData(bStream::CStream* stream, J3DShapeMatrixInitData& data, uint32_t offset) {
+	uint32_t currentStreamPos = stream->tell();
+	stream->seek(mBlock->MatrixInitTableOffset + offset);
+
+	data.ID = stream->readUInt16();
+	data.Count = stream->readUInt16();
+	data.Start = stream->readUInt32();
+
+	stream->seek(currentStreamPos);
+}
+
 std::vector<J3DVertex> J3DShapeFactory::TriangulatePrimitive(EGXPrimitiveType primType, std::vector<J3DVertex> const& vertices) {
 	switch (primType) {
 		case EGXPrimitiveType::Triangles:
@@ -146,17 +199,15 @@ std::vector<J3DVertex> J3DShapeFactory::TriangulateTriangleStrip(std::vector<J3D
 	for (int i = 2; i < vertices.size(); i++) {
 		bool isIndexOdd = i % 2 != 0;
 
-		J3DVertex const* newTriangle[3];
-
-		newTriangle[0] = &vertices[i - 2];
-		newTriangle[1] = isIndexOdd ? &vertices[i] : &vertices[i - 1];
-		newTriangle[2] = isIndexOdd ? &vertices[i - 1] : &vertices[i];
+		J3DVertex const& v0 = vertices[i - 2];
+		J3DVertex const& v1 = isIndexOdd ? vertices[i] : vertices[i - 1];
+		J3DVertex const& v2 = isIndexOdd ? vertices[i - 1] : vertices[i];
 
 		// Reject degenerate triangles (triangles where two or more vertices are the same)
-		if (newTriangle[0] != newTriangle[1] && newTriangle[1] != newTriangle[2] && newTriangle[2] != newTriangle[0]) {
-			triangles.push_back(*newTriangle[0]);
-			triangles.push_back(*newTriangle[1]);
-			triangles.push_back(*newTriangle[2]);
+		if (v0 == v1 || v0 == v2 || v1 == v2) {
+			triangles.push_back(v0);
+			triangles.push_back(v1);
+			triangles.push_back(v2);
 		}
 	}
 
@@ -167,18 +218,17 @@ std::vector<J3DVertex> J3DShapeFactory::TriangulateTriangleFan(std::vector<J3DVe
 	std::vector<J3DVertex> triangles;
 
 	for (int i = 1; i < vertices.size() - 1; i++) {
-		J3DVertex const* newTriangle[3];
-
-		newTriangle[0] = &vertices[i];
-		newTriangle[1] = &vertices[i + 1];
-		newTriangle[2] = &vertices[0];
+		J3DVertex const& v0 = vertices[i];
+		J3DVertex const& v1 = vertices[i + 1];
+		J3DVertex const& v2 = vertices[0];
 
 		// Reject degenerate triangles (triangles where two or more vertices are the same)
-		if (newTriangle[0] != newTriangle[1] && newTriangle[1] != newTriangle[2] && newTriangle[2] != newTriangle[0]) {
-			triangles.push_back(*newTriangle[0]);
-			triangles.push_back(*newTriangle[1]);
-			triangles.push_back(*newTriangle[2]);
-		}
+		if (v0 == v1 || v0 == v2 || v1 == v2)
+			continue;
+
+		triangles.push_back(v0);
+		triangles.push_back(v1);
+		triangles.push_back(v2);
 	}
 
 	return triangles;

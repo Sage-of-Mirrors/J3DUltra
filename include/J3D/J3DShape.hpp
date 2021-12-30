@@ -30,6 +30,27 @@ struct J3DVertex {
 	uint16_t TexCoord[8];
 	uint16_t SkinWeight;
 	uint16_t JointID;
+
+	bool operator==(const J3DVertex& other) const {
+		return Position == other.Position &&
+			Normal == other.Normal &&
+			Color[0] == other.Color[0] &&
+			Color[1] == other.Color[1] &&
+			TexCoord[0] == other.TexCoord[0] &&
+			TexCoord[1] == other.TexCoord[1] &&
+			TexCoord[2] == other.TexCoord[2] &&
+			TexCoord[3] == other.TexCoord[3] &&
+			TexCoord[4] == other.TexCoord[4] &&
+			TexCoord[5] == other.TexCoord[5] &&
+			TexCoord[6] == other.TexCoord[6] &&
+			TexCoord[7] == other.TexCoord[7] &&
+			SkinWeight == other.SkinWeight &&
+			JointID == other.JointID;
+	}
+
+	bool operator!=(const J3DVertex& other) const {
+		return !operator==(other);
+	}
 };
 
 class J3DPacket {
@@ -42,7 +63,7 @@ public:
 	J3DPacket();
 	~J3DPacket();
 
-	void EnableAttribute(EGLAttribute attr) { mEnabledAttributes.push_back(attr); }
+	void EnableAttributes(std::vector<J3DVCDData> gxAttributes);
 };
 
 class J3DShape {
