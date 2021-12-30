@@ -8,6 +8,7 @@
 namespace bStream { class CStream; }
 class J3DShapeBlock;
 class J3DShape;
+class J3DVertex;
 
 struct J3DShapeInitData {
 	uint8_t MatrixType;
@@ -41,6 +42,10 @@ struct J3DVCDData {
 
 class J3DShapeFactory {
 	J3DShapeBlock* mBlock;
+
+	std::vector<J3DVertex> TriangulatePrimitive(EGXPrimitiveType primType, std::vector<J3DVertex> const& vertices);
+	std::vector<J3DVertex> TriangulateTriangleStrip(std::vector<J3DVertex> const& vertices);
+	std::vector<J3DVertex> TriangulateTriangleFan(std::vector<J3DVertex> const& vertices);
 
 public:
 	J3DShapeFactory(J3DShapeBlock* srcBlock) { mBlock = srcBlock; }
