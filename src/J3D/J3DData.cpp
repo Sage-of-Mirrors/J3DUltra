@@ -1,5 +1,5 @@
 #include "J3D/J3DData.hpp"
-#include "../lib/bStream/bstream.h"
+#include <bstream.h>
 
 bool J3DDataBase::Deserialize(bStream::CStream* stream) {
 	try {

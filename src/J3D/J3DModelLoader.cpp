@@ -1,11 +1,11 @@
 #include "J3D/J3DModelLoader.hpp"
 #include "J3D/J3DModelData.hpp"
-#include "../lib/bStream/bstream.h"
 #include "GX/GXEnum.hpp"
 #include "GX/GXStruct.hpp"
 #include "J3D/J3DJoint.hpp"
 #include "J3D/J3DNameTable.hpp"
 #include "J3D/J3DShapeFactory.hpp"
+#include <bstream.h>
 
 J3DModelLoader::J3DModelLoader() : mModelData(nullptr) {
 

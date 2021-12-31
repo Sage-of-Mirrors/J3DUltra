@@ -2,7 +2,7 @@
 #include "J3D/J3DShape.hpp"
 #include "J3D/J3DBlock.hpp"
 #include "GX/GXEnum.hpp"
-#include "../bStream/bstream.h"
+#include <bstream.h>
 
 void J3DShapeInitData::Deserialize(bStream::CStream* stream) {
 	MatrixType = stream->readUInt8();

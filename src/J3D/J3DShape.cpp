@@ -1,8 +1,7 @@
 #include "J3D/J3DShape.hpp"
 #include "J3D//J3DShapeFactory.hpp"
 #include "GX/GXEnum.hpp"
-#include "../lib/bStream/bstream.h"
-
+#include <bstream.h>
 
 void J3DPacket::EnableAttributes(std::vector<J3DVCDData> gxAttributes) {
 	for (auto attr : gxAttributes) {
@@ -52,5 +51,4 @@ void J3DPacket::EnableAttributes(std::vector<J3DVCDData> gxAttributes) {
 }
 
 void J3DShape::Deserialize(bStream::CStream* stream) {
-
 }

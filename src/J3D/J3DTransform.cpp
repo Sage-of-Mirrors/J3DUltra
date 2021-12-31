@@ -1,5 +1,5 @@
 #include "J3D/J3DTransform.hpp"
-#include "../lib/bStream/bstream.h"
+#include <bstream.h>
 
 float J3DTransformInfo::U16ToFloat(uint16_t val) {
 	return val * (180 / 32768.f);

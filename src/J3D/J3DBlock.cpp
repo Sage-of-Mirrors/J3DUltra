@@ -1,7 +1,7 @@
 #include "J3D/J3DBlock.hpp"
 #include "J3D/J3DVertexData.hpp"
-#include "../lib/bStream/bstream.h"
 #include "GX/GXEnum.hpp"
+#include <bstream.h>
 
 bool J3DBlock::Deserialize(bStream::CStream* stream) {
     try {

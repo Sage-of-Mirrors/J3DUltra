@@ -5,6 +5,7 @@
 
 namespace bStream { class CStream; }
 class J3DShapeFactory;
+class J3DVCDData;
 
 enum class EGLAttribute {
 	Position,

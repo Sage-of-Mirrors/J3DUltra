@@ -1,5 +1,5 @@
 #include "J3D/J3DNameTable.hpp"
-#include "../lib/bStream/bstream.h"
+#include <bstream.h>
 
 void J3DNameTable::Deserialize(bStream::CStream* stream) {
 	uint32_t tableStartPos = stream->tell();
