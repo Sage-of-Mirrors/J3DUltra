@@ -16,7 +16,7 @@ file(GLOB J3DULTRA_SRC
     "include/J3D/*.hpp"
     "include/GX/*.hpp"
     
-    # bstream
+    # bStream
     "lib/bStream/*.cpp"
     
     # glad
