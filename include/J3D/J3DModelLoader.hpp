@@ -13,11 +13,12 @@ class J3DModelLoader {
 	J3DModelData* mModelData;
 
 public:
+	J3DModelLoader();
+	virtual ~J3DModelLoader() {}
+
 	virtual J3DModelData* Load(bStream::CStream* stream, uint32_t flags);
 
 protected:
-	J3DModelLoader();
-	virtual ~J3DModelLoader() {}
 
 	void ReadInformationBlock(bStream::CStream* stream, uint32_t flags);
 	void ReadVertexBlock(bStream::CStream* stream, uint32_t flags);

@@ -24,6 +24,7 @@ bool J3DModelInfoBlock::Deserialize(bStream::CStream* stream) {
 
     try {
         Flags = stream->readUInt16();
+        stream->skip(2);
         MatrixGroupCount = stream->readUInt32();
         VertexPositionCount = stream->readUInt32();
 

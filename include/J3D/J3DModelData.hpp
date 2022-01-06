@@ -36,11 +36,11 @@ class J3DModelData {
 	// SHP1 data, geometry
 	std::vector<J3DShape*> mShapes;
 
-	void MakeHierarchy(void* const root, std::vector<J3DModelHierarchy>* nodes);
+	void MakeHierarchy(void* const root, std::vector<J3DModelHierarchy>* nodes) {}
 
 public:
-	J3DModelData();
-	virtual ~J3DModelData();
+	J3DModelData() {}
+	virtual ~J3DModelData() {}
 
 
 };

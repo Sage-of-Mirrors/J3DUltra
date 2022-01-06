@@ -43,17 +43,17 @@ J3DShape* J3DShapeFactory::Create(bStream::CStream* stream, uint32_t index) {
 	}
 
 	// Now load the packet data. This'll be a doozy
-	for (int i = 0; i < initData.MatrixNum; i++) {
+	for (int packetIndex = 0; packetIndex < initData.MatrixNum; packetIndex++) {
 		J3DPacket newPacket;
 		newPacket.EnableAttributes(vertexAttributes);
 
-		uint32_t drawInitOffset = (initData.DrawOffset + i) * sizeof(J3DShapeDrawInitData);
+		uint32_t drawInitOffset = (initData.DrawOffset + packetIndex) * sizeof(J3DShapeDrawInitData);
 		stream->seek(mBlock->DrawInitDataTableOffset + drawInitOffset);
 
 		// Load info about the packet - size and offset of the primitives making it up.
 		J3DShapeDrawInitData drawInitData{
-			stream->readUInt16(),
-			stream->readUInt16()
+			stream->readUInt32(),
+			stream->readUInt32()
 		};
 
 		stream->seek(mBlock->DrawTableOffset + drawInitData.Start);
@@ -69,7 +69,7 @@ J3DShape* J3DShapeFactory::Create(bStream::CStream* stream, uint32_t index) {
 				break;
 
 			uint16_t vtxCount = stream->readUInt16();
-			for (int i = 0; i < vtxCount; i++) {
+			for (int j = 0; j < vtxCount; j++) {
 				J3DVertex newVtx;
 
 				for (auto attribute : vertexAttributes) {
@@ -107,7 +107,7 @@ J3DShape* J3DShapeFactory::Create(bStream::CStream* stream, uint32_t index) {
 							uint32_t currentStreamPos = stream->tell();
 							stream->seek(mBlock->MatrixInitTableOffset + (initData.MatrixOffset * sizeof(J3DShapeMatrixInitData)));
 
-							uint16_t matrixInitIndex = initData.MatrixOffset;
+							uint16_t matrixInitIndex = initData.MatrixOffset + packetIndex;
 							J3DShapeMatrixInitData matrixInitData;
 
 							while (matrixInitIndex >= 0) {
@@ -204,11 +204,12 @@ std::vector<J3DVertex> J3DShapeFactory::TriangulateTriangleStrip(std::vector<J3D
 		J3DVertex const& v2 = isIndexOdd ? vertices[i - 1] : vertices[i];
 
 		// Reject degenerate triangles (triangles where two or more vertices are the same)
-		if (v0 == v1 || v0 == v2 || v1 == v2) {
-			triangles.push_back(v0);
-			triangles.push_back(v1);
-			triangles.push_back(v2);
-		}
+		if (v0 == v1 || v0 == v2 || v1 == v2)
+			continue;
+
+		triangles.push_back(v0);
+		triangles.push_back(v1);
+		triangles.push_back(v2);
 	}
 
 	return triangles;

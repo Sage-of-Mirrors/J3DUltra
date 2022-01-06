@@ -5,7 +5,7 @@
 
 namespace bStream { class CStream; }
 class J3DShapeFactory;
-class J3DVCDData;
+struct J3DVCDData;
 
 enum class EGLAttribute {
 	Position,
@@ -61,10 +61,10 @@ class J3DPacket {
 	std::vector<J3DVertex> mVertices;
 
 public:
-	J3DPacket();
-	~J3DPacket();
+	J3DPacket() {}
+	~J3DPacket() {}
 
-	void EnableAttributes(std::vector<J3DVCDData> gxAttributes);
+	void EnableAttributes(std::vector<J3DVCDData>& gxAttributes);
 };
 
 class J3DShape {
@@ -73,8 +73,8 @@ class J3DShape {
 	std::vector<J3DPacket> mPackets;
 
 public:
-	J3DShape();
-	~J3DShape();
+	J3DShape() {}
+	~J3DShape() {}
 
 	void Deserialize(bStream::CStream* stream);
 };

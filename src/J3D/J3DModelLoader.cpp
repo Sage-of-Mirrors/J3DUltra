@@ -18,7 +18,7 @@ J3DModelData* J3DModelLoader::Load(bStream::CStream* stream, uint32_t flags) {
     header.Deserialize(stream);
 
     for (int i = 0; i < header.BlockCount; i++) {
-        switch ((EJ3DBlockType)stream->peekUInt32(0)) {
+        switch ((EJ3DBlockType)stream->peekUInt32(stream->tell())) {
             case EJ3DBlockType::INF1:
                 ReadInformationBlock(stream, flags);
                 break;
@@ -95,7 +95,7 @@ void J3DModelLoader::ReadVertexBlock(bStream::CStream* stream, uint32_t flags) {
     std::vector<GXVertexAttributeList> attributes;
     stream->seek(vtxBlock.AttributeTableOffset);
 
-    while ((EGXAttribute)stream->peekUInt32(0) != EGXAttribute::Null) {
+    while ((EGXAttribute)stream->peekUInt32(stream->tell()) != EGXAttribute::Null) {
         GXVertexAttributeList attribute {
             (EGXAttribute)stream->readUInt32(),
             (EGXComponentCount)stream->readUInt32(),
@@ -162,6 +162,8 @@ void J3DModelLoader::ReadEnvelopeBlock(bStream::CStream* stream, uint32_t flags)
     J3DEnvelopeBlock envBlock;
     envBlock.Deserialize(stream);
 
+    uint8_t runningWeightIndex = 0;
+
     for (int i = 0; i < envBlock.Count; i++) {
         J3DEnvelope envelope;
 
@@ -173,18 +175,23 @@ void J3DModelLoader::ReadEnvelopeBlock(bStream::CStream* stream, uint32_t flags)
             envelope.JointIndices.push_back(stream->readUInt16());
 
         // Go to the weight data and read this joint's weights
-        stream->seek(envBlock.WeightTableOffset + (i * sizeof(float)));
+        stream->seek(envBlock.WeightTableOffset + (runningWeightIndex * sizeof(float)));
         for (int j = 0; j < curJointCount; j++)
             envelope.Weights.push_back(stream->readFloat());
 
         mModelData->mJointEnvelopes.push_back(envelope);
         stream->seek(envBlock.JointIndexTableOffset + (i + sizeof(uint8_t)));
+
+        runningWeightIndex += curJointCount;
     }
+
+    stream->seek(envBlock.MatrixTableOffset);
 
     // Read the joints' inverse bind matrices
     uint32_t matrixCount = ((envBlock.BlockOffset + envBlock.BlockSize) - envBlock.MatrixTableOffset) / sizeof(glm::mat4x3);
     for (int i = 0; i < matrixCount; i++) {
         glm::mat4 matrix;
+        matrix[3] = glm::vec4(0, 0, 0, 1);
 
         for (int x = 0; x < 3; x++) {
             for (int y = 0; y < 4; y++) {

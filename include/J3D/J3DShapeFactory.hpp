@@ -6,9 +6,9 @@
 #include "glm/glm.hpp"
 
 namespace bStream { class CStream; }
-class J3DShapeBlock;
 class J3DShape;
-class J3DVertex;
+struct J3DShapeBlock;
+struct J3DVertex;
 
 struct J3DShapeInitData {
 	uint8_t MatrixType;
@@ -51,7 +51,7 @@ class J3DShapeFactory {
 
 public:
 	J3DShapeFactory(J3DShapeBlock* srcBlock) { mBlock = srcBlock; }
-	~J3DShapeFactory();
+	~J3DShapeFactory() {}
 
 	J3DShape* Create(bStream::CStream* stream, uint32_t index);
 };

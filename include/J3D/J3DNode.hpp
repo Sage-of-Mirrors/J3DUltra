@@ -13,8 +13,8 @@ class J3DNode {
 	std::vector<J3DNode*> mChildren;
 
 public:
-	J3DNode();
-	virtual ~J3DNode();
+	J3DNode() {}
+	virtual ~J3DNode() {}
 
 	virtual EJ3DNodeType GetType() const { return EJ3DNodeType::Base; }
 

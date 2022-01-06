@@ -9,8 +9,8 @@ class J3DNameTable {
 	std::vector<std::string> mNames;
 
 public:
-	J3DNameTable();
-	~J3DNameTable();
+	J3DNameTable() {}
+	~J3DNameTable() {}
 
 	void Deserialize(bStream::CStream* stream);
 
