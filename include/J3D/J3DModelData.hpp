@@ -7,6 +7,8 @@
 #include "J3DEnvelope.hpp"
 #include "J3DJoint.hpp"
 #include "J3DShape.hpp"
+#include "J3DMaterial.hpp"
+#include "J3DBlock.hpp"
 
 class J3DModelLoader;
 
@@ -36,7 +38,10 @@ class J3DModelData {
 	// SHP1 data, geometry
 	std::vector<J3DShape*> mShapes;
 
-	void MakeHierarchy(void* const root, std::vector<J3DModelHierarchy>* nodes) {}
+	// MAT3 data, materials
+	std::vector<J3DMaterial*> mMaterials;
+
+	void MakeHierarchy(J3DJoint* const root, uint32_t& index);
 
 public:
 	J3DModelData() {}

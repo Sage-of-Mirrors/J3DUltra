@@ -6,6 +6,7 @@
 
 namespace bStream { class CStream; }
 class J3DModelData;
+class J3DJoint;
 
 constexpr uint32_t FLAGS_MATRIX_MASK = 0x0000000F;
 
@@ -26,4 +27,5 @@ protected:
 	void ReadDrawBlock(bStream::CStream* stream, uint32_t flags);
 	void ReadJointBlock(bStream::CStream* stream, uint32_t flags);
 	void ReadShapeBlock(bStream::CStream* stream, uint32_t flags);
+	void ReadMaterialBlock(bStream::CStream* stream, uint32_t flags);
 };

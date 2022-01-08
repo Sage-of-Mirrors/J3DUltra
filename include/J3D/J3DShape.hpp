@@ -75,7 +75,7 @@ public:
 	~J3DShape() {}
 
 	void EnableAttributes(std::vector<J3DVCDData>& gxAttributes);
-	const std::vector<EGLAttribute>& GetEnabledAttributes() { return mEnabledAttributes; }
+	const std::vector<EGLAttribute>& GetEnabledAttributes() const { return mEnabledAttributes; }
 
 	void Deserialize(bStream::CStream* stream);
 };

@@ -1,5 +1,6 @@
 #include "J3D/J3DMaterial.hpp"
-#include "J3D/J3DShaderGenerator.hpp"
+#include "J3D/J3DVertexShaderGenerator.hpp"
+#include "J3D/J3DFragmentShaderGenerator.hpp"
 #include "J3D/J3DShape.hpp"
 
 #include <iostream>
@@ -26,15 +27,15 @@ void J3DMaterial::Unbind() {
 	glUseProgram(0);
 }
 
-bool J3DMaterial::GenerateShaders() {
+bool J3DMaterial::GenerateShaders(const int32_t& jointCount) {
 	int32_t vertShader, fragShader;
 
-	if (!J3DShaderGenerator::GenerateVertexShader(mShape->GetEnabledAttributes(), vertShader)) {
+	if (!J3DVertexShaderGenerator::GenerateVertexShader(this, jointCount, vertShader)) {
 		std::cout << "Error in vertex shader generator!" << std::endl;
 		return false;
 	}
 
-	if (!J3DShaderGenerator::GenerateFragmentShader(fragShader)) {
+	if (!J3DFragmentShaderGenerator::GenerateFragmentShader(fragShader)) {
 		std::cout << "Error in fragment shader generator!" << std::endl;
 
 		glDeleteShader(vertShader);

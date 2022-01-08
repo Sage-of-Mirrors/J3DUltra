@@ -149,3 +149,40 @@ struct J3DShapeBlock : public J3DBlock {
   
   virtual bool Deserialize(bStream::CStream* stream) override;
 };
+
+struct J3DMaterialBlock : public J3DBlock {
+	uint16_t Count;
+
+	uint32_t InitDataTableOffset;
+	uint32_t IndexTableOffset;
+	uint32_t NameTableOffset;
+	uint32_t IndirectInitDataTableOffset;
+	uint32_t CullModeTableOffset;
+	uint32_t MaterialColorTableOffset;
+	uint32_t ColorChannelCountTableOffset;
+	uint32_t ColorChannelTableOffset;
+	uint32_t AmbientColorTableOffset;
+	uint32_t LightTableOffset;
+	uint32_t TexGenCountTableOffset;
+	uint32_t TexCoordTableOffset;
+	uint32_t TexCoord2TableOffset;
+	uint32_t TexMatrixTableOffset;
+	uint32_t PostTexMatrixTableOffset;
+	uint32_t TextureIndexTableOffset;
+	uint32_t TevOrderTableOffset;
+	uint32_t TevColorTableOffset;
+	uint32_t TevKColorTableOffset;
+	uint32_t TevStageCountTableOffset;
+	uint32_t TevStageTableOffset;
+	uint32_t TevSwapModeTableOffset;
+	uint32_t TevSwapTableOffset;
+	uint32_t FogTableOffset;
+	uint32_t AlphaCompareTableOffset;
+	uint32_t BlendInfoTableOffset;
+	uint32_t ZModeTableOffset;
+	uint32_t ZCompLocTableOffset;
+	uint32_t DitherTableOffset;
+	uint32_t NBTScaleTableOffset;
+
+	virtual bool Deserialize(bStream::CStream* stream) override;
+};

@@ -5,6 +5,9 @@
 #include "J3D/J3DJoint.hpp"
 #include "J3D/J3DNameTable.hpp"
 #include "J3D/J3DShapeFactory.hpp"
+#include "J3D/J3DMaterialFactory.hpp"
+#include "J3D/J3DJoint.hpp"
+
 #include <bstream.h>
 
 J3DModelLoader::J3DModelLoader() : mModelData(nullptr) {
@@ -37,10 +40,14 @@ J3DModelData* J3DModelLoader::Load(bStream::CStream* stream, uint32_t flags) {
             case EJ3DBlockType::SHP1:
                 ReadShapeBlock(stream, flags);
                 break;
+            case EJ3DBlockType::MAT3:
+                ReadMaterialBlock(stream, flags);
+                break;
         }
     }
 
-    mModelData->MakeHierarchy(nullptr, &mModelData->mHierarchyNodes);
+    uint32_t index = 0;
+    mModelData->MakeHierarchy(nullptr, index);
 
     return mModelData;
 }
@@ -271,4 +278,18 @@ void J3DModelLoader::ReadShapeBlock(bStream::CStream* stream, uint32_t flags) {
     }
 
     stream->seek(currentStreamPos + shapeBlock.BlockSize);
+}
+
+void J3DModelLoader::ReadMaterialBlock(bStream::CStream* stream, uint32_t flags) {
+    size_t currentStreamPos = stream->tell();
+
+    J3DMaterialBlock matBlock;
+    matBlock.Deserialize(stream);
+
+    J3DMaterialFactory materialFactory(&matBlock, stream);
+    for (int i = 0; i < matBlock.Count; i++) {
+        mModelData->mMaterials.push_back(materialFactory.Create(stream, i));
+    }
+
+    stream->seek(currentStreamPos + matBlock.BlockSize);
 }

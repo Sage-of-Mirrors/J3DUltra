@@ -1,11 +1,14 @@
 #pragma once
 
-#include <string>
 #include "J3DNode.hpp"
 #include "J3DTransform.hpp"
 #include "glm/glm.hpp"
 
+#include <string>
+#include <vector>
+
 class J3DModelLoader;
+class J3DMaterial;
 
 enum class EJ3DJointBBoardType : uint8_t {
 	None,
@@ -27,10 +30,15 @@ class J3DJoint : public J3DNode {
 	glm::vec3 mBoundingBoxMin;
 	glm::vec3 mBoundingBoxMax;
 
+	std::vector<J3DMaterial*> mMaterials;
+
 public:
 
 	virtual EJ3DNodeType GetType() { return EJ3DNodeType::Joint; }
 
 	std::string GetJointName() { return mJointName; }
 	uint16_t GetJointID() { return mJointID; }
+
+	void AddMaterial(J3DMaterial* mat) { mMaterials.push_back(mat); }
+	J3DMaterial* const GetLastMaterial() { return mMaterials.back(); }
 };
