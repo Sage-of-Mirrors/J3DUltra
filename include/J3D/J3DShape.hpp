@@ -57,24 +57,25 @@ struct J3DVertex {
 class J3DPacket {
 	friend J3DShapeFactory;
 
-	std::vector<EGLAttribute> mEnabledAttributes;
 	std::vector<J3DVertex> mVertices;
 
 public:
 	J3DPacket() {}
 	~J3DPacket() {}
-
-	void EnableAttributes(std::vector<J3DVCDData>& gxAttributes);
 };
 
 class J3DShape {
 	friend J3DShapeFactory;
 
+	std::vector<EGLAttribute> mEnabledAttributes;
 	std::vector<J3DPacket> mPackets;
 
 public:
 	J3DShape() {}
 	~J3DShape() {}
+
+	void EnableAttributes(std::vector<J3DVCDData>& gxAttributes);
+	const std::vector<EGLAttribute>& GetEnabledAttributes() { return mEnabledAttributes; }
 
 	void Deserialize(bStream::CStream* stream);
 };

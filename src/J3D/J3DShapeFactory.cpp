@@ -42,10 +42,11 @@ J3DShape* J3DShapeFactory::Create(bStream::CStream* stream, uint32_t index) {
 		vertexAttributes.push_back(vcd);
 	}
 
+	newShape->EnableAttributes(vertexAttributes);
+
 	// Now load the packet data. This'll be a doozy
 	for (int packetIndex = 0; packetIndex < initData.MatrixNum; packetIndex++) {
 		J3DPacket newPacket;
-		newPacket.EnableAttributes(vertexAttributes);
 
 		uint32_t drawInitOffset = (initData.DrawOffset + packetIndex) * sizeof(J3DShapeDrawInitData);
 		stream->seek(mBlock->DrawInitDataTableOffset + drawInitOffset);
