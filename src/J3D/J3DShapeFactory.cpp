@@ -61,7 +61,8 @@ J3DShape* J3DShapeFactory::Create(bStream::CStream* stream, uint32_t index) {
 
 		uint32_t endOffset = stream->tell() + drawInitData.Size;
 		while (stream->tell() < endOffset) {
-			std::vector<J3DVertex> primitiveVertices;
+			std::vector<J3DVertexGX> primitiveVertices;
+			std::vector<uint16_t> primitiveDrawIndices;
 
 			// Get the primitive type. If it's None (0), we're done reading the packet's primitives
 			// because the rest of the bytes are padding.
@@ -71,7 +72,7 @@ J3DShape* J3DShapeFactory::Create(bStream::CStream* stream, uint32_t index) {
 
 			uint16_t vtxCount = stream->readUInt16();
 			for (int j = 0; j < vtxCount; j++) {
-				J3DVertex newVtx;
+				J3DVertexGX newVtx;
 
 				for (auto attribute : vertexAttributes) {
 					uint16_t value = 0;
@@ -100,40 +101,12 @@ J3DShape* J3DShapeFactory::Create(bStream::CStream* stream, uint32_t index) {
 					// Assign it to the proper member of the vertex
 					switch (attribute.Attribute) {
 						case EGXAttribute::PositionMatrixIdx:
-						// Special case! We will calculate the index into DRW1 to use later, and store it in the SkinWeight member.
-						{
+							// Special case! We will calculate the index into DRW1 to use later, and store it in the draw indices vector.
+							
 							// Divide by 3 because ???
 							value /= 3;
-
-							uint32_t currentStreamPos = stream->tell();
-							stream->seek(mBlock->MatrixInitTableOffset + (initData.MatrixOffset * sizeof(J3DShapeMatrixInitData)));
-
-							uint16_t matrixInitIndex = initData.MatrixOffset + packetIndex;
-							J3DShapeMatrixInitData matrixInitData;
-
-							while (matrixInitIndex >= 0) {
-								// Grab the matrix data
-								ReadMatrixInitData(stream, matrixInitData, matrixInitIndex * sizeof(J3DShapeMatrixInitData));
-
-								// calculate the offset to read from
-								uint16_t matrixTableOffset = mBlock->MatrixTableOffset + (matrixInitData.Start + value) * sizeof(uint16_t);
-								
-								// Read the value !
-								uint16_t matrixEntry = stream->peekUInt16(matrixTableOffset);
-								// If the index we read isn't 0xFFFF, we can finish early because we have our value.
-								if (matrixEntry != 0xFFFF) {
-									newVtx.SkinWeight = matrixEntry;
-									break;
-								}
-
-								// The value we read was 0xFFFF, which means we need to move up a matrix entry to try and grab
-								// another value in the same position. This can happen multiple times. :(
-								matrixInitIndex--;
-							}
-
-							stream->seek(currentStreamPos);
+							newVtx.DrawIndex = ConvertPosMtxIndexToDrawIndex(stream, initData, packetIndex, value);
 							break;
-						}
 						case EGXAttribute::Position:
 							newVtx.Position = value;
 							break;
@@ -152,15 +125,22 @@ J3DShape* J3DShapeFactory::Create(bStream::CStream* stream, uint32_t index) {
 						case EGXAttribute::TexCoord5:
 						case EGXAttribute::TexCoord6:
 						case EGXAttribute::TexCoord7:
+							if (attribute.Attribute == EGXAttribute::TexCoord1)
+							{
+								int taaa = 0;
+							}
 							newVtx.TexCoord[(uint32_t)attribute.Attribute - (uint32_t)EGXAttribute::TexCoord0] = value;
 							break;
 					}
 				}
 
+				if (initData.MatrixType == 0)
+					newVtx.DrawIndex = GetUseMatrixValue(stream, initData, packetIndex);
+
 				primitiveVertices.push_back(newVtx);
 			}
 
-			std::vector<J3DVertex> triangulatedVertices = TriangulatePrimitive(primType, primitiveVertices);
+			std::vector<J3DVertexGX> triangulatedVertices = TriangulatePrimitive<J3DVertexGX>(primType, primitiveVertices);
 			newPacket.mVertices.insert(newPacket.mVertices.end(), triangulatedVertices.begin(), triangulatedVertices.end());
 		}
 
@@ -168,6 +148,56 @@ J3DShape* J3DShapeFactory::Create(bStream::CStream* stream, uint32_t index) {
 	}
 
 	return newShape;
+}
+
+uint16_t J3DShapeFactory::ConvertPosMtxIndexToDrawIndex(bStream::CStream* stream, const J3DShapeInitData& initData, const uint16_t& packetIndex, const uint16_t& value) {
+	uint16_t index = 0;
+	
+	uint32_t currentStreamPos = stream->tell();
+	stream->seek(mBlock->MatrixInitTableOffset + (initData.MatrixOffset * sizeof(J3DShapeMatrixInitData)));
+
+	uint16_t matrixInitIndex = initData.MatrixOffset + packetIndex;
+	J3DShapeMatrixInitData matrixInitData;
+
+	while (matrixInitIndex >= 0) {
+		// Grab the matrix data
+		ReadMatrixInitData(stream, matrixInitData, matrixInitIndex * sizeof(J3DShapeMatrixInitData));
+
+		// calculate the offset to read from
+		uint16_t matrixTableOffset = mBlock->MatrixTableOffset + (matrixInitData.Start + value) * sizeof(uint16_t);
+
+		// Read the value !
+		uint16_t matrixEntry = stream->peekUInt16(matrixTableOffset);
+		// If the index we read isn't 0xFFFF, we can finish early because we have our value.
+		if (matrixEntry != 0xFFFF) {
+			index = matrixEntry;
+			break;
+		}
+
+		// The value we read was 0xFFFF, which means we need to move up a matrix entry to try and grab
+		// another value in the same position. This can happen multiple times. :(
+		matrixInitIndex--;
+	}
+
+	stream->seek(currentStreamPos);
+	return index;
+}
+
+uint16_t J3DShapeFactory::GetUseMatrixValue(bStream::CStream* stream, const J3DShapeInitData& initData, const uint16_t& packetIndex) {
+	uint16_t index = 0;
+
+	uint32_t currentStreamPos = stream->tell();
+	stream->seek(mBlock->MatrixInitTableOffset + (initData.MatrixOffset * sizeof(J3DShapeMatrixInitData)));
+
+	uint16_t matrixInitIndex = initData.MatrixOffset + packetIndex;
+	
+	J3DShapeMatrixInitData matrixInitData;
+	ReadMatrixInitData(stream, matrixInitData, matrixInitIndex * sizeof(J3DShapeMatrixInitData));
+
+	index = matrixInitData.ID;
+
+	stream->seek(currentStreamPos);
+	return index;
 }
 
 void J3DShapeFactory::ReadMatrixInitData(bStream::CStream* stream, J3DShapeMatrixInitData& data, uint32_t offset) {
@@ -179,59 +209,4 @@ void J3DShapeFactory::ReadMatrixInitData(bStream::CStream* stream, J3DShapeMatri
 	data.Start = stream->readUInt32();
 
 	stream->seek(currentStreamPos);
-}
-
-std::vector<J3DVertex> J3DShapeFactory::TriangulatePrimitive(EGXPrimitiveType primType, std::vector<J3DVertex> const& vertices) {
-	switch (primType) {
-		case EGXPrimitiveType::Triangles:
-			return vertices;
-		case EGXPrimitiveType::TriangleStrips:
-			return TriangulateTriangleStrip(vertices);
-		case EGXPrimitiveType::TriangleFan:
-			return TriangulateTriangleFan(vertices);
-		default:
-			return std::vector<J3DVertex>();
-	}
-}
-
-std::vector<J3DVertex> J3DShapeFactory::TriangulateTriangleStrip(std::vector<J3DVertex> const& vertices) {
-	std::vector<J3DVertex> triangles;
-
-	for (int i = 2; i < vertices.size(); i++) {
-		bool isIndexOdd = i % 2 != 0;
-
-		J3DVertex const& v0 = vertices[i - 2];
-		J3DVertex const& v1 = isIndexOdd ? vertices[i] : vertices[i - 1];
-		J3DVertex const& v2 = isIndexOdd ? vertices[i - 1] : vertices[i];
-
-		// Reject degenerate triangles (triangles where two or more vertices are the same)
-		if (v0 == v1 || v0 == v2 || v1 == v2)
-			continue;
-
-		triangles.push_back(v0);
-		triangles.push_back(v1);
-		triangles.push_back(v2);
-	}
-
-	return triangles;
-}
-
-std::vector<J3DVertex> J3DShapeFactory::TriangulateTriangleFan(std::vector<J3DVertex> const& vertices) {
-	std::vector<J3DVertex> triangles;
-
-	for (int i = 1; i < vertices.size() - 1; i++) {
-		J3DVertex const& v0 = vertices[i];
-		J3DVertex const& v1 = vertices[i + 1];
-		J3DVertex const& v2 = vertices[0];
-
-		// Reject degenerate triangles (triangles where two or more vertices are the same)
-		if (v0 == v1 || v0 == v2 || v1 == v2)
-			continue;
-
-		triangles.push_back(v0);
-		triangles.push_back(v1);
-		triangles.push_back(v2);
-	}
-
-	return triangles;
 }

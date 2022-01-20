@@ -20,8 +20,8 @@ public:
 	const J3DShape* GetShape() const { return mShape; }
 	void SetShape(J3DShape* shape) { mShape = shape; }
 
+	int32_t GetShaderProgram() const { return mShaderProgram; }
 	bool GenerateShaders(const int32_t& jointCount);
 
-	void Bind();
-	void Unbind();
+	void Render();
 };

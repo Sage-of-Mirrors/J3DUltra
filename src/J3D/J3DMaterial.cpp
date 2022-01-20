@@ -16,19 +16,8 @@ J3DMaterial::~J3DMaterial() {
 		glDeleteProgram(mShaderProgram);
 }
 
-void J3DMaterial::Bind() {
-	if (mShaderProgram != -1)
-		glUseProgram(mShaderProgram);
-	else
-		std::cout << "Attempted to use invalid shader program on material " << mName << std::endl;
-}
-
-void J3DMaterial::Unbind() {
-	glUseProgram(0);
-}
-
 bool J3DMaterial::GenerateShaders(const int32_t& jointCount) {
-	int32_t vertShader, fragShader;
+	uint32_t vertShader, fragShader;
 
 	if (!J3DVertexShaderGenerator::GenerateVertexShader(this, jointCount, vertShader)) {
 		std::cout << "Error in vertex shader generator!" << std::endl;
@@ -81,4 +70,13 @@ bool J3DMaterial::GenerateShaders(const int32_t& jointCount) {
 	glDeleteShader(fragShader);
 
 	return true;
+}
+
+void J3DMaterial::Render() {
+	glUseProgram(mShaderProgram);
+
+	if (mShape != nullptr)
+		mShape->RenderShape();
+
+	glUseProgram(0);
 }

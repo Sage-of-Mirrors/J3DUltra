@@ -1,6 +1,7 @@
 #include "J3D/J3DVertexShaderGenerator.hpp"
 #include "J3D/J3DMaterial.hpp"
 #include "J3D/J3DShape.hpp"
+#include "J3D/J3DUtil.hpp"
 
 #include <glad/glad.h>
 
@@ -8,35 +9,19 @@
 #include <iostream>
 #include <fstream>
 
-std::string J3DVertexShaderGenerator::LoadDebugShader(std::string filename) {
-	std::string shaderPath = "./res/shaders/" + filename;
-
-	std::fstream shaderFile(shaderPath);
-	if (!shaderFile.is_open()) {
-		std::cout << "Unable to load debug shader from " << shaderPath << std::endl;
-		return "";
-	}
-
-	std::stringstream iss;
-	iss << shaderFile.rdbuf();
-	std::string shaderTxt = iss.str();
-
-	shaderFile.close();
-
-	return shaderTxt;
-}
-
-bool J3DVertexShaderGenerator::GenerateVertexShader(const J3DMaterial* material, const int32_t& jointCount, int32_t& shaderHandle) {
+bool J3DVertexShaderGenerator::GenerateVertexShader(const J3DMaterial* material, const int32_t& jointCount, uint32_t& shaderHandle) {
 	if (material == nullptr || material->GetShape() == nullptr)
 		return false;
 	
+	shaderHandle = glCreateShader(GL_VERTEX_SHADER);
+
+	/*
 	std::stringstream shaderStream;
 	shaderStream << "#version 330 core\n\n";
 
 	WriteAttributes(shaderStream, material->GetShape()->GetEnabledAttributes());
 	WriteOutputs(shaderStream, material);
-	WriteUniforms(shaderStream, jointCount);
-	WriteSkinningFunction(shaderStream);
+	//WriteUniforms(shaderStream, jointCount);
 	WriteMainFunction(shaderStream, material);
 
 	shaderHandle = glCreateShader(GL_VERTEX_SHADER);
@@ -47,11 +32,12 @@ bool J3DVertexShaderGenerator::GenerateVertexShader(const J3DMaterial* material,
 	if (debugVOut.is_open()) {
 		debugVOut << shaderStr;
 		debugVOut.close();
-	}
+	}*/
 
-	const char* shaderChars = shaderStr.c_str();
-	glShaderSource(shaderHandle, 1, &shaderChars, NULL);
+	std::string shaderChars = J3DUtility::LoadTextFile("./res/shaders/Debug_NormalColors.vert");
+	const char* s = shaderChars.c_str();
 
+	glShaderSource(shaderHandle, 1, &s, NULL);
 	glCompileShader(shaderHandle);
 
 	int32_t success = 0;
@@ -69,12 +55,9 @@ void J3DVertexShaderGenerator::WriteAttributes(std::stringstream& shaderTxt, con
 	shaderTxt << "// Input attributes\n";
 
 	for (auto a : shapeAttributes) {
-		if (a != EGLAttribute::JointID)
-			shaderTxt << "layout (location = " << (uint32_t)a << ") in ";
-
 		switch (a) {
 			case EGLAttribute::Position:
-				shaderTxt << "vec3 aPos;\n";
+				shaderTxt << "vec4 aPos;\n";
 				break;
 			case EGLAttribute::Normal:
 				shaderTxt << "vec3 aNrm;\n";
@@ -92,11 +75,6 @@ void J3DVertexShaderGenerator::WriteAttributes(std::stringstream& shaderTxt, con
 			case EGLAttribute::TexCoord6:
 			case EGLAttribute::TexCoord7:
 				shaderTxt << "vec2 aTex" << (uint32_t)a - (uint32_t)EGLAttribute::TexCoord0 << ";\n";
-				break;
-			// SkinWeight implies JointID
-			case EGLAttribute::SkinWeight:
-				shaderTxt << "vec4 aSkinWeights;\n";
-				shaderTxt << "layout (location = " << (uint32_t)EGLAttribute::JointID << ") in vec4 aJointIDs;\n";
 				break;
 		}
 	}
@@ -157,10 +135,11 @@ void J3DVertexShaderGenerator::WriteMainFunction(std::stringstream& shaderTxt, c
 	shaderTxt << "void main() {\n";
 
 	// Position calculations
-	shaderTxt << "\tmat4 MVP = Proj * View * Model;\n"
-		"\tvec4 skinnedPos = applySkin(aPos);\n"
-		"\tgl_Position = MVP * skinnedPos;\n"
-		"\tvec4 worldPos = Model * skinnedPos;\n\n";
+	shaderTxt << //"\tmat4 MVP = Proj * View * Model;\n"
+		//"\tvec4 skinnedPos = applySkin(aPos);\n"
+		"\tgl_Position = aPos;\n"
+		"\toColor0";
+		//"\tvec4 worldPos = Model * skinnedPos;\n\n";
 
 	// End of main function
 	shaderTxt << "}\n\n";

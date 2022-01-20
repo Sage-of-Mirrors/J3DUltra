@@ -2,13 +2,13 @@
 #include "J3D//J3DShapeFactory.hpp"
 #include "GX/GXEnum.hpp"
 #include <bstream.h>
+#include <glad/glad.h>
 
 void J3DShape::EnableAttributes(std::vector<J3DVCDData>& gxAttributes) {
 	for (auto attr : gxAttributes) {
 		switch (attr.Attribute) {
 			case EGXAttribute::PositionMatrixIdx:
-				mEnabledAttributes.push_back(EGLAttribute::SkinWeight);
-				mEnabledAttributes.push_back(EGLAttribute::JointID);
+				mEnabledAttributes.push_back(EGLAttribute::PositionMatrixIdx);
 				break;
 			case EGXAttribute::Position:
 				mEnabledAttributes.push_back(EGLAttribute::Position);
@@ -48,6 +48,33 @@ void J3DShape::EnableAttributes(std::vector<J3DVCDData>& gxAttributes) {
 				break;
 		}
 	}
+}
+
+bool J3DShape::HasEnabledAttribute(const EGLAttribute attribute) const {
+	for (auto a : mEnabledAttributes) {
+		if (a == attribute)
+			return true;
+	}
+
+	return false;
+}
+
+void J3DShape::ConcatenatePacketsToIBO(std::vector<J3DVertexGX>* ibo) {
+	if (ibo == nullptr)
+		return;
+
+	mIBOStart = ibo->size();
+
+	for (auto a : mPackets) {
+		mIBOCount += a.mVertices.size();
+
+		for (auto t : a.mVertices)
+			ibo->push_back(t);
+	}
+}
+
+void J3DShape::RenderShape() {
+	glDrawElements(GL_TRIANGLES, mIBOCount * 3, GL_UNSIGNED_SHORT, (const void*)(mIBOStart * sizeof(uint16_t)));
 }
 
 void J3DShape::Deserialize(bStream::CStream* stream) {

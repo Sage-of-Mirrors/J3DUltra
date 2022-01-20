@@ -169,7 +169,7 @@ void J3DVertexBlock::LoadAttributeData(J3DVertexData* vertexData, bStream::CStre
 
         switch (curAttribute.Attribute) {
             case EGXAttribute::Position:
-                vertexData->Positions.push_back(glm::vec3(floatBuffer[0], floatBuffer[1], floatBuffer[2]));
+                vertexData->Positions.push_back(glm::vec4(floatBuffer[0], floatBuffer[1], floatBuffer[2], 0.f));
                 break;
             case EGXAttribute::Normal:
                 vertexData->Normals.push_back(glm::vec3(floatBuffer[0], floatBuffer[1], floatBuffer[2]));
@@ -196,7 +196,7 @@ void J3DVertexBlock::LoadAttributeData(J3DVertexData* vertexData, bStream::CStre
             case EGXAttribute::TexCoord7:
             {
                 uint32_t texCoordIndex = (uint32_t)curAttribute.Attribute - (uint32_t)EGXAttribute::TexCoord0;
-                vertexData->TexCoords[texCoordIndex].push_back(glm::vec2(floatBuffer[0], floatBuffer[1]));
+                vertexData->TexCoords[texCoordIndex].push_back(glm::vec3(floatBuffer[0], floatBuffer[1], 0.f));
 
                 break;
             }

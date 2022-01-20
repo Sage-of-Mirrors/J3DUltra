@@ -21,3 +21,7 @@ void J3DTransformInfo::Deserialize(bStream::CStream* stream) {
 
 	Translation = glm::vec3(stream->readFloat(), stream->readFloat(), stream->readFloat());
 }
+
+glm::mat4 J3DTransformInfo::ToMat4() {
+	return glm::scale(glm::identity<glm::mat4>(), Scale) * glm::toMat4(Rotation) * glm::translate(glm::identity<glm::mat4>(), Translation);
+}

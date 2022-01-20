@@ -15,6 +15,12 @@ class J3DModelLoader;
 class J3DModelData {
 	friend J3DModelLoader;
 
+	// Rendering stuff
+	bool mGLInitialized = false;
+	uint32_t mVAO = UINT32_MAX;
+	uint32_t mVBO = UINT32_MAX;
+	uint32_t mIBO = UINT32_MAX;
+
 	// INF1 data, hierarchy and misc. info
 	uint32_t mFlags;
 	uint32_t mMatrixGroupCount;
@@ -38,14 +44,21 @@ class J3DModelData {
 	// SHP1 data, geometry
 	std::vector<J3DShape*> mShapes;
 
+	std::vector<J3DVertexGX> mGXVertices;
+	std::vector<J3DVertexGL> mGLVertices;
+	std::vector<uint16_t> mIndices;
+
 	// MAT3 data, materials
 	std::vector<J3DMaterial*> mMaterials;
 
 	void MakeHierarchy(J3DJoint* const root, uint32_t& index);
+	void ConvertGXVerticesToGL();
+
+	bool InitializeGL();
 
 public:
 	J3DModelData() {}
 	virtual ~J3DModelData() {}
 
-
+	void Render(float deltaTime);
 };

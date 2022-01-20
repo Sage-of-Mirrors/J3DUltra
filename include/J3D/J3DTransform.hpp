@@ -19,6 +19,7 @@ struct J3DTransformInfo {
 	}
 
 	void Deserialize(bStream::CStream* stream);
+	glm::mat4 ToMat4();
 
 private:
 	float U16ToFloat(uint16_t val);

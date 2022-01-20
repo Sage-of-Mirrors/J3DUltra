@@ -41,4 +41,8 @@ public:
 
 	void AddMaterial(J3DMaterial* mat) { mMaterials.push_back(mat); }
 	J3DMaterial* const GetLastMaterial() { return mMaterials.back(); }
+
+	glm::mat4 GetTransformMatrix();
+
+	void RenderRecursive();
 };

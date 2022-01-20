@@ -2,12 +2,13 @@
 
 #include <cstdint>
 #include <vector>
+#include <glm/glm.hpp>
 
 namespace bStream { class CStream; }
 class J3DShapeFactory;
 struct J3DVCDData;
 
-enum class EGLAttribute {
+enum class EGLAttribute : uint32_t {
 	Position,
 	Normal,
 	Color0,
@@ -20,20 +21,22 @@ enum class EGLAttribute {
 	TexCoord5,
 	TexCoord6,
 	TexCoord7,
-	SkinWeight,
-	JointID
+	PositionMatrixIdx
 };
 
-struct J3DVertex {
+struct J3DVertexGX {
+	uint16_t DrawIndex;
 	uint16_t Position;
 	uint16_t Normal;
 	uint16_t Color[2];
 	uint16_t TexCoord[8];
-	uint16_t SkinWeight;
-	uint16_t JointID;
 
-	bool operator==(const J3DVertex& other) const {
-		return Position == other.Position &&
+	J3DVertexGX() : DrawIndex(UINT16_MAX), Position(UINT16_MAX), Normal(UINT16_MAX), Color{ UINT16_MAX, UINT16_MAX },
+		TexCoord{ UINT16_MAX, UINT16_MAX, UINT16_MAX, UINT16_MAX, UINT16_MAX, UINT16_MAX, UINT16_MAX, UINT16_MAX } {}
+
+	bool operator==(const J3DVertexGX& other) const {
+		return DrawIndex == other.DrawIndex &&
+			Position == other.Position &&
 			Normal == other.Normal &&
 			Color[0] == other.Color[0] &&
 			Color[1] == other.Color[1] &&
@@ -44,24 +47,24 @@ struct J3DVertex {
 			TexCoord[4] == other.TexCoord[4] &&
 			TexCoord[5] == other.TexCoord[5] &&
 			TexCoord[6] == other.TexCoord[6] &&
-			TexCoord[7] == other.TexCoord[7] &&
-			SkinWeight == other.SkinWeight &&
-			JointID == other.JointID;
+			TexCoord[7] == other.TexCoord[7];
 	}
 
-	bool operator!=(const J3DVertex& other) const {
+	bool operator!=(const J3DVertexGX& other) const {
 		return !operator==(other);
 	}
 };
 
-class J3DPacket {
-	friend J3DShapeFactory;
+struct J3DVertexGL {
+	glm::vec4 Position; // w is envelope index
+	glm::vec3 Normal;
+	glm::vec4 Color[2];
+	glm::vec3 TexCoord[8]; // z is texmatrix index
+};
 
-	std::vector<J3DVertex> mVertices;
-
-public:
-	J3DPacket() {}
-	~J3DPacket() {}
+struct J3DPacket {
+	// Vertex attribute indices
+	std::vector<J3DVertexGX> mVertices;
 };
 
 class J3DShape {
@@ -70,12 +73,20 @@ class J3DShape {
 	std::vector<EGLAttribute> mEnabledAttributes;
 	std::vector<J3DPacket> mPackets;
 
+	uint32_t mIBOStart;
+	uint32_t mIBOCount;
+
 public:
-	J3DShape() {}
+	J3DShape() : mIBOStart(0), mIBOCount(0) {}
 	~J3DShape() {}
 
 	void EnableAttributes(std::vector<J3DVCDData>& gxAttributes);
 	const std::vector<EGLAttribute>& GetEnabledAttributes() const { return mEnabledAttributes; }
+	bool HasEnabledAttribute(const EGLAttribute attribute) const;
+
+	void ConcatenatePacketsToIBO(std::vector<J3DVertexGX>* ibo);
+
+	void RenderShape();
 
 	void Deserialize(bStream::CStream* stream);
 };
