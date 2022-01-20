@@ -22,7 +22,7 @@ struct J3DTransformInfo {
 	glm::mat4 ToMat4();
 
 private:
-	float U16ToFloat(uint16_t val);
+	float U16ToFloat(int16_t val);
 	uint16_t FloatToU16(float val);
 };
 

@@ -177,7 +177,7 @@ void J3DModelLoader::ReadEnvelopeBlock(bStream::CStream* stream, uint32_t flags)
         uint8_t curJointCount = stream->readUInt8();
 
         // Go to the joint index data and read this envelope's joint indices
-        stream->seek(envBlock.EnvelopeIndexTableOffset + (i * sizeof(uint16_t)));
+        stream->seek(envBlock.EnvelopeIndexTableOffset + (runningWeightIndex * sizeof(uint16_t)));
         for (int j = 0; j < curJointCount; j++)
             envelope.JointIndices.push_back(stream->readUInt16());
 
@@ -198,7 +198,11 @@ void J3DModelLoader::ReadEnvelopeBlock(bStream::CStream* stream, uint32_t flags)
     uint32_t matrixCount = ((envBlock.BlockOffset + envBlock.BlockSize) - envBlock.MatrixTableOffset) / sizeof(glm::mat4x3);
     for (int i = 0; i < matrixCount; i++) {
         glm::mat4 matrix;
-        matrix[3] = glm::vec4(0, 0, 0, 1);
+
+        matrix[3][0] = 0.f;
+        matrix[3][1] = 0.f;
+        matrix[3][2] = 0.f;
+        matrix[3][3] = 1.f;
 
         for (int x = 0; x < 3; x++) {
             for (int y = 0; y < 4; y++) {
@@ -206,7 +210,7 @@ void J3DModelLoader::ReadEnvelopeBlock(bStream::CStream* stream, uint32_t flags)
             }
         }
 
-        mModelData->mInverseBindMatrices.push_back(matrix);
+        mModelData->mInverseBindMatrices.push_back(glm::transpose(matrix));
     }
 
     stream->seek(currentStreamPos + envBlock.BlockSize);
@@ -257,8 +261,14 @@ void J3DModelLoader::ReadJointBlock(bStream::CStream* stream, uint32_t flags) {
         newJoint->mTransform.Deserialize(stream);
 
         newJoint->mBoundingSphereRadius = stream->readFloat();
-        newJoint->mBoundingBoxMin = glm::vec3(stream->readFloat(), stream->readFloat(), stream->readFloat());
-        newJoint->mBoundingBoxMax = glm::vec3(stream->readFloat(), stream->readFloat(), stream->readFloat());
+
+        newJoint->mBoundingBoxMin.x = stream->readFloat();
+        newJoint->mBoundingBoxMin.y = stream->readFloat();
+        newJoint->mBoundingBoxMin.z = stream->readFloat();
+
+        newJoint->mBoundingBoxMax.x = stream->readFloat();
+        newJoint->mBoundingBoxMax.y = stream->readFloat();
+        newJoint->mBoundingBoxMax.z = stream->readFloat();
 
         mModelData->mJoints.push_back(newJoint);
     }

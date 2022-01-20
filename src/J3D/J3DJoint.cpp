@@ -6,7 +6,7 @@ glm::mat4 J3DJoint::GetTransformMatrix() {
 	glm::mat4 completeTransform = glm::identity<glm::mat4>();
 
 	while (p != nullptr) {
-		completeTransform *= p->mTransform.ToMat4();
+		completeTransform = p->mTransform.ToMat4() * completeTransform;
 		p = (J3DJoint*)p->mParent;
 	}
 

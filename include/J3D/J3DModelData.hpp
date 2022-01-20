@@ -51,6 +51,8 @@ class J3DModelData {
 	// MAT3 data, materials
 	std::vector<J3DMaterial*> mMaterials;
 
+	glm::mat4 EnvelopeMatrices[256];
+
 	void MakeHierarchy(J3DJoint* const root, uint32_t& index);
 	void ConvertGXVerticesToGL();
 

@@ -85,7 +85,7 @@ void J3DModelData::ConvertGXVerticesToGL() {
             uniqueGXVerts.push_back(a);
 
             J3DVertexGL newGLVert = mVertexData.CreateGLVertFromGXVert(a);
-            newGLVert.Position.w = mEnvelopeIndices[a.DrawIndex];
+            newGLVert.Position.w = a.DrawIndex;
 
             mGLVertices.push_back(newGLVert);
         }
@@ -162,21 +162,27 @@ void J3DModelData::Render(float deltaTime) {
     if (!mGLInitialized)
         mGLInitialized = InitializeGL();
 
-    glm::mat4 s[256];
+    for (int i = 0; i < mEnvelopeIndices.size(); i++) {
+        if (mDrawBools[i] == false) {
+            EnvelopeMatrices[i] = mJoints[mEnvelopeIndices[i]]->GetTransformMatrix();
+        }
+        else {
+            EnvelopeMatrices[i] = glm::zero<glm::mat4>();
 
-    for (int i = 0; i < mJointEnvelopes.size(); i++) {
-        s[i] = glm::zero<glm::mat4>();
+            J3DEnvelope env = mJointEnvelopes[mEnvelopeIndices[i]];
 
-        J3DEnvelope env = mJointEnvelopes[i];
+            for (int j = 0; j < env.Weights.size(); j++) {
+                uint32_t jointIndex = env.JointIndices[j];
 
-        for (int j = 0; j < env.Weights.size(); j++) {
-            uint32_t jointIndex = env.JointIndices[j];
+                glm::mat4 ibm = mInverseBindMatrices[jointIndex];
+                glm::mat4 jointTransform = mJoints[jointIndex]->GetTransformMatrix();
 
-            s[i] += ((glm::transpose(mInverseBindMatrices[jointIndex]) * mJoints[jointIndex]->GetTransformMatrix()) * env.Weights[j]);
+                EnvelopeMatrices[i] += (jointTransform * ibm) * env.Weights[j];
+            }
         }
     }
 
-    J3DUniformBufferObject::SetEnvelopeMatrices(s);
+    J3DUniformBufferObject::SetEnvelopeMatrices(EnvelopeMatrices);
 
     glBindVertexArray(mVAO);
 

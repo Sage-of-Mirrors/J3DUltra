@@ -13,7 +13,4 @@ namespace J3DUniformBufferObject {
 	void SetProjAndViewMatrices(const glm::mat4* proj, const glm::mat4* view);
 	void SetModelMatrix(const glm::mat4* model);
 	void SetEnvelopeMatrices(const glm::mat4* envelopes);
-
-	void BindUBO();
-	void UnbindUBO();
 }

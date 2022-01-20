@@ -125,10 +125,6 @@ J3DShape* J3DShapeFactory::Create(bStream::CStream* stream, uint32_t index) {
 						case EGXAttribute::TexCoord5:
 						case EGXAttribute::TexCoord6:
 						case EGXAttribute::TexCoord7:
-							if (attribute.Attribute == EGXAttribute::TexCoord1)
-							{
-								int taaa = 0;
-							}
 							newVtx.TexCoord[(uint32_t)attribute.Attribute - (uint32_t)EGXAttribute::TexCoord0] = value;
 							break;
 					}
@@ -164,7 +160,7 @@ uint16_t J3DShapeFactory::ConvertPosMtxIndexToDrawIndex(bStream::CStream* stream
 		ReadMatrixInitData(stream, matrixInitData, matrixInitIndex * sizeof(J3DShapeMatrixInitData));
 
 		// calculate the offset to read from
-		uint16_t matrixTableOffset = mBlock->MatrixTableOffset + (matrixInitData.Start + value) * sizeof(uint16_t);
+		uint32_t matrixTableOffset = mBlock->MatrixTableOffset + (matrixInitData.Start + value) * sizeof(uint16_t);
 
 		// Read the value !
 		uint16_t matrixEntry = stream->peekUInt16(matrixTableOffset);
@@ -189,7 +185,7 @@ uint16_t J3DShapeFactory::GetUseMatrixValue(bStream::CStream* stream, const J3DS
 	uint32_t currentStreamPos = stream->tell();
 	stream->seek(mBlock->MatrixInitTableOffset + (initData.MatrixOffset * sizeof(J3DShapeMatrixInitData)));
 
-	uint16_t matrixInitIndex = initData.MatrixOffset + packetIndex;
+	uint32_t matrixInitIndex = initData.MatrixOffset + packetIndex;
 	
 	J3DShapeMatrixInitData matrixInitData;
 	ReadMatrixInitData(stream, matrixInitData, matrixInitIndex * sizeof(J3DShapeMatrixInitData));

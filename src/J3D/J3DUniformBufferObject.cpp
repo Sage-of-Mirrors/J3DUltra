@@ -22,12 +22,9 @@ namespace J3DUniformBufferObject {
 }
 
 void J3DUniformBufferObject::CreateUBO() {
-	glGenBuffers(1, &mUBO);
+	glCreateBuffers(1, &mUBO);
 
-	glBindBuffer(GL_UNIFORM_BUFFER, mUBO);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(J3DUniformBufferObject), nullptr, GL_STATIC_DRAW);
-	
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	glNamedBufferStorage(mUBO, sizeof(J3DUniformBufferObject), nullptr, GL_DYNAMIC_STORAGE_BIT);
 	glBindBufferRange(GL_UNIFORM_BUFFER, 0, mUBO, 0, sizeof(J3DUniformBufferObject));
 }
 
@@ -55,34 +52,20 @@ void J3DUniformBufferObject::SetProjAndViewMatrices(const glm::mat4* proj, const
 	if (mUBO == 0)
 		return;
 
-	glBindBuffer(GL_UNIFORM_BUFFER, mUBO);
-	glBufferSubData(GL_UNIFORM_BUFFER, offsetof(J3DUniformBufferObject, ProjectionMatrix), sizeof(glm::mat4), proj);
-	glBufferSubData(GL_UNIFORM_BUFFER, offsetof(J3DUniformBufferObject, ViewMatrix), sizeof(glm::mat4), view);
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	glNamedBufferSubData(mUBO, offsetof(J3DUniformBufferObject, ProjectionMatrix), sizeof(glm::mat4), proj);
+	glNamedBufferSubData(mUBO, offsetof(J3DUniformBufferObject, ViewMatrix), sizeof(glm::mat4), view);
 }
 
 void J3DUniformBufferObject::SetModelMatrix(const glm::mat4* model) {
 	if (mUBO == 0)
 		return;
 
-	glBindBuffer(GL_UNIFORM_BUFFER, mUBO);
-	glBufferSubData(GL_UNIFORM_BUFFER, offsetof(J3DUniformBufferObject, ModelMatrix), sizeof(glm::mat4), model);
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	glNamedBufferSubData(mUBO, offsetof(J3DUniformBufferObject, ModelMatrix), sizeof(glm::mat4), model);
 }
 
 void J3DUniformBufferObject::SetEnvelopeMatrices(const glm::mat4* envelopes) {
 	if (mUBO == 0)
 		return;
 
-	glBindBuffer(GL_UNIFORM_BUFFER, mUBO);
-	glBufferSubData(GL_UNIFORM_BUFFER, offsetof(J3DUniformBufferObject, EnvelopeMatrices), sizeof(glm::mat4) * ENVELOPE_MAT_MAX, envelopes);
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
-}
-
-void J3DUniformBufferObject::BindUBO() {
-	glBindBuffer(GL_UNIFORM_BUFFER, mUBO);
-}
-
-void J3DUniformBufferObject::UnbindUBO() {
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	glNamedBufferSubData(mUBO, offsetof(J3DUniformBufferObject, EnvelopeMatrices), sizeof(glm::mat4) * ENVELOPE_MAT_MAX, envelopes);
 }
