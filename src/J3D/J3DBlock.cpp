@@ -401,8 +401,33 @@ bool J3DMaterialBlock::Deserialize(bStream::CStream* stream) {
         InitDataTableOffset = stream->readUInt32() + currentStreamPosition;
         IndexTableOffset = stream->readUInt32() + currentStreamPosition;
         NameTableOffset = stream->readUInt32() + currentStreamPosition;
-
-        // TODO: Load the other offsets
+        IndirectInitDataTableOffset = stream->readUInt32() + currentStreamPosition;
+        CullModeTableOffset = stream->readUInt32() + currentStreamPosition;
+        MaterialColorTableOffset = stream->readUInt32() + currentStreamPosition;
+        ColorChannelCountTableOffset = stream->readUInt32() + currentStreamPosition;
+        ColorChannelTableOffset = stream->readUInt32() + currentStreamPosition;
+        AmbientColorTableOffset = stream->readUInt32() + currentStreamPosition;
+        LightTableOffset = stream->readUInt32() + currentStreamPosition;
+        TexGenCountTableOffset = stream->readUInt32() + currentStreamPosition;
+        TexCoordTableOffset = stream->readUInt32() + currentStreamPosition;
+        TexCoord2TableOffset = stream->readUInt32() + currentStreamPosition;
+        TexMatrixTableOffset = stream->readUInt32() + currentStreamPosition;
+        PostTexMatrixTableOffset = stream->readUInt32() + currentStreamPosition;
+        TextureIndexTableOffset = stream->readUInt32() + currentStreamPosition;
+        TevOrderTableOffset = stream->readUInt32() + currentStreamPosition;
+        TevColorTableOffset = stream->readUInt32() + currentStreamPosition;
+        TevKColorTableOffset = stream->readUInt32() + currentStreamPosition;
+        TevStageCountTableOffset = stream->readUInt32() + currentStreamPosition;
+        TevStageTableOffset = stream->readUInt32() + currentStreamPosition;
+        TevSwapModeTableOffset = stream->readUInt32() + currentStreamPosition;
+        TevSwapTableOffset = stream->readUInt32() + currentStreamPosition;
+        FogTableOffset = stream->readUInt32() + currentStreamPosition;
+        AlphaCompareTableOffset = stream->readUInt32() + currentStreamPosition;
+        BlendInfoTableOffset = stream->readUInt32() + currentStreamPosition;
+        ZModeTableOffset = stream->readUInt32() + currentStreamPosition;
+        ZCompLocTableOffset = stream->readUInt32() + currentStreamPosition;
+        DitherTableOffset = stream->readUInt32() + currentStreamPosition;
+        NBTScaleTableOffset = stream->readUInt32() + currentStreamPosition;
     }
     catch (...) {
         return false;

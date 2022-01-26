@@ -84,3 +84,74 @@ enum class EGXPrimitiveType : uint8_t {
 	LineStrips = 0xB0,
 	Points = 0xB8
 };
+
+enum class EGXCullMode : uint8_t {
+	None,
+	Front,
+	Back,
+	All
+};
+
+enum class EGXCompareType : uint8_t {
+	Never,
+	Less,
+	Equal,
+	LEqual,
+	Greater,
+	NEqual,
+	GEqual,
+	Always
+};
+
+enum class EGXAlphaOp : uint8_t {
+	And,
+	Or,
+	XOR,
+	XNOR
+};
+
+enum class EGXBlendMode : uint8_t {
+	None,
+	Blend,
+	Logic,
+	Subtract
+};
+
+enum class EGXBlendModeControl : uint8_t {
+	Zero,               // ! < 0.0
+	One,                // ! < 1.0
+	SrcColor,           // ! < Source Color
+	InverseSrcColor,    // ! < 1.0 - (Source Color)
+	SrcAlpha,           // ! < Source Alpha
+	InverseSrcAlpha,    // ! < 1.0 - (Source Alpha)
+	DstAlpha,           // ! < Framebuffer Alpha
+	InverseDstAlpha     // ! < 1.0 - (Framebuffer Alpha)
+};
+
+enum class EGXLogicOp {
+	Clear = 0,
+	And = 1,
+	Copy = 3,
+	Equiv = 9,
+	Inv = 10,
+	InvAnd = 4,
+	InvCopy = 12,
+	InvOr = 13,
+	NAnd = 14,
+	NoOp = 5,
+	NOr = 8,
+	Or = 7,
+	RevAnd = 2,
+	RevOr = 11,
+	Set = 15,
+	XOr = 6
+};
+
+enum class EGXFogType {
+	None,
+	Linear,
+	Exponential,
+	Exponential_2,
+	Reverse_Exponential,
+	Reverse_Exponential_2
+};

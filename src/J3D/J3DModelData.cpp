@@ -170,6 +170,7 @@ void J3DModelData::Render(float deltaTime) {
             EnvelopeMatrices[i] = glm::zero<glm::mat4>();
 
             J3DEnvelope env = mJointEnvelopes[mEnvelopeIndices[i]];
+            float weightTotal = 0.f;
 
             for (int j = 0; j < env.Weights.size(); j++) {
                 uint32_t jointIndex = env.JointIndices[j];
@@ -178,6 +179,12 @@ void J3DModelData::Render(float deltaTime) {
                 glm::mat4 jointTransform = mJoints[jointIndex]->GetTransformMatrix();
 
                 EnvelopeMatrices[i] += (jointTransform * ibm) * env.Weights[j];
+                weightTotal += env.Weights[j];
+            }
+
+            if (weightTotal >= 1.f)
+            {
+                int t = 0;
             }
         }
     }

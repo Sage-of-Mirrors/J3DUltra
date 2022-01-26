@@ -169,7 +169,7 @@ void J3DModelLoader::ReadEnvelopeBlock(bStream::CStream* stream, uint32_t flags)
     J3DEnvelopeBlock envBlock;
     envBlock.Deserialize(stream);
 
-    uint8_t runningWeightIndex = 0;
+    uint32_t runningWeightIndex = 0;
 
     for (int i = 0; i < envBlock.Count; i++) {
         J3DEnvelope envelope;
