@@ -60,7 +60,7 @@ class J3DMaterialFactory {
 		T newComp;
 		
 		ptrdiff_t currentOffset = stream->tell();
-		stream->seek(offset + (index * sizeof(T)));
+		stream->seek(offset + (index * (sizeof(T) - 12)));
 
 		J3DMaterialComponentBase* tAsBase = static_cast<J3DMaterialComponentBase*>(&newComp);
 		if (tAsBase != nullptr)

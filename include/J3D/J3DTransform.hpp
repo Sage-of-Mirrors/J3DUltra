@@ -20,14 +20,13 @@ struct J3DTransformInfo {
 
 	void Deserialize(bStream::CStream* stream);
 	glm::mat4 ToMat4();
-
-private:
-	float U16ToFloat(int16_t val);
-	uint16_t FloatToU16(float val);
 };
 
 struct J3DTextureSRTInfo {
 	glm::vec2 Scale;
 	float Rotation;
 	glm::vec2 Translation;
+
+	void Deserialize(bStream::CStream* stream);
+	glm::mat4 ToMat4();
 };

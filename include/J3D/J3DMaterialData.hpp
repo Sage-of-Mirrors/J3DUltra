@@ -1,8 +1,12 @@
 #pragma once
 
 #include "GX/GXEnum.hpp"
+#include "J3D/J3DTransform.hpp"
 #include <cstdint>
+
+#include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
+#include <glm/mat4x4.hpp>
 
 namespace bStream { class CStream; }
 
@@ -63,6 +67,78 @@ struct J3DFog : public J3DMaterialComponentBase {
 	glm::vec4 Color;
 
 	uint16_t AdjustmentTable[10];
+
+	virtual void Deserialize(bStream::CStream* stream);
+};
+
+struct J3DColorChannel : public J3DMaterialComponentBase {
+	bool LightingEnabled;
+	EGXColorSource MatteSource;
+	uint8_t LightMask;
+	EGXDiffuseFunction DiffuseFunction;
+	EGXAttenuationFunction AttenuationFunction;
+	EGXColorSource AmbientSource;
+
+	virtual void Deserialize(bStream::CStream* stream);
+};
+
+struct J3DTexCoordInfo : public J3DMaterialComponentBase {
+	EGXTexGenType Type;
+	EGXTexGenSrc Source;
+	EGXTexMatrix TexMatrix;
+
+	virtual void Deserialize(bStream::CStream* stream);
+};
+
+enum class EJ3DTexMatrixProjection : uint8_t {
+	ST,
+	STQ
+};
+
+struct J3DTexMatrixInfo : public J3DMaterialComponentBase {
+	EJ3DTexMatrixProjection Projection;
+	uint8_t Type;
+	glm::vec3 Origin;
+
+	J3DTextureSRTInfo Transform;
+	glm::mat4 Matrix;
+
+	virtual void Deserialize(bStream::CStream* stream);
+};
+
+struct J3DNBTScaleInfo : public J3DMaterialComponentBase {
+	bool Enable;
+	glm::vec3 Scale;
+
+	virtual void Deserialize(bStream::CStream* stream);
+};
+
+struct J3DTevOrderInfo : public J3DMaterialComponentBase {
+	EGXTexCoordSlot TexCoordId;
+	uint8_t TexMap;
+	EGXColorChannelId ChannelId;
+
+	virtual void Deserialize(bStream::CStream* stream);
+};
+
+struct J3DTevStageInfo : public J3DMaterialComponentBase {
+	uint8_t Unknown0;
+
+	EGXCombineColorInput ColorInput[4];
+	EGXTevOp ColorOperation;
+	EGXTevBias ColorBias;
+	EGXTevScale ColorScale;
+	bool ColorClamp;
+	EGXTevRegister ColorOutputRegister;
+
+	EGXCombineAlphaInput AlphaInput[4];
+	EGXTevOp AlphaOperation;
+	EGXTevBias AlphaBias;
+	EGXTevScale AlphaScale;
+	bool AlphaClamp;
+	EGXTevRegister AlphaOutputRegister;
+
+	uint8_t Unknown1;
 
 	virtual void Deserialize(bStream::CStream* stream);
 };

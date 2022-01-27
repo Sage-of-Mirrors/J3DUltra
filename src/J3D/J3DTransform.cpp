@@ -3,11 +3,11 @@
 #include <glm/gtx/transform.hpp>
 #include <bstream.h>
 
-float J3DTransformInfo::U16ToFloat(int16_t val) {
+float U16ToFloat(int16_t val) {
 	return val * (180 / 32768.0f);
 }
 
-uint16_t J3DTransformInfo::FloatToU16(float val) {
+uint16_t FloatToU16(float val) {
 	return (uint16_t)(val * (32768.f / 180.f));
 }
 
@@ -35,4 +35,20 @@ void J3DTransformInfo::Deserialize(bStream::CStream* stream) {
 
 glm::mat4 J3DTransformInfo::ToMat4() {
 	return glm::translate(Translation) * glm::toMat4(Rotation) * glm::scale(Scale);
+}
+
+void J3DTextureSRTInfo::Deserialize(bStream::CStream* stream) {
+	Scale.x = stream->readFloat();
+	Scale.y = stream->readFloat();
+
+	Rotation = glm::radians(U16ToFloat(stream->readInt16()));
+
+	stream->skip(2);
+
+	Translation.x = stream->readFloat();
+	Translation.y = stream->readFloat();
+}
+
+glm::mat4 J3DTextureSRTInfo::ToMat4() {
+	return glm::identity<glm::mat4>();
 }

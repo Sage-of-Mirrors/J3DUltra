@@ -28,14 +28,93 @@ J3DMaterial* J3DMaterialFactory::Create(bStream::CStream* stream, uint32_t index
 	initData.Deserialize(stream);
 
 	newMaterial->mPEMode = (EPixelEngineMode)(initData.PEMode & 0x07);
-	newMaterial->mCullMode = (EGXCullMode)stream->peekUInt32(mBlock->CullModeTableOffset + initData.CullMode * sizeof(uint32_t));
 
+	// Pixel engine block
 	newMaterial->mPEBlock.mZMode = ReadMaterialComponent<J3DZMode>(stream, mBlock->ZModeTableOffset, initData.ZMode);
 	newMaterial->mPEBlock.mAlphaCompare = ReadMaterialComponent<J3DAlphaCompare>(stream, mBlock->AlphaCompareTableOffset, initData.AlphaCompare);
 	newMaterial->mPEBlock.mBlendMode = ReadMaterialComponent<J3DBlendMode>(stream, mBlock->BlendInfoTableOffset, initData.BlendMode);
 	newMaterial->mPEBlock.mFog = ReadMaterialComponent<J3DFog>(stream, mBlock->FogTableOffset, initData.Fog);
 	newMaterial->mPEBlock.mZCompLoc = stream->peekUInt8(mBlock->ZCompLocTableOffset + initData.ZCompLoc * sizeof(uint8_t));
 	newMaterial->mPEBlock.mDither = stream->peekUInt8(mBlock->DitherTableOffset + initData.Dither * sizeof(uint8_t));
+
+	// Light block
+	newMaterial->mLightBlock.mCullMode = (EGXCullMode)stream->peekUInt32(mBlock->CullModeTableOffset + initData.CullMode * sizeof(uint32_t));
+	
+	for (int i = 0; i < 2; i++) {
+		if (initData.MatteColor[i] != UINT16_MAX) {
+			newMaterial->mLightBlock.mMatteColor[i].r = stream->peekUInt8(mBlock->MaterialColorTableOffset + initData.MatteColor[i] * sizeof(glm::vec4));
+			newMaterial->mLightBlock.mMatteColor[i].g = stream->peekUInt8(mBlock->MaterialColorTableOffset + initData.MatteColor[i] * sizeof(glm::vec4) + 1);
+			newMaterial->mLightBlock.mMatteColor[i].b = stream->peekUInt8(mBlock->MaterialColorTableOffset + initData.MatteColor[i] * sizeof(glm::vec4) + 2);
+			newMaterial->mLightBlock.mMatteColor[i].a = stream->peekUInt8(mBlock->MaterialColorTableOffset + initData.MatteColor[i] * sizeof(glm::vec4) + 3);
+		}
+
+		if (initData.AmbientColor[i] != UINT16_MAX) {
+			newMaterial->mLightBlock.mAmbientColor[i].r = stream->peekUInt8(mBlock->AmbientColorTableOffset + initData.AmbientColor[i] * sizeof(glm::vec4));
+			newMaterial->mLightBlock.mAmbientColor[i].g = stream->peekUInt8(mBlock->AmbientColorTableOffset + initData.AmbientColor[i] * sizeof(glm::vec4) + 1);
+			newMaterial->mLightBlock.mAmbientColor[i].b = stream->peekUInt8(mBlock->AmbientColorTableOffset + initData.AmbientColor[i] * sizeof(glm::vec4) + 2);
+			newMaterial->mLightBlock.mAmbientColor[i].a = stream->peekUInt8(mBlock->AmbientColorTableOffset + initData.AmbientColor[i] * sizeof(glm::vec4) + 3);
+		}
+	}
+
+	uint8_t chanControlNum = stream->peekUInt8(mBlock->ColorChannelCountTableOffset + initData.ColorChannelCount * sizeof(uint8_t));
+	for (int i = 0; i < chanControlNum; i++) {
+		newMaterial->mLightBlock.mColorChannels.push_back(ReadMaterialComponent<J3DColorChannel>(stream, mBlock->ColorChannelTableOffset, initData.ColorChannel[i]));
+	}
+
+	// Tex gen block
+	uint8_t texGenNum = stream->peekUInt8(mBlock->TexGenCountTableOffset + initData.TexGenCount * sizeof(uint8_t));
+	for (int i = 0; i < texGenNum; i++) {
+		newMaterial->mTexGenBlock.mTexCoordInfo.push_back(ReadMaterialComponent<J3DTexCoordInfo>(stream, mBlock->TexCoordTableOffset, initData.TexCoord[i]));
+	}
+
+	for (int i = 0; i < 10; i++) {
+		if (initData.TexMatrix[i] == UINT16_MAX)
+			continue;
+
+		newMaterial->mTexGenBlock.mTexMatrix.push_back(ReadMaterialComponent<J3DTexMatrixInfo>(stream, mBlock->TexMatrixTableOffset, initData.TexMatrix[i]));
+	}
+
+	if (initData.NBTScale != UINT16_MAX) {
+		newMaterial->mTexGenBlock.mNBTScale = ReadMaterialComponent<J3DNBTScaleInfo>(stream, mBlock->NBTScaleTableOffset, initData.NBTScale);
+	}
+
+	// Tev block
+	for (int i = 0; i < 8; i++) {
+		if (initData.TextureIndex[i] == UINT16_MAX)
+			continue;
+
+		newMaterial->mTevBlock.mTextureIndices.push_back(stream->peekUInt16(mBlock->TextureIndexTableOffset + initData.TextureIndex[i] * sizeof(uint16_t)));
+	}
+
+	uint8_t tevStageNum = stream->peekUInt8(mBlock->TevStageCountTableOffset + initData.TEVStageCount * sizeof(uint8_t));
+	for (int i = 0; i < tevStageNum; i++) {
+		if (initData.TEVOrder[i] != UINT16_MAX)
+			newMaterial->mTevBlock.mTevOrders.push_back(ReadMaterialComponent<J3DTevOrderInfo>(stream, mBlock->TevOrderTableOffset, initData.TEVOrder[i]));
+	
+		if (initData.TEVStage[i] != UINT16_MAX)
+			newMaterial->mTevBlock.mTevStages.push_back(ReadMaterialComponent<J3DTevStageInfo>(stream, mBlock->TevStageTableOffset, initData.TEVStage[i]));
+	}
+
+	for (int i = 0; i < 16; i++) {
+		newMaterial->mTevBlock.mKonstColorSelection[i] = (EGXKonstColorSel)initData.TEVKonstColorSelect[i];
+		newMaterial->mTevBlock.mKonstAlphaSelection[i] = (EGXKonstAlphaSel)initData.TEVKonstAlphaSelect[i];
+	}
+
+	for (int i = 0; i < 4; i++) {
+		if (initData.TEVColor[i] != UINT16_MAX) {
+			newMaterial->mTevBlock.mTevColors[i].r = stream->peekUInt8(mBlock->TevColorTableOffset + initData.TEVColor[i] * sizeof(glm::vec4));
+			newMaterial->mTevBlock.mTevColors[i].g = stream->peekUInt8(mBlock->TevColorTableOffset + initData.TEVColor[i] * sizeof(glm::vec4) + 1);
+			newMaterial->mTevBlock.mTevColors[i].b = stream->peekUInt8(mBlock->TevColorTableOffset + initData.TEVColor[i] * sizeof(glm::vec4) + 2);
+			newMaterial->mTevBlock.mTevColors[i].a = stream->peekUInt8(mBlock->TevColorTableOffset + initData.TEVColor[i] * sizeof(glm::vec4) + 3);
+		}
+
+		if (initData.TEVKonstColor[i] != UINT16_MAX) {
+			newMaterial->mTevBlock.mTevKonstColors[i].r = stream->peekUInt8(mBlock->TevKColorTableOffset + initData.TEVKonstColor[i] * sizeof(uint32_t));
+			newMaterial->mTevBlock.mTevKonstColors[i].g = stream->peekUInt8(mBlock->TevKColorTableOffset + initData.TEVKonstColor[i] * sizeof(uint32_t) + 1);
+			newMaterial->mTevBlock.mTevKonstColors[i].b = stream->peekUInt8(mBlock->TevKColorTableOffset + initData.TEVKonstColor[i] * sizeof(uint32_t) + 2);
+			newMaterial->mTevBlock.mTevKonstColors[i].a = stream->peekUInt8(mBlock->TevKColorTableOffset + initData.TEVKonstColor[i] * sizeof(uint32_t) + 3);
+		}
+	}
 
 	return newMaterial;
 }
