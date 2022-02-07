@@ -19,7 +19,7 @@ struct J3DMaterialInitData {
 	uint8_t ZMode;
 	uint8_t Dither;
 
-	uint16_t MatteColor[2];
+	uint16_t MaterialColor[2];
 	uint16_t ColorChannel[4];
 	uint16_t AmbientColor[2];
 	uint16_t Light[8];
@@ -60,11 +60,10 @@ class J3DMaterialFactory {
 		T newComp;
 		
 		ptrdiff_t currentOffset = stream->tell();
-		stream->seek(offset + (index * (sizeof(T) - 12)));
+		uint32_t pos = offset + (index * newComp.GetElementSize());
+		stream->seek(pos);
 
-		J3DMaterialComponentBase* tAsBase = static_cast<J3DMaterialComponentBase*>(&newComp);
-		if (tAsBase != nullptr)
-			tAsBase->Deserialize(stream);
+		newComp.Deserialize(stream);
 
 		stream->seek(currentOffset);
 		return newComp;

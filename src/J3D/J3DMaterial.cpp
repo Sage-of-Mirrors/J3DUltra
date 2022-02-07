@@ -40,7 +40,7 @@ bool J3DMaterial::GenerateShaders(const int32_t& jointCount) {
 	int32_t isLinked = 0;
 	glGetProgramiv(mShaderProgram, GL_LINK_STATUS, &isLinked);
 	if (!isLinked) {
-		std::cout << "Shader program for material " << mName << " failed to link. Error is as follows:" << std::endl;
+		std::cout << "Shader program for material " << Name << " failed to link. Error is as follows:" << std::endl;
 
 		// Get the length of the program's log
 		int32_t logLength = 0;

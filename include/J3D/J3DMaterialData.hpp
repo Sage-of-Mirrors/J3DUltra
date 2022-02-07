@@ -18,6 +18,7 @@ enum class EPixelEngineMode : uint8_t {
 
 struct J3DMaterialComponentBase {
 	virtual void Deserialize(bStream::CStream* stream) = 0;
+	virtual size_t GetElementSize() = 0;
 };
 
 // Z-buffer settings.
@@ -30,6 +31,7 @@ struct J3DZMode : public J3DMaterialComponentBase {
 	bool UpdateEnable = false;
 
 	virtual void Deserialize(bStream::CStream* stream);
+	virtual size_t GetElementSize() override { return 4; }
 };
 
 // Alpha compare settings. The formula is:
@@ -45,6 +47,7 @@ struct J3DAlphaCompare : public J3DMaterialComponentBase {
 	uint8_t Reference1 = 0;
 
 	virtual void Deserialize(bStream::CStream* stream);
+	virtual size_t GetElementSize() override { return 8; }
 };
 
 struct J3DBlendMode : public J3DMaterialComponentBase {
@@ -54,6 +57,7 @@ struct J3DBlendMode : public J3DMaterialComponentBase {
 	EGXLogicOp Operation = EGXLogicOp::Copy;
 
 	virtual void Deserialize(bStream::CStream* stream);
+	virtual size_t GetElementSize() override { return 4; }
 };
 
 struct J3DFog : public J3DMaterialComponentBase {
@@ -69,17 +73,19 @@ struct J3DFog : public J3DMaterialComponentBase {
 	uint16_t AdjustmentTable[10];
 
 	virtual void Deserialize(bStream::CStream* stream);
+	virtual size_t GetElementSize() override { return 44; }
 };
 
 struct J3DColorChannel : public J3DMaterialComponentBase {
 	bool LightingEnabled;
-	EGXColorSource MatteSource;
+	EGXColorSource MaterialSource;
 	uint8_t LightMask;
 	EGXDiffuseFunction DiffuseFunction;
 	EGXAttenuationFunction AttenuationFunction;
 	EGXColorSource AmbientSource;
 
 	virtual void Deserialize(bStream::CStream* stream);
+	virtual size_t GetElementSize() override { return 8; }
 };
 
 struct J3DTexCoordInfo : public J3DMaterialComponentBase {
@@ -88,6 +94,7 @@ struct J3DTexCoordInfo : public J3DMaterialComponentBase {
 	EGXTexMatrix TexMatrix;
 
 	virtual void Deserialize(bStream::CStream* stream);
+	virtual size_t GetElementSize() override { return 4; }
 };
 
 enum class EJ3DTexMatrixProjection : uint8_t {
@@ -104,6 +111,7 @@ struct J3DTexMatrixInfo : public J3DMaterialComponentBase {
 	glm::mat4 Matrix;
 
 	virtual void Deserialize(bStream::CStream* stream);
+	virtual size_t GetElementSize() override { return 100; }
 };
 
 struct J3DNBTScaleInfo : public J3DMaterialComponentBase {
@@ -111,6 +119,7 @@ struct J3DNBTScaleInfo : public J3DMaterialComponentBase {
 	glm::vec3 Scale;
 
 	virtual void Deserialize(bStream::CStream* stream);
+	virtual size_t GetElementSize() override { return 16; }
 };
 
 struct J3DTevOrderInfo : public J3DMaterialComponentBase {
@@ -119,6 +128,7 @@ struct J3DTevOrderInfo : public J3DMaterialComponentBase {
 	EGXColorChannelId ChannelId;
 
 	virtual void Deserialize(bStream::CStream* stream);
+	virtual size_t GetElementSize() override { return 4; }
 };
 
 struct J3DTevStageInfo : public J3DMaterialComponentBase {
@@ -141,4 +151,5 @@ struct J3DTevStageInfo : public J3DMaterialComponentBase {
 	uint8_t Unknown1;
 
 	virtual void Deserialize(bStream::CStream* stream);
+	virtual size_t GetElementSize() override { return 20; }
 };
