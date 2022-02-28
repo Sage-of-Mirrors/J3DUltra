@@ -146,13 +146,13 @@ J3DShape* J3DShapeFactory::Create(bStream::CStream* stream, uint32_t index) {
 	return newShape;
 }
 
-uint16_t J3DShapeFactory::ConvertPosMtxIndexToDrawIndex(bStream::CStream* stream, const J3DShapeInitData& initData, const uint16_t& packetIndex, const uint16_t& value) {
-	uint16_t index = 0;
+uint32_t J3DShapeFactory::ConvertPosMtxIndexToDrawIndex(bStream::CStream* stream, const J3DShapeInitData& initData, const uint16_t& packetIndex, const uint16_t& value) {
+	uint32_t index = 0;
 	
 	uint32_t currentStreamPos = stream->tell();
 	stream->seek(mBlock->MatrixInitTableOffset + (initData.MatrixOffset * sizeof(J3DShapeMatrixInitData)));
 
-	uint16_t matrixInitIndex = initData.MatrixOffset + packetIndex;
+	uint32_t matrixInitIndex = initData.MatrixOffset + packetIndex;
 	J3DShapeMatrixInitData matrixInitData;
 
 	while (matrixInitIndex >= 0) {
@@ -163,7 +163,7 @@ uint16_t J3DShapeFactory::ConvertPosMtxIndexToDrawIndex(bStream::CStream* stream
 		uint32_t matrixTableOffset = mBlock->MatrixTableOffset + (matrixInitData.Start + value) * sizeof(uint16_t);
 
 		// Read the value !
-		uint16_t matrixEntry = stream->peekUInt16(matrixTableOffset);
+		uint32_t matrixEntry = stream->peekUInt16(matrixTableOffset);
 		// If the index we read isn't 0xFFFF, we can finish early because we have our value.
 		if (matrixEntry != 0xFFFF) {
 			index = matrixEntry;
@@ -179,8 +179,8 @@ uint16_t J3DShapeFactory::ConvertPosMtxIndexToDrawIndex(bStream::CStream* stream
 	return index;
 }
 
-uint16_t J3DShapeFactory::GetUseMatrixValue(bStream::CStream* stream, const J3DShapeInitData& initData, const uint16_t& packetIndex) {
-	uint16_t index = 0;
+uint32_t J3DShapeFactory::GetUseMatrixValue(bStream::CStream* stream, const J3DShapeInitData& initData, const uint16_t& packetIndex) {
+	uint32_t index = 0;
 
 	uint32_t currentStreamPos = stream->tell();
 	stream->seek(mBlock->MatrixInitTableOffset + (initData.MatrixOffset * sizeof(J3DShapeMatrixInitData)));
