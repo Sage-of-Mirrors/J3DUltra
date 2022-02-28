@@ -20,15 +20,15 @@ bool J3DVertexShaderGenerator::GenerateVertexShader(const J3DMaterial* material,
 	std::stringstream shaderStream;
 	shaderStream << "#version 330 core\n\n";
 
-	WriteAttributes(shaderStream, material->GetShape()->GetEnabledAttributes());
-	WriteOutputs(shaderStream, material);
-	WriteUniforms(shaderStream, jointCount);
+	//WriteAttributes(shaderStream, material->GetShape()->GetEnabledAttributes());
+	//WriteOutputs(shaderStream, material);
+	//WriteUniforms(shaderStream, jointCount);
 
 	shaderStream << "float ApplyAttenuation(vec3 t_Coeff, float t_Value) {\n"
 		"\treturn dot(t_Coeff, vec3(1.0, t_Value, t_Value * t_Value));\n"
 		"}\n\n";
 
-	WriteMainFunction(shaderStream, material);
+	//WriteMainFunction(shaderStream, material);
 
 	shaderHandle = glCreateShader(GL_VERTEX_SHADER);
 	

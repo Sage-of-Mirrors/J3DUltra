@@ -186,3 +186,12 @@ struct J3DMaterialBlock : public J3DBlock {
 
 	virtual bool Deserialize(bStream::CStream* stream) override;
 };
+
+struct J3DTextureBlock : public J3DBlock {
+	uint16_t Count;
+
+	uint32_t TexTableOffset;
+	uint32_t NameTableOffset;
+
+	virtual bool Deserialize(bStream::CStream* stream) override;
+};

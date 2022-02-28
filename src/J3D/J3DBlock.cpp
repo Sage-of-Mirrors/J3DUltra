@@ -435,3 +435,23 @@ bool J3DMaterialBlock::Deserialize(bStream::CStream* stream) {
 
     return true;
 }
+
+bool J3DTextureBlock::Deserialize(bStream::CStream* stream) {
+    size_t currentStreamPosition = stream->tell();
+
+    if (!J3DBlock::Deserialize(stream))
+        return false;
+
+    try {
+        Count = stream->readUInt16();
+        stream->skip(2);
+
+        TexTableOffset = stream->readUInt32() + currentStreamPosition;
+        NameTableOffset = stream->readUInt32() + currentStreamPosition;
+    }
+    catch (...) {
+        return false;
+    }
+
+    return true;
+}

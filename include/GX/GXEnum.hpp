@@ -385,3 +385,47 @@ enum class EGXKonstAlphaSel : uint8_t {
 	KASel_K2_A = 0x1E,  // K2[A] Register
 	KASel_K3_A = 0x1F   // K3[A] Register
 };
+
+enum class EGXTextureFormat : uint32_t {
+	I4,     // 4BPP, 8x8 blocks, monochrome
+	I8,     // 8BPP, 8x8 blocks, monochrome
+	IA4,    // 8BPP, 8x4 blocks, monochrome + alpha
+	IA8,    // 16BPP, 4x4 blocks, monochrome + alpha
+	RGB565, // 16BPP, 4x4 blocks, color
+	RGB5A3, // 16BPP, 4x4 blocks, color + alpha
+	RGBA32, // 32BPP, 4x4 blocks, color + alpha
+
+	// There is no enum value associated with ID 0x07.
+
+	C4 = 8, // 4BPP, 8x8 blocks, palette
+	C8,     // 8BPP, 8x4 blocks, palette
+	C14X2,  // 16BPP, 4x4 blocks, palette
+
+	// There are no enum values associated with IDs 0x0B to 0x0D.
+
+	CMPR = 14    // 4BPP, 8x8 blocks, palette per block
+};
+
+enum class EGXWrapMode : uint32_t {
+	ClampToEdge,
+	Repeat,
+	MirroredRepeat
+};
+
+enum class EGXPaletteFormat : uint32_t {
+	IA8,
+	RGB565,
+	RGB5A3
+};
+
+enum class EGXFilterMode : uint32_t {
+	// Valid in both Min and Mag Filter
+	Nearest,                  // Point Sampling, No Mipmap
+	Linear,                   // Bilinear Filtering, No Mipmap
+
+	// Valid in only Min Filter
+	NearestMipmapNearest,     // Point Sampling, Discrete Mipmap
+	NearestMipmapLinear,      // Bilinear Filtering, Discrete Mipmap
+	LinearMipmapNearest,      // Point Sampling, Linear MipMap
+	LinearMipmapLinear,       // Trilinear Filtering
+};

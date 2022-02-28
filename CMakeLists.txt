@@ -7,6 +7,8 @@ set( GLM_TEST_ENABLE      OFF CACHE INTERNAL "" )
 set( BUILD_SHARED_LIBS    OFF CACHE INTERNAL "" )
 set( BUILD_STATIC_LIBS    OFF CACHE INTERNAL "" )
 add_subdirectory(lib/glm)
+add_subdirectory(lib/zlib)
+add_subdirectory(lib/libpng)
 
 file(GLOB J3DULTRA_SRC
     # J3DUltra
@@ -24,5 +26,5 @@ file(GLOB J3DULTRA_SRC
 )
 
 add_library(j3dultra ${J3DULTRA_SRC})
-target_include_directories(j3dultra PUBLIC include lib/bstream lib/glad/include)
-target_link_libraries(j3dultra PUBLIC glm)
+target_include_directories(j3dultra PUBLIC include lib/bstream lib/glad/include lib/zlib lib/libpng lib/png++)
+target_link_libraries(j3dultra PUBLIC glm zlib libpng16d_staticd)

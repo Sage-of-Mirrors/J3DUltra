@@ -51,6 +51,9 @@ class J3DModelData {
 	// MAT3 data, materials
 	std::vector<J3DMaterial*> mMaterials;
 
+	// TEX1 data, textures
+	std::vector<uint32_t> mTextureHandles;
+
 	glm::mat4 EnvelopeMatrices[256];
 
 	void MakeHierarchy(J3DJoint* const root, uint32_t& index);

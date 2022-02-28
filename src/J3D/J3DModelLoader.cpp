@@ -6,6 +6,7 @@
 #include "J3D/J3DNameTable.hpp"
 #include "J3D/J3DShapeFactory.hpp"
 #include "J3D/J3DMaterialFactory.hpp"
+#include "J3D/J3DTextureFactory.hpp"
 #include "J3D/J3DJoint.hpp"
 
 #include <bstream.h>
@@ -42,6 +43,13 @@ J3DModelData* J3DModelLoader::Load(bStream::CStream* stream, uint32_t flags) {
                 break;
             case EJ3DBlockType::MAT3:
                 ReadMaterialBlock(stream, flags);
+                break;
+            case EJ3DBlockType::TEX1:
+                ReadTextureBlock(stream, flags);
+                break;
+            default:
+                uint32_t unsupportedBlockSize = stream->peekUInt32(stream->tell() + 4);
+                stream->seek(stream->tell() + unsupportedBlockSize);
                 break;
         }
     }
@@ -300,4 +308,18 @@ void J3DModelLoader::ReadMaterialBlock(bStream::CStream* stream, uint32_t flags)
     }
 
     stream->seek(currentStreamPos + matBlock.BlockSize);
+}
+
+void J3DModelLoader::ReadTextureBlock(bStream::CStream* stream, uint32_t flags) {
+    size_t currentStreamPos = stream->tell();
+
+    J3DTextureBlock texBlock;
+    texBlock.Deserialize(stream);
+
+    J3DTextureFactory textureFactory(&texBlock, stream);
+    for (int i = 0; i < texBlock.Count; i++) {
+        mModelData->mTextureHandles.push_back(textureFactory.Create(stream, i));
+    }
+
+    stream->seek(currentStreamPos + texBlock.BlockSize);
 }
