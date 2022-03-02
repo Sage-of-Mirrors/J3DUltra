@@ -74,7 +74,7 @@ void J3DShape::ConcatenatePacketsToIBO(std::vector<J3DVertexGX>* ibo) {
 }
 
 void J3DShape::RenderShape() {
-	glDrawElements(GL_TRIANGLES, mIBOCount * 3, GL_UNSIGNED_SHORT, (const void*)(mIBOStart * sizeof(uint16_t)));
+	glDrawElements(GL_TRIANGLES, mIBOCount, GL_UNSIGNED_SHORT, (const void*)(mIBOStart * sizeof(uint16_t)));
 }
 
 void J3DShape::Deserialize(bStream::CStream* stream) {

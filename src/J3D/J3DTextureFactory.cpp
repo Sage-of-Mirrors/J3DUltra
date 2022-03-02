@@ -99,6 +99,7 @@ uint32_t J3DTextureFactory::Create(bStream::CStream* stream, uint32_t index) {
 			DecodePaletteFormat(stream, imageData, entry, dataOffset);
 			break;
 		case EGXTextureFormat::CMPR:
+			stream->seek(dataOffset + entry.TextureOffset);
 			DecodeCMPR(stream, imageData, entry);
 			break;
 	}
