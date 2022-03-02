@@ -13,12 +13,12 @@ glm::mat4 J3DJoint::GetTransformMatrix() {
 	return completeTransform;
 }
 
-void J3DJoint::RenderRecursive() {
+void J3DJoint::RenderRecursive(std::vector<uint32_t>& textureHandles) {
 	for (auto a : mMaterials) {
-		a->Render();
+		a->Render(textureHandles);
 	}
 
 	for (auto c : mChildren) {
-		static_cast<J3DJoint*>(c)->RenderRecursive();
+		static_cast<J3DJoint*>(c)->RenderRecursive(textureHandles);
 	}
 }

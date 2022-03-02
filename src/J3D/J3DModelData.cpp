@@ -193,7 +193,7 @@ void J3DModelData::Render(float deltaTime) {
 
     glBindVertexArray(mVAO);
 
-    mRootJoint->RenderRecursive();
+    mRootJoint->RenderRecursive(mTextureHandles);
 
     glBindVertexArray(0);
 }

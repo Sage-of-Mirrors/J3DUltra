@@ -44,5 +44,5 @@ public:
 
 	glm::mat4 GetTransformMatrix();
 
-	void RenderRecursive();
+	void RenderRecursive(std::vector<uint32_t>& textureHandles);
 };

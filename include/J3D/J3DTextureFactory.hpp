@@ -71,6 +71,11 @@ class J3DTextureFactory {
 
 	// CMPR
 	void DecodeCMPR(bStream::CStream* stream, uint8_t* imageData, J3DTextureEntry& entry);
+	uint8_t* DecodeCMPRSubBlock(bStream::CStream* stream);
+
+	// Utility
+	uint32_t GXWrapToGLWrap(EGXWrapMode gxWrap);
+	uint32_t GXFilterToGLFilter(EGXFilterMode gxFilter);
 
 	// Debug
 	void OutputPNG(uint32_t index, uint8_t* imageData, J3DTextureEntry& entry);

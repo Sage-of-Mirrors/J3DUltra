@@ -63,6 +63,13 @@ bool J3DMaterial::GenerateShaders(const int32_t& jointCount) {
 		return false;
 	}
 
+	for (int i = 0; i < 8; i++) {
+		std::string name = "Texture[" + std::to_string(i) + "]";
+		uint32_t uniformID = glGetUniformLocation(mShaderProgram, name.c_str());
+
+		glProgramUniform1i(mShaderProgram, uniformID, i);
+	}
+
 	// Program linked successfully, detach and delete the shaders because they're not needed now
 	glDetachShader(mShaderProgram, vertShader);
 	glDetachShader(mShaderProgram, fragShader);
@@ -72,11 +79,15 @@ bool J3DMaterial::GenerateShaders(const int32_t& jointCount) {
 	return true;
 }
 
-void J3DMaterial::Render() {
+void J3DMaterial::Render(std::vector<uint32_t>& textureHandles) {
 	glUseProgram(mShaderProgram);
+	for (int i = 0; i < TevBlock.mTextureIndices.size(); i++)
+		glBindTextureUnit(i, textureHandles[TevBlock.mTextureIndices[i]]);
 
 	if (mShape != nullptr)
 		mShape->RenderShape();
 
 	glUseProgram(0);
+	for (int i = 0; i < 8; i++)
+		glBindTextureUnit(i, 0);
 }

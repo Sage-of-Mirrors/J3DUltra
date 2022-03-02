@@ -73,5 +73,5 @@ public:
 	int32_t GetShaderProgram() const { return mShaderProgram; }
 	bool GenerateShaders(const int32_t& jointCount);
 
-	void Render();
+	void Render(std::vector<uint32_t>& textureHandles);
 };
