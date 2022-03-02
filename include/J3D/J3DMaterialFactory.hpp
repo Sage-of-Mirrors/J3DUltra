@@ -3,6 +3,7 @@
 #include "J3DNameTable.hpp"
 
 #include <vector>
+#include <cstddef>
 #include <cstdint>
 
 namespace bStream { class CStream; }

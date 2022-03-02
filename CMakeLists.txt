@@ -26,5 +26,5 @@ file(GLOB J3DULTRA_SRC
 )
 
 add_library(j3dultra ${J3DULTRA_SRC})
-target_include_directories(j3dultra PUBLIC include lib/bstream lib/glad/include lib/zlib lib/libpng lib/png++)
+target_include_directories(j3dultra PUBLIC include lib/bStream lib/glad/include lib/zlib lib/libpng lib/png++)
 target_link_libraries(j3dultra PUBLIC glm zlib libpng16d_staticd)
