@@ -4,6 +4,8 @@
 #include <string>
 #include <type_traits>
 #include <filesystem>
+#include <cstddef>
+#include <algorithm>
 
 namespace J3DUtility {
     // Returns the index of the given element in the given vector, or -1 if the element is not in that vector.
