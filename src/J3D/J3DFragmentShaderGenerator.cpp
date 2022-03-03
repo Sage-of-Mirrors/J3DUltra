@@ -1,9 +1,13 @@
 #include "J3D/J3DFragmentShaderGenerator.hpp"
 #include "J3D/J3DUtil.hpp"
+#include "../magic_enum/include/magic_enum.hpp"
+#include "GX/GXEnum.hpp"
 
 #include <glad/glad.h>
 #include <string>
 #include <iostream>
+
+#define etoi magic_enum::enum_integer
 
 bool J3DFragmentShaderGenerator::GenerateFragmentShader(uint32_t& shaderHandle) {
 	// TODO: actual fragment shader generation
