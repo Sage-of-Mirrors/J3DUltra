@@ -3,7 +3,7 @@
 #include <string>
 
 // The 4 possible places that a TEV register can output colors to.
-std::string TGXTevRegister[]{
+const std::string TGXTevRegister[]{
 	"TevPrev",
 	"Reg0",
 	"Reg1",
@@ -11,7 +11,7 @@ std::string TGXTevRegister[]{
 };
 
 // The vec3 inputs for a TEV stage's color combiner.
-std::string TGXCombineColorInput[]{
+const std::string TGXCombineColorInput[]{
 	"TevPrev.rgb",
 	"TevPrev.aaa",
 	"Reg0.rgb",
@@ -23,15 +23,15 @@ std::string TGXCombineColorInput[]{
 	"TexTemp.rgb",
 	"TexTemp.aaa",
 	"RasTemp.rgb",
-	"RasTemp.aaa"
-	"vec3(1, 1, 1)",
-	"vec3(0.5, 0.5, 0.5)",
+	"RasTemp.aaa",
+	"ivec3(255, 255, 255)",
+	"ivec3(128, 128, 128)",
 	"KonstTemp.rgb",
-	"vec3(0, 0, 0)"
+	"ivec3(0, 0, 0)"
 };
 
 // The floating-point inputs for a TEV stage's alpha combiner.
-std::string TGXCombineAlphaInput[]{
+const std::string TGXCombineAlphaInput[]{
 	"TevPrev.a",
 	"Reg0.a",
 	"Reg1.a",
@@ -39,54 +39,65 @@ std::string TGXCombineAlphaInput[]{
 	"TexTemp.a",
 	"RasTemp.a",
 	"KonstTemp.a",
-	"0.0"
+	"0"
 };
 
 // The bias values that can be used during the evaluation of a TEV stage.
-std::string TGXTevBias[]{
+const std::string TGXTevBias[]{
 	"",
-	" + 0.5",
-	" - 0.5"
+	" + 128",
+	" - 128"
 };
 
 // The scale values that can be applied to the result of a TEV stage.
-std::string TGXTevScale[]{
+const std::string TGXTevScale[]{
 	"",
-	" * 2.0",
-	" * 4.0",
-	" * 0.5"
+	" * 2",
+	" * 4",
+	" / 2"
 };
 
-std::string TGXTevColorChannelId[]{
+const std::string TGXTevColorChannelId[]{
 	"oColor[0].rgb",
 	"oColor[1].rgb",
 	"oColor[0].a",
 	"oColor[1].a",
 	"oColor[0]",
 	"oColor[1]",
-	"vec4(0, 0, 0, 0)",
+	"ivec4(0, 0, 0, 0)",
 	"NORMAL_BUMP_UNSUPPORTED",
 	"ALPHA_BUMP_UNSUPPORTED"
 };
 
-char TGXTevSwapComponents[]{
+const char TGXTevSwapComponents[]{
 	'r',
 	'g',
 	'b',
 	'a'
 };
 
+const std::string TGXTexCoordSlot[]{
+	"oTexCoord0",
+	"oTexCoord1",
+	"oTexCoord2",
+	"oTexCoord3",
+	"oTexCoord4",
+	"oTexCoord5",
+	"oTexCoord6",
+	"oTexCoord7",
+};
+
 // The vec3 inputs that can be used for konst colors.
-std::string TGXKonstColorSel[]{
+const std::string TGXKonstColorSel[]{
 	// Constants
-	"1.0, 1.0, 1.0",
-	"0.875, 0.875, 0.875", // 7/8
-	"0.75, 0.75, 0.75",    // 3/4
-	"0.625, 0.625, 0.625", // 5/8
-	"0.5, 0.5, 0.5",       // 1/2
-	"0.375, 0.375, 0.375", // 3/8
-	"0.25, 0.25, 0.25",    // 1/4
-	"0.125, 0.125, 0.125", // 1/8
+	"255, 255, 255",
+	"223, 223, 223", // 7/8
+	"191, 191, 191", // 3/4
+	"159, 159, 159", // 5/8
+	"128, 128, 128", // 1/2
+	"96, 96, 96",    // 3/8
+	"64, 64, 64",    // 1/4
+	"32, 32, 32",    // 1/8
 
 	// These aren't valid
 	"0, 0, 0",
@@ -122,16 +133,26 @@ std::string TGXKonstColorSel[]{
 };
 
 // The floating-point values that can be used for konst alpha.
-std::string TGXKonstAlphaSel[]{
+const std::string TGXKonstAlphaSel[]{
 	// Constants
-	"1.0",
-	"0.875", // 7/8
-	"0.75",  // 3/4
-	"0.625", // 5/8
-	"0.5",   // 1/2
-	"0.375", // 3/8
-	"0.25",  // 1/4
-	"0.125", // 1/8
+	"255",
+	"223", // 7/8
+	"191",  // 3/4
+	"159", // 5/8
+	"128",   // 1/2
+	"96", // 3/8
+	"64",  // 1/4
+	"32", // 1/8
+
+	// These aren't valid
+	"0",
+	"0",
+	"0",
+	"0",
+	"0",
+	"0",
+	"0",
+	"0",
 
 	// Konst components
 	"KonstColor[0].r",

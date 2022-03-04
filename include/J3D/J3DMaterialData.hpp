@@ -127,6 +127,9 @@ struct J3DTevOrderInfo : public J3DMaterialComponentBase {
 	uint8_t TexMap;
 	EGXColorChannelId ChannelId;
 
+	uint8_t mTexSwapTable[4]{};
+	uint8_t mRasSwapTable[4]{};
+
 	virtual void Deserialize(bStream::CStream* stream);
 	virtual size_t GetElementSize() override { return 4; }
 };

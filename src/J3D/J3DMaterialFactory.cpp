@@ -93,7 +93,28 @@ J3DMaterial* J3DMaterialFactory::Create(bStream::CStream* stream, uint32_t index
 	for (int i = 0; i < tevStageNum; i++) {
 		if (initData.TEVOrder[i] != UINT16_MAX)
 			newMaterial->TevBlock.mTevOrders.push_back(ReadMaterialComponent<J3DTevOrderInfo>(stream, mBlock->TevOrderTableOffset, initData.TEVOrder[i]));
-	
+
+		uint32_t currentOffset = stream->tell();
+		if (initData.TEVSwapMode[i] != UINT16_MAX) {
+			uint8_t tex, ras;
+			stream->seek(mBlock->TevSwapModeTableOffset + (initData.TEVSwapMode[i] * 4));
+			tex = stream->readUInt8();
+			ras = stream->readUInt8();
+
+			stream->seek(mBlock->TevSwapTableOffset + initData.TEVSwapModeTable[tex] * 4);
+			newMaterial->TevBlock.mTevOrders[i].mTexSwapTable[0] = stream->readUInt8();
+			newMaterial->TevBlock.mTevOrders[i].mTexSwapTable[1] = stream->readUInt8();
+			newMaterial->TevBlock.mTevOrders[i].mTexSwapTable[2] = stream->readUInt8();
+			newMaterial->TevBlock.mTevOrders[i].mTexSwapTable[3] = stream->readUInt8();
+
+			stream->seek(mBlock->TevSwapTableOffset + initData.TEVSwapModeTable[ras] * 4);
+			newMaterial->TevBlock.mTevOrders[i].mRasSwapTable[0] = stream->readUInt8();
+			newMaterial->TevBlock.mTevOrders[i].mRasSwapTable[1] = stream->readUInt8();
+			newMaterial->TevBlock.mTevOrders[i].mRasSwapTable[2] = stream->readUInt8();
+			newMaterial->TevBlock.mTevOrders[i].mRasSwapTable[3] = stream->readUInt8();
+		}
+		stream->seek(currentOffset);
+
 		if (initData.TEVStage[i] != UINT16_MAX)
 			newMaterial->TevBlock.mTevStages.push_back(ReadMaterialComponent<J3DTevStageInfo>(stream, mBlock->TevStageTableOffset, initData.TEVStage[i]));
 	}

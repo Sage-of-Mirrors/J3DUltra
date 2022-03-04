@@ -24,7 +24,7 @@ bool J3DMaterial::GenerateShaders(const int32_t& jointCount) {
 		return false;
 	}
 
-	if (!J3DFragmentShaderGenerator::GenerateFragmentShader(fragShader)) {
+	if (!J3DFragmentShaderGenerator::GenerateFragmentShader(this, fragShader)) {
 		std::cout << "Error in fragment shader generator!" << std::endl;
 
 		glDeleteShader(vertShader);
