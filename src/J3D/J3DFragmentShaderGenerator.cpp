@@ -18,49 +18,10 @@ bool J3DFragmentShaderGenerator::GenerateFragmentShader(J3DMaterial* material, u
 	// TODO: actual fragment shader generation
 
 	std::stringstream fragmentShader;
-
-	fragmentShader << "int mix(int a, int b, int c) {\n";
-	fragmentShader << "\ta = a & 0xFF;\n";
-	fragmentShader << "\tb = b & 0xFF;\n";
-	fragmentShader << "\tc = c & 0xFF;\n\n";
-	fragmentShader << "\treturn a + ((b - a) * c / 255);\n";
-	fragmentShader << "}\n\n";
-
-	fragmentShader << "ivec3 mix(ivec3 a, ivec3 b, ivec3 c) {\n";
-	fragmentShader << "\tint r = mix(a.r, b.r, c.r);\n";
-	fragmentShader << "\tint g = mix(a.g, b.g, c.g);\n";
-	fragmentShader << "\tint b = mix(a.b, b.b, c.b);\n\n";
-	fragmentShader << "\treturn ivec3(r, g, b);\n";
-	fragmentShader << "}\n\n";
-
-	fragmentShader << "ivec4 FloatToS10(vec4 a) {\n";
-	fragmentShader << "\tint r = (a.r * 255) & 0xFF;\n";
-	fragmentShader << "\tint g = (a.g * 255) & 0xFF;\n";
-	fragmentShader << "\tint b = (a.b * 255) & 0xFF;\n";
-	fragmentShader << "\tint a = (a.a * 255) & 0xFF;\n\n";
-	fragmentShader << "\treturn ivec4(r, g, b, a);\n";
-	fragmentShader << "}\n\n";
-
-	fragmentShader << "vec4 S10ToFloat(ivec4 a) {\n";
-	fragmentShader << "\tfloat r = (a.r & 0xFF) / 255.0;\n";
-	fragmentShader << "\tfloat g = (a.g & 0xFF) / 255.0;\n";
-	fragmentShader << "\tfloat b = (a.b & 0xFF) / 255.0;\n";
-	fragmentShader << "\tfloat a = (a.a & 0xFF) / 255.0;\n\n";
-	fragmentShader << "\treturn vec4(r, g, b, a);\n";
-	fragmentShader << "}\n\n";
-
-	fragmentShader << "void main() {\n";
-	fragmentShader << "\tivec4 TevPrev = FloatToS10(TevColor[3]);\n";
-	fragmentShader << "\tivec4 Reg0 = FloatToS10(TevColor[0]);\n";
-	fragmentShader << "\tivec4 Reg1 = FloatToS10(TevColor[1]);\n";
-	fragmentShader << "\tivec4 Reg2 = FloatToS10(TevColor[2]);\n\n";
-
-	for (int i = 0; i < material->TevBlock.mTevStages.size(); i++) {
-		fragmentShader << GenerateTEVStage(material, i);
-	}
-
-	fragmentShader << "\n\tPixelColor = S10ToFloat(TevPrev);\n";
-	fragmentShader << "}\n";
+	fragmentShader << GenerateIOVariables(material);
+	fragmentShader << GenerateStructs();
+	fragmentShader << GenerateUtilityFunctions();
+	fragmentShader << GenerateMainFunction(material);
 
 	std::ofstream debugFOut("./shader/" + material->Name + "_frag.glsl");
 	if (debugFOut.is_open()) {
@@ -84,6 +45,111 @@ bool J3DFragmentShaderGenerator::GenerateFragmentShader(J3DMaterial* material, u
 	}
 
 	return true;
+}
+
+std::string J3DFragmentShaderGenerator::GenerateIOVariables(J3DMaterial* material) {
+	std::stringstream stream;
+
+	stream << "// Vertex shader outputs\n";
+	stream << "in vec4 oColor[2];\n\n";
+
+	uint32_t texGenCount = material->TexGenBlock.mTexCoordInfo.size();
+	stream << "// Tex gen count: " << texGenCount << "\n";
+	for (int i = 0; i < texGenCount; i++) {
+		stream << "in vec3 oTexCoord" << i << ";\n";
+	}
+
+	stream << "\n// Final pixel color\n";
+	stream << "out vec4 PixelColor;\n\n";
+
+	return stream.str();
+}
+
+std::string J3DFragmentShaderGenerator::GenerateStructs() {
+	std::stringstream stream;
+
+	stream << "// Represents a hardware light source.\n";
+	stream << "struct GXLight {\n"
+		"\tvec4 Position;\n"
+		"\tvec4 Direction;\n"
+		"\tvec4 Color;\n"
+		"\tvec4 AngleAtten;\n"
+		"\tvec4 DistAtten;\n"
+		"};\n\n";
+
+	stream << "// This UBO contains data that doesn't change between vertices or materials.\n";
+	stream << "layout (std140) uniform uSharedData {\n"
+		"\tmat4 Proj;\n"
+		"\tmat4 View;\n"
+		"\tmat4 Model;\n\n"
+		"\tvec4 TevColor[4];\n"
+		"\tvec4 KonstColor[4];\n\n"
+		"\tGXLight Lights[8];\n"
+		"\tmat4 Envelopes[256];\n"
+		"\tmat3x4 TexMatrices[10];\n"
+		"};\n\n";
+
+	return stream.str();
+}
+
+std::string J3DFragmentShaderGenerator::GenerateUtilityFunctions() {
+	std::stringstream stream;
+
+	// mix() function for combining two integers based on a third.
+	stream << "int mix(int a, int b, int c) {\n";
+	stream << "\ta = a & 0xFF;\n";
+	stream << "\tb = b & 0xFF;\n";
+	stream << "\tc = c & 0xFF;\n\n";
+	stream << "\treturn a + ((b - a) * c / 255);\n";
+	stream << "}\n\n";
+
+	// Component-wise mix() for ivec3.
+	stream << "ivec3 mix(ivec3 a, ivec3 b, ivec3 c) {\n";
+	stream << "\tint r = mix(a.r, b.r, c.r);\n";
+	stream << "\tint g = mix(a.g, b.g, c.g);\n";
+	stream << "\tint b = mix(a.b, b.b, c.b);\n\n";
+	stream << "\treturn ivec3(r, g, b);\n";
+	stream << "}\n\n";
+
+	// Convert a float vec4 with components in range 0..1 to an integer vec4 with components 0..255.
+	stream << "ivec4 FloatToS10(vec4 a) {\n";
+	stream << "\tint r = (a.r * 255) & 0xFF;\n";
+	stream << "\tint g = (a.g * 255) & 0xFF;\n";
+	stream << "\tint b = (a.b * 255) & 0xFF;\n";
+	stream << "\tint a = (a.a * 255) & 0xFF;\n\n";
+	stream << "\treturn ivec4(r, g, b, a);\n";
+	stream << "}\n\n";
+
+	// Convert an integer vec4 with components in range 0..255 to a float vec4 with components 0..1.
+	stream << "vec4 S10ToFloat(ivec4 a) {\n";
+	stream << "\tfloat r = (a.r & 0xFF) / 255.0;\n";
+	stream << "\tfloat g = (a.g & 0xFF) / 255.0;\n";
+	stream << "\tfloat b = (a.b & 0xFF) / 255.0;\n";
+	stream << "\tfloat a = (a.a & 0xFF) / 255.0;\n\n";
+	stream << "\treturn vec4(r, g, b, a);\n";
+	stream << "}\n\n";
+
+	return stream.str();
+}
+
+std::string J3DFragmentShaderGenerator::GenerateMainFunction(J3DMaterial* material) {
+	std::stringstream stream;
+	stream << "void main() {\n";
+
+	// The four locations that TEV stages can output to, initialized by the TevColor array.
+	stream << "\tivec4 TevPrev = FloatToS10(TevColor[3]);\n";
+	stream << "\tivec4 Reg0 = FloatToS10(TevColor[0]);\n";
+	stream << "\tivec4 Reg1 = FloatToS10(TevColor[1]);\n";
+	stream << "\tivec4 Reg2 = FloatToS10(TevColor[2]);\n\n";
+
+	for (int i = 0; i < material->TevBlock.mTevStages.size(); i++) {
+		stream << GenerateTEVStage(material, i);
+	}
+
+	stream << "\n\tPixelColor = S10ToFloat(TevPrev);\n";
+	stream << "}\n";
+
+	return stream.str();
 }
 
 std::string J3DFragmentShaderGenerator::GenerateTEVStage(J3DMaterial* material, uint32_t index) {

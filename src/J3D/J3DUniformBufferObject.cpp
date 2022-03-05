@@ -1,12 +1,16 @@
 #include "J3D/J3DUniformBufferObject.hpp"
 #include "J3D/J3DMaterial.hpp"
+#include "J3D/J3DLight.hpp"
 
 #include <glad/glad.h>
 #include <cstdint>
 
 namespace J3DUniformBufferObject {
 	namespace {
+		constexpr uint32_t LIGHTS_MAX = 8;
+		constexpr uint32_t COLOR_MAX = 4;
 		constexpr uint32_t ENVELOPE_MAT_MAX = 256;
+		constexpr uint32_t TEX_MAT_MAX = 10;
 		constexpr char* UBO_NAME = "Matrices";
 
 		struct J3DUniformBufferObject {
@@ -14,7 +18,12 @@ namespace J3DUniformBufferObject {
 			glm::mat4 ViewMatrix;
 			glm::mat4 ModelMatrix;
 
+			glm::vec4 TevColor[COLOR_MAX];
+			glm::vec4 KonstColor[COLOR_MAX];
+
+			J3DLight Lights[LIGHTS_MAX];
 			glm::mat4 EnvelopeMatrices[ENVELOPE_MAT_MAX];
+			glm::mat3x4 TexMatrices[TEX_MAT_MAX];
 		};
 
 		uint32_t mUBO = 0;
@@ -63,9 +72,37 @@ void J3DUniformBufferObject::SetModelMatrix(const glm::mat4* model) {
 	glNamedBufferSubData(mUBO, offsetof(J3DUniformBufferObject, ModelMatrix), sizeof(glm::mat4), model);
 }
 
+void J3DUniformBufferObject::SetTevColors(const glm::vec4* colors) {
+	if (mUBO == 0)
+		return;
+
+	glNamedBufferSubData(mUBO, offsetof(J3DUniformBufferObject, TevColor), sizeof(glm::vec4) * COLOR_MAX, colors);
+}
+
+void J3DUniformBufferObject::SetKonstColors(const glm::vec4* colors) {
+	if (mUBO == 0)
+		return;
+
+	glNamedBufferSubData(mUBO, offsetof(J3DUniformBufferObject, KonstColor), sizeof(glm::vec4) * COLOR_MAX, colors);
+}
+
+void J3DUniformBufferObject::SetLights(const J3DLight* lights) {
+	if (mUBO == 0)
+		return;
+
+	glNamedBufferSubData(mUBO, offsetof(J3DUniformBufferObject, Lights), sizeof(J3DLight) * LIGHTS_MAX, lights);
+}
+
 void J3DUniformBufferObject::SetEnvelopeMatrices(const glm::mat4* envelopes) {
 	if (mUBO == 0)
 		return;
 
 	glNamedBufferSubData(mUBO, offsetof(J3DUniformBufferObject, EnvelopeMatrices), sizeof(glm::mat4) * ENVELOPE_MAT_MAX, envelopes);
+}
+
+void J3DUniformBufferObject::SetTexMatrices(const glm::mat3x4* envelopes) {
+	if (mUBO == 0)
+		return;
+
+	glNamedBufferSubData(mUBO, offsetof(J3DUniformBufferObject, TexMatrices), sizeof(glm::mat3x4) * TEX_MAT_MAX, envelopes);
 }
