@@ -16,6 +16,6 @@ namespace J3DUniformBufferObject {
 	void SetTevColors(const glm::vec4* colors);
 	void SetKonstColors(const glm::vec4* colors);
 	void SetLights(const J3DLight* lights);
-	void SetEnvelopeMatrices(const glm::mat4* envelopes);
+	void SetEnvelopeMatrices(const glm::mat4* envelopes, const uint32_t count);
 	void SetTexMatrices(const glm::mat3x4* matrices);
 }

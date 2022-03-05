@@ -93,11 +93,11 @@ void J3DUniformBufferObject::SetLights(const J3DLight* lights) {
 	glNamedBufferSubData(mUBO, offsetof(J3DUniformBufferObject, Lights), sizeof(J3DLight) * LIGHTS_MAX, lights);
 }
 
-void J3DUniformBufferObject::SetEnvelopeMatrices(const glm::mat4* envelopes) {
-	if (mUBO == 0)
+void J3DUniformBufferObject::SetEnvelopeMatrices(const glm::mat4* envelopes, const uint32_t count) {
+	if (mUBO == 0 || count > ENVELOPE_MAT_MAX)
 		return;
 
-	glNamedBufferSubData(mUBO, offsetof(J3DUniformBufferObject, EnvelopeMatrices), sizeof(glm::mat4) * ENVELOPE_MAT_MAX, envelopes);
+	glNamedBufferSubData(mUBO, offsetof(J3DUniformBufferObject, EnvelopeMatrices), sizeof(glm::mat4) * count, envelopes);
 }
 
 void J3DUniformBufferObject::SetTexMatrices(const glm::mat3x4* envelopes) {
