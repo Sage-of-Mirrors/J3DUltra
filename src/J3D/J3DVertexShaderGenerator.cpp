@@ -3,13 +3,17 @@
 #include "J3D/J3DMaterial.hpp"
 #include "J3D/J3DShape.hpp"
 #include "J3D/J3DUtil.hpp"
+#include "J3D/J3DShaderGeneratorCommon.hpp"
 #include "../lib/J3DUltra/magic_enum/include/magic_enum.hpp"
 
 #include <glad/glad.h>
+#include <sstream>
 
 // For debugging
 #include <iostream>
 #include <fstream>
+
+#define etoi magic_enum::enum_integer
 
 bool J3DVertexShaderGenerator::GenerateVertexShader(const J3DMaterial* material, const int32_t& jointCount, uint32_t& shaderHandle) {
 	if (material == nullptr || material->GetShape() == nullptr)
@@ -17,22 +21,35 @@ bool J3DVertexShaderGenerator::GenerateVertexShader(const J3DMaterial* material,
 	
 	shaderHandle = glCreateShader(GL_VERTEX_SHADER);
 
-	std::stringstream shaderStream;
-	shaderStream << "#version 330 core\n\n";
+	std::stringstream vertexShader;
+	vertexShader << GenerateAttributes(material->GetShape()->GetEnabledAttributes());
+	vertexShader << GenerateOutputs(material);
+	vertexShader << GenerateUniforms();
 
-	WriteAttributes(shaderStream, material->GetShape()->GetEnabledAttributes());
-	WriteOutputs(shaderStream, material);
-	WriteUniforms(shaderStream, jointCount);
-
-	shaderStream << "float ApplyAttenuation(vec3 t_Coeff, float t_Value) {\n"
+	vertexShader << "float ApplyAttenuation(vec3 t_Coeff, float t_Value) {\n"
 		"\treturn dot(t_Coeff, vec3(1.0, t_Value, t_Value * t_Value));\n"
 		"}\n\n";
 
-	WriteMainFunction(shaderStream, material);
+	// Convert the given float to an int in the range 0..255.
+	vertexShader << "int FloatToS10(float f) {\n";
+	vertexShader << "\treturn int(f * 255.0) & 0xFF;\n";
+	vertexShader << "}\n\n";
+
+	// Convert a float vec4 with components in range 0..1 to an integer vec4 with components 0..255.
+	vertexShader << "ivec4 VecFloatToS10(vec4 a) {\n";
+	vertexShader << "\treturn ivec4(FloatToS10(a.r), FloatToS10(a.g), FloatToS10(a.b), FloatToS10(a.a));\n";
+	vertexShader << "}\n\n";
+
+	// Convert a float vec3 with components in range 0..1 to an integer vec4 with components 0..255.
+	vertexShader << "ivec3 VecFloatToS10(vec3 a) {\n";
+	vertexShader << "\treturn ivec3(FloatToS10(a.r), FloatToS10(a.g), FloatToS10(a.b));\n";
+	vertexShader << "}\n\n";
+
+	vertexShader << GenerateMainFunction(material);
 
 	shaderHandle = glCreateShader(GL_VERTEX_SHADER);
 	
-	std::string shaderStr = shaderStream.str();
+	std::string shaderStr = vertexShader.str();
 
 	std::ofstream debugVOut("./shader/" + material->Name + "_vtx.glsl");
 	if (debugVOut.is_open()) {
@@ -40,8 +57,8 @@ bool J3DVertexShaderGenerator::GenerateVertexShader(const J3DMaterial* material,
 		debugVOut.close();
 	}
 
-	std::string shaderChars = J3DUtility::LoadTextFile("./res/shaders/Debug_NormalColors.vert");
-	const char* s = shaderChars.c_str();
+	//std::string shaderChars = J3DUtility::LoadTextFile("./res/shaders/Debug_NormalColors.vert");
+	const char* s = shaderStr.c_str();
 
 	glShaderSource(shaderHandle, 1, &s, NULL);
 	glCompileShader(shaderHandle);
@@ -57,25 +74,27 @@ bool J3DVertexShaderGenerator::GenerateVertexShader(const J3DMaterial* material,
 	return true;
 }
 
-void J3DVertexShaderGenerator::WriteAttributes(std::stringstream& shaderTxt, const std::vector<EGLAttribute>& shapeAttributes) {
-	shaderTxt << "// Input attributes\n";
+std::string J3DVertexShaderGenerator::GenerateAttributes(const std::vector<EGLAttribute>& shapeAttributes) {
+	std::stringstream stream;
+	stream << "#version 460\n\n";
+	stream << "// Input attributes\n";
 
 	for (auto a : shapeAttributes) {
 		if (a == EGLAttribute::PositionMatrixIdx)
 			continue;
 
-		shaderTxt << "layout (location = " << (uint32_t)a << ") in ";
+		stream << "layout (location = " << (uint32_t)a << ") in ";
 
 		switch (a) {
 			case EGLAttribute::Position:
-				shaderTxt << "vec4 aPos;\n";
+				stream << "vec4 aPos;\n";
 				break;
 			case EGLAttribute::Normal:
-				shaderTxt << "vec3 aNrm;\n";
+				stream << "vec3 aNrm;\n";
 				break;
 			case EGLAttribute::Color0:
 			case EGLAttribute::Color1:
-				shaderTxt << "vec4 aCol" << (uint32_t)a - (uint32_t)EGLAttribute::Color0 << ";\n";
+				stream << "vec4 aCol" << etoi(a) - etoi(EGLAttribute::Color0)<< ";\n";
 				break;
 			case EGLAttribute::TexCoord0:
 			case EGLAttribute::TexCoord1:
@@ -85,108 +104,72 @@ void J3DVertexShaderGenerator::WriteAttributes(std::stringstream& shaderTxt, con
 			case EGLAttribute::TexCoord5:
 			case EGLAttribute::TexCoord6:
 			case EGLAttribute::TexCoord7:
-				shaderTxt << "vec3 aTex" << (uint32_t)a - (uint32_t)EGLAttribute::TexCoord0 << ";\n";
+				stream << "vec3 aTex" << etoi(a) - etoi(EGLAttribute::TexCoord0) << ";\n";
 				break;
 		}
 	}
 
-	shaderTxt << "\n";
+	stream << "\n";
+	return stream.str();
 }
 
-void J3DVertexShaderGenerator::WriteOutputs(std::stringstream& shaderTxt, const J3DMaterial* material) {
-	shaderTxt << "// Vertex shader outputs\n";
+std::string J3DVertexShaderGenerator::GenerateOutputs(const J3DMaterial* material) {
+	std::stringstream stream;
+	stream << "// Vertex shader outputs\n";
 
-	//shaderTxt << "// Number of color channel controls: " << material->ChannelControlCount << "\n";
-	shaderTxt << "out vec4 oColor[2];\n\n";
+	stream << "// Number of color channel controls: " << std::to_string(material->LightBlock.mColorChannels.size()) << "\n";
+	stream << "out ivec4 oColor[2];\n\n";
 
 	uint32_t texGenCount = material->TexGenBlock.mTexCoordInfo.size();
-	shaderTxt << "// Tex gen count: " << texGenCount << "\n";
+	stream << "// Tex gen count: " << texGenCount << "\n";
 	for (int i = 0; i < texGenCount; i++) {
-		shaderTxt << "out vec3 oTexCoord" << i << ";\n";
+		stream << "out vec3 oTexCoord" << i << ";\n";
 	}
 
-	shaderTxt << "\n";
+	stream << "\n";
+	return stream.str();
 }
 
-void J3DVertexShaderGenerator::WriteUniforms(std::stringstream& shaderTxt, const int32_t& jointCount) {
-	shaderTxt << "// Represents a hardware light source.\n";
-	shaderTxt << "struct GXLight {\n"
-			"\tvec4 Position;\n"
-			"\tvec4 Direction;\n"
-			"\tvec4 Color;\n"
-			"\tvec4 AngleAtten;\n"
-			"\tvec4 DistAtten;\n"
-		"};\n\n";
+std::string J3DVertexShaderGenerator::GenerateUniforms() {
+	std::stringstream stream;
+	stream << "// These uniforms can be modified per-material, usually by external animations.\n";
 
-	shaderTxt << "// This UBO contains data that doesn't change between vertices or materials.\n";
-	shaderTxt << "layout (std140) uniform uSharedData {\n"
-			"\tmat4 Proj;\n"
-			"\tmat4 View;\n"
-			"\tmat4 Model;\n\n"
-		    "\tGXLight Lights[8];\n"
-			"\tmat4 Envelopes[256];\n"
-			"\tmat3x4 TexMatrices[10];\n"
-		"};\n\n";
+	stream << "uniform vec4 uMaterialReg[2];\n";
+	stream << "uniform vec4 uAmbientReg[2];\n\n";
 
-	shaderTxt << "// These uniforms can be modified per-material, usually by external animations.\n";
-	shaderTxt << "uniform vec4 uMaterialReg[2];\n";
-	shaderTxt << "uniform vec4 uAmbientReg[2];\n\n";
+	stream << J3DShaderGeneratorCommon::GenerateStructs();
+
+	return stream.str();
 }
 
-void J3DVertexShaderGenerator::WriteMainFunction(std::stringstream& shaderTxt, const J3DMaterial* material) {
-	shaderTxt << "// Main shader program\n";
+std::string J3DVertexShaderGenerator::GenerateTexGen(const J3DTexCoordInfo& texGen, const uint32_t index) {
+	std::stringstream stream;
+	stream << "\t// TexGen Source: " << magic_enum::enum_name(texGen.Source) << ", ";
+	stream << "Type: " << magic_enum::enum_name(texGen.Type) << ", ";
+	stream << "TexMatrix: " << magic_enum::enum_name(texGen.TexMatrix) << "\n";
 
-	// Start of main function
-	shaderTxt << "void main() {\n";
+	stream << "\toTexCoord" << index << " = ";
 
-	// Position calculations
-	shaderTxt << "\tvec3 skinnedNormal = normalize(inverse(transpose(mat3(EnvelopeMatrices[int(aPos.w)]))) * aNrm);\n"
-		"\toColor0 = vec4(skinnedNormal.rgb, 1);\n\n"
-		"\tmat4 MVP = Proj * View * Model;\n"
-		"\tgl_Position = MVP * (Envelopes[int(aPos.w)]) * vec4(aPos.xyz, 1);\n\n";
-
-	shaderTxt << "\tvec4 lightAccumulator;\n"
-		"\tvec3 lightDelta, lightDeltaDir\n"
-		"\tfloat lightDeltaDist2, lightDeltaDist, attenuation;\n\n";
-
-	for (int i = 0; i < material->LightBlock.mColorChannels.size(); i++)
-		WriteColorChannels(shaderTxt, material->LightBlock, i);
-
-	for (int i = 0; i < material->TexGenBlock.mTexCoordInfo.size(); i++)
-		WriteTexGen(shaderTxt, material->TexGenBlock, i);
-
-	// End of main function
-	shaderTxt << "}\n";
-}
-
-void J3DVertexShaderGenerator::WriteTexGen(std::stringstream& shaderTxt, const J3DTexGenBlock& texGenBlock, const int32_t& index) {
-	const J3DTexCoordInfo& texGen = texGenBlock.mTexCoordInfo[index];
-
-	shaderTxt << "\t// TexGen " << index << " ("
-		"Source: " << magic_enum::enum_name(texGen.Source) << ", "
-		"Type: " << magic_enum::enum_name(texGen.Type) << ", "
-		"TexMatrix: " << magic_enum::enum_name(texGen.TexMatrix) << ")\n";
-
-	// Figure out where the initial tex coord is coming from
-	std::string source = "";
+	// Figure out where the initial tex coord is coming from.
+	std::stringstream source;
 	switch (texGen.Source) {
 		case EGXTexGenSrc::Position:
-			source = "aPos";
+			source << "aPos";
 			break;
 		case EGXTexGenSrc::Normal:
-			source = "aNrm";
+			source << "aNrm";
 			break;
 		case EGXTexGenSrc::Binormal:
-			source = "aBin";
+			source << "aBin";
 			break;
 		case EGXTexGenSrc::Tangent:
-			source = "aTan";
+			source << "aTan";
 			break;
 		case EGXTexGenSrc::Color0:
-			source = "aCol0";
+			source << "oColor[0]";
 			break;
 		case EGXTexGenSrc::Color1:
-			source = "aCol1";
+			source << "oColor[1]";
 			break;
 		case EGXTexGenSrc::Tex0:
 		case EGXTexGenSrc::Tex1:
@@ -197,8 +180,8 @@ void J3DVertexShaderGenerator::WriteTexGen(std::stringstream& shaderTxt, const J
 		case EGXTexGenSrc::Tex6:
 		case EGXTexGenSrc::Tex7:
 		{
-			uint32_t texIndex = (uint32_t)texGen.Source - (uint32_t)EGXTexGenSrc::Tex0;
-			source = "aTex" + std::to_string(texIndex);
+			uint32_t texIndex = etoi(texGen.Source) - etoi(EGXTexGenSrc::Tex0);
+			source << "aTex" << texIndex;
 			break;
 		}
 		case EGXTexGenSrc::TexCoord0:
@@ -209,134 +192,203 @@ void J3DVertexShaderGenerator::WriteTexGen(std::stringstream& shaderTxt, const J
 		case EGXTexGenSrc::TexCoord5:
 		case EGXTexGenSrc::TexCoord6:
 		{
-			uint32_t texCoordIndex = (uint32_t)texGen.Source - (uint32_t)EGXTexGenSrc::TexCoord0;
-			source = "vec4(oTexCoord" + std::to_string(texCoordIndex) + ".xy, 1, 1)";
+			uint32_t texCoordIndex = etoi(texGen.Source) - etoi(EGXTexGenSrc::TexCoord0);
+			source << "vec4(oTexCoord" << texCoordIndex << ".xy, 1, 1)";
 			break;
 		}
 	}
 
-	std::string dest = "oTexCoord" + std::to_string(index);
-
+	// Apply a texmatrix to the coords we found above.
 	if (texGen.TexMatrix == EGXTexMatrix::Identity) {
-		shaderTxt << "\t" << dest << " = " << source << ".xyz;\n";
+		stream << source.str() << ".xyz;\n";
 	}
 	else {
-		uint32_t texMatrixIndex = ((uint32_t)texGen.TexMatrix - (uint32_t)EGXTexMatrix::TexMtx0) / 3;
+		uint32_t texMatrixIndex = (etoi(texGen.TexMatrix) - etoi(EGXTexMatrix::TexMtx0)) / 3;
 
 		switch (texGen.Type) {
 			case EGXTexGenType::Matrix2x4:
-				shaderTxt << "\t" << dest << " = TexMatrices[" << texMatrixIndex << "] * vec3(" << source << ".xy, 1);\n";
+				stream << "(TexMatrices[" << texMatrixIndex << "] * vec3(" << source.str() << ".xy, 1.0)).xyz;\n";
 				break;
 			case EGXTexGenType::Matrix3x4:
-				shaderTxt << "\t" << dest << " = TexMatrices[" << texMatrixIndex << "] * " << source << ".xyz; \n";
+				stream << "TexMatrices[" << texMatrixIndex << "] * " << source.str() << ".xyz; \n";
 				break;
 			case EGXTexGenType::SRTG:
-				shaderTxt << "\t" << dest << " = " << "vec3(" << source << ".rg, 1);\n";
+				stream << "vec3(" << source.str() << ".rg, 1.0);\n";
 				break;
 			default:
-				shaderTxt << "\t" << dest << " = " << source << ".xyz;\n";
+				stream << source.str() << ".xyz;\n";
 				break;
-		}
+			}
 	}
+
+	return stream.str();
 }
 
-void J3DVertexShaderGenerator::WriteColorChannels(std::stringstream& shaderTxt, const J3DLightBlock& lightBlock, const int32_t& index) {
-	const J3DColorChannel& colorChannel = lightBlock.mColorChannels[index];
+std::string J3DVertexShaderGenerator::GenerateLight(const J3DColorChannel& colorChannel, const uint32_t& lightIndex) {
+	std::stringstream stream;
 
-	shaderTxt << "\t// Color channel " << index << " ("
-		"Lighting enabled: " << std::to_string(colorChannel.LightingEnabled) << ", "
-		"Material Source: " << magic_enum::enum_name(colorChannel.MaterialSource) << ", "
-		"Light Mask: " << std::to_string(colorChannel.LightMask) << ", "
-		"Diffuse Function: " << magic_enum::enum_name(colorChannel.DiffuseFunction) << ", "
-		"Atten Function: " << magic_enum::enum_name(colorChannel.AttenuationFunction) << ", "
-		"Ambient Source: " << magic_enum::enum_name(colorChannel.AmbientSource) << ")\n";
+	std::string lightName = "Lights[" + std::to_string(lightIndex) + "]";
+	std::string diffuseFunction = "";
+	std::string attenuationFunction = "";
+
+	// Generate diffuse function
+	switch (colorChannel.DiffuseFunction) {
+		case EGXDiffuseFunction::Signed:
+			diffuseFunction = "max(dot(SkinnedNormal, PosLightDir), 0.0)";
+			break;
+		case EGXDiffuseFunction::Clamp:
+			diffuseFunction = "max(dot(SkinnedNormal, PosLightDir), 0.0)";
+			break;
+		case EGXDiffuseFunction::None:
+		default:
+			diffuseFunction = "1.0";
+			break;
+	}
+
+	std::string attn = "1.0";
+	// Generate attenuation function
+	switch (colorChannel.AttenuationFunction) {
+		case EGXAttenuationFunction::Spec:
+		{
+			attn = "(dot(SkinnedNormal, PosLightDir) >= 0.0) ? max(0.0, dot(SkinnedNormal, " + lightName + ".Direction.xyz)) : 0.0";
+			std::string cosAttn = "ApplyAttenuation(" + lightName + ".AngleAtten.xyz, Attenuation)";
+			std::string distAttn = "ApplyAttenuation(" + lightName + ".DistAtten.xyz, Attenuation)";
+
+			attenuationFunction = "Attenuation = " + attn + ";\n\tAttenuation = " + cosAttn + " / " + distAttn + ";";
+			break;
+		}
+		case EGXAttenuationFunction::Spot:
+		{
+			attn = "max(0.0, dot(PosLightDir, " + lightName + ".Direction.xyz))";
+			std::string cosAttn = "max(0.0, ApplyAttenuation(" + lightName + ".AngleAtten.xyz, " + attn + "))";
+			std::string distAtten = "dot(" + lightName + ".DistAtten.xyz, vec3(1.0, PosLightDist, PosLightDistSq))";
+
+			attenuationFunction = "Attenuation = " + cosAttn + " / " + distAtten + ";";
+			break;
+		}
+		case EGXAttenuationFunction::None:
+		default:
+			attenuationFunction = "Attenuation = 1.0;";
+			break;
+	}
+
+	stream << "\t\t// Light " << lightIndex << "\n";
+	stream << "\t\tPosLightVec = " << lightName << ".Position.xyz - WorldPos.xyz;\n";
+	stream << "\t\tPosLightDistSq = dot(PosLightVec, PosLightVec);\n";
+	stream << "\t\tPosLightDist = sqrt(PosLightDistSq);\n";
+	stream << "\t\tPosLightDir = PosLightVec / PosLightDist;\n\n";
+	stream << "\t\tAttenuation = " << attn << ";\n";
+	stream << "\t\t" << attenuationFunction << "\n\n";
+	stream << "\t\tAccumulator += " << diffuseFunction << " * Attenuation * " << lightName << ".Color;\n\n";
+
+	return stream.str();
+}
+
+std::string J3DVertexShaderGenerator::GenerateColorChannel(const J3DColorChannel& colorChannel, const int32_t& index) {
+	std::stringstream stream;
+
+	stream << "\t// Color channel " << index << ": " <<
+		"Lighting enabled: " << std::to_string(colorChannel.LightingEnabled) << ", " <<
+		"Material Source: " << magic_enum::enum_name(colorChannel.MaterialSource) << ", " <<
+		"Light Mask: " << std::to_string(colorChannel.LightMask) << ", " <<
+		"Diffuse Function: " << magic_enum::enum_name(colorChannel.DiffuseFunction) << ", " <<
+		"Atten Function: " << magic_enum::enum_name(colorChannel.AttenuationFunction) << ", " <<
+		"Ambient Source: " << magic_enum::enum_name(colorChannel.AmbientSource) << "\n";
+
+	stream << "\t{\n";
 
 	EGXColorChannelId chanId = magic_enum::enum_value<EGXColorChannelId>(index);
 	std::string colorDestination = "";
 	std::string compDestination = "";
+	uint32_t channelIndex = 0;
 
 	switch (chanId) {
-		case EGXColorChannelId::Color0:
-			colorDestination = "oColor[0]";
-			compDestination = ".rgb";
-			break;
-		case EGXColorChannelId::Color1:
-			colorDestination = "oColor[1]";
-			compDestination = ".rgb";
-			break;
-		case EGXColorChannelId::Alpha0:
-			colorDestination = "oColor[0]";
-			compDestination = ".a";
-			break;
-		case EGXColorChannelId::Alpha1:
-			colorDestination = "oColor[1]";
-			compDestination = ".a";
-			break;
+	case EGXColorChannelId::Color0:
+		colorDestination = "oColor[0]";
+		compDestination = ".rgb";
+		break;
+	case EGXColorChannelId::Color1:
+		colorDestination = "oColor[1]";
+		compDestination = ".rgb";
+		channelIndex = 1;
+		break;
+	case EGXColorChannelId::Alpha0:
+		colorDestination = "oColor[0]";
+		compDestination = ".a";
+		break;
+	case EGXColorChannelId::Alpha1:
+		colorDestination = "oColor[1]";
+		compDestination = ".a";
+		channelIndex = 1;
+		break;
 	}
 
-	std::string materialSource = colorChannel.MaterialSource == EGXColorSource::Vertex ? "aCol" + std::to_string(index) : "uMaterialReg[" + std::to_string(index) + "]";
-	std::string ambientSource = colorChannel.AmbientSource == EGXColorSource::Vertex ? "aCol" + std::to_string(index) : "uAmbientReg[" + std::to_string(index) + "]";
+	std::string materialSource = colorChannel.MaterialSource == EGXColorSource::Vertex ? "aCol" + std::to_string(channelIndex) : "uMaterialReg[" + std::to_string(channelIndex) + "]";
+	std::string ambientSource = colorChannel.AmbientSource == EGXColorSource::Vertex ? "aCol" + std::to_string(channelIndex) : "uAmbientReg[" + std::to_string(channelIndex) + "]";
 
 	if (colorChannel.LightingEnabled == false || colorChannel.LightMask == 255) {
-		shaderTxt << "\t" << colorDestination << " = " << materialSource << ";\n\n";
-		return;
+		stream << "\t\t" << colorDestination << " = VecFloatToS10(" << materialSource << ");\n";
+		stream << "\t}\n\n";
+		return stream.str();
 	}
 
-	shaderTxt << "\tlightAccumulator = " << ambientSource << ";\n\n";
-
-	std::string diffuseFunction = "";
-	switch (colorChannel.DiffuseFunction) {
-		case EGXDiffuseFunction::None:
-			diffuseFunction = "1.0";
-			break;
-		case EGXDiffuseFunction::Signed:
-			diffuseFunction = "dot(skinnedNormal, lightDeltaDir)";
-			break;
-		case EGXDiffuseFunction::Clamp:
-			diffuseFunction = "max(dot(skinnedNormal, lightDeltaDir), 0.0)";
-			break;
-	}
+	stream << "\t\tvec4 Accumulator = " << ambientSource << ";\n\n";
+	stream << "\t\tvec3 PosLightVec, PosLightDir;\n";
+	stream << "\t\tfloat PosLightDistSq, PosLightDist, Attenuation;\n\n";
 
 	for (int i = 0; i < 8; i++) {
 		if (!(colorChannel.LightMask & (1 << i)))
 			continue;
 
-		std::string lightName = "Lights[" + std::to_string(i) + "]";
-
-		std::string attenuationFunction = "";
-		switch (colorChannel.AttenuationFunction) {
-		case EGXAttenuationFunction::Spec:
-		{
-			std::string attn = "(dot(skinnedNormal, lightDeltaDir) >= 0.0) ? max(0.0, dot(skinnedNormal, " + lightName + ".Direction.xyz)) : 0.0";
-			std::string cosAttn = "ApplyAttenuation(" + lightName + ".AngleAtten.xyz, attenuation)";
-			std::string distAttn = "ApplyAttenuation(" + lightName + ".DistAtten.xyz, attenuation)";
-
-			attenuationFunction = "attenuation = " + attn + ";\n\tattenuation = " + cosAttn + " / " + distAttn + ";";
-			break;
-		}
-		case EGXAttenuationFunction::Spot:
-		{
-			std::string attn = "max(0.0, dot(lightDeltaDir, " + lightName + ".Direction.xyz))";
-			std::string cosAttn = "max(0.0, ApplyAttenuation(" + lightName + ".AngleAtten.xyz, " + attn + "))";
-			std::string distAtten = "dot(" + lightName + ".DistAtten.xyz, vec3(1.0, lightDeltaDist, lightDeltaDist2))";
-
-			attenuationFunction = "attenuation = " + cosAttn + " / " + distAtten;
-			break;
-		}
-		case EGXAttenuationFunction::None:
-			attenuationFunction = "attenuation = 1.0;";
-			break;
-		}
-
-		shaderTxt << "\t// Light " << i << "\n";
-		shaderTxt << "\tlightDelta = " << lightName << ".Position.xyz - aPos.xyz;\n";
-		shaderTxt << "\tlightDeltaDist2 = dot(lightDelta, lightDelta);\n";
-		shaderTxt << "\tlightDeltaDist = sqrt(lightDeltaDist2);\n";
-		shaderTxt << "\tlightDeltaDir = lightDelta / lightDeltaDist;\n\n";
-		shaderTxt << "\t" << attenuationFunction << "\n\n";
-		shaderTxt << "\tlightAccumulator += " << diffuseFunction << " * attenuation * " << lightName << ".Color;\n\n";
+		stream << GenerateLight(colorChannel, i);
 	}
 
-	shaderTxt << "\t// Apply color channel " << index << "\n";
-	shaderTxt << "\t" << colorDestination << compDestination << " = (" << materialSource << " * clamp(lightAccumulator, 0.0, 1.0))" << compDestination << ";\n\n";
+	stream << "\t\t// Apply color channel " << index << "\n";
+
+	if (chanId == EGXColorChannelId::Color0 || chanId == EGXColorChannelId::Color1)
+		stream << "\t\t" << colorDestination << compDestination << " = VecFloatToS10((" << materialSource << " * clamp(Accumulator, 0.0, 1.0))" << compDestination << ");\n";
+	else if (chanId == EGXColorChannelId::Alpha0 || chanId == EGXColorChannelId::Alpha1)
+		stream << "\t\t" << colorDestination << compDestination << " = FloatToS10((" << materialSource << " * clamp(Accumulator, 0.0, 1.0))" << compDestination << ");\n";
+
+	stream << "\t}\n";
+	return stream.str();
+}
+
+std::string J3DVertexShaderGenerator::GenerateMainFunction(const J3DMaterial* material) {
+	std::stringstream stream;
+	stream << "void main() {\n";
+
+	stream << "\tvec3 SkinnedNormal = normalize(inverse(transpose(mat3(Envelopes[int(aPos.w)]))) * aNrm);\n";
+	stream << "\tmat4 MVP = Proj * View * Model;\n";
+	stream << "\tvec4 WorldPos = MVP * (Envelopes[int(aPos.w)]) * vec4(aPos.xyz, 1);\n\n";
+
+	bool wroteAlpha0 = false;
+	bool wroteAlpha1 = false;
+	for (int i = 0; i < material->LightBlock.mColorChannels.size(); i++) {
+		stream << GenerateColorChannel(material->LightBlock.mColorChannels[i], i);
+
+		if (magic_enum::enum_value<EGXColorChannelId>(i) == EGXColorChannelId::Alpha0)
+			wroteAlpha0 = true;
+		if (magic_enum::enum_value<EGXColorChannelId>(i) == EGXColorChannelId::Alpha1)
+			wroteAlpha1 = true;
+	}
+
+	if (!wroteAlpha0) {
+		stream << "\n";
+		stream << "\toColor[0].a = 255;\n";
+	}
+	if (!wroteAlpha1) {
+		stream << "\n";
+		stream << "\toColor[1].a = 255;\n";
+	}
+
+	stream << "\n";
+
+	for (int i = 0; i < material->TexGenBlock.mTexCoordInfo.size(); i++)
+		stream << GenerateTexGen(material->TexGenBlock.mTexCoordInfo[i], i);
+
+	// End of main function
+	stream << "\n\tgl_Position = WorldPos;\n";
+	stream << "}\n";
+	return stream.str();
 }

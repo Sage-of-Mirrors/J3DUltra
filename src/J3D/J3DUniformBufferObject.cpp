@@ -11,7 +11,7 @@ namespace J3DUniformBufferObject {
 		constexpr uint32_t COLOR_MAX = 4;
 		constexpr uint32_t ENVELOPE_MAT_MAX = 256;
 		constexpr uint32_t TEX_MAT_MAX = 10;
-		constexpr char* UBO_NAME = "Matrices";
+		constexpr char* UBO_NAME = "uSharedData";
 
 		struct J3DUniformBufferObject {
 			glm::mat4 ProjectionMatrix;
@@ -22,7 +22,7 @@ namespace J3DUniformBufferObject {
 			glm::vec4 KonstColor[COLOR_MAX];
 
 			J3DLight Lights[LIGHTS_MAX];
-			glm::mat4 EnvelopeMatrices[ENVELOPE_MAT_MAX];
+			glm::mat4 Envelopes[ENVELOPE_MAT_MAX];
 			glm::mat3x4 TexMatrices[TEX_MAT_MAX];
 		};
 
@@ -94,10 +94,11 @@ void J3DUniformBufferObject::SetLights(const J3DLight* lights) {
 }
 
 void J3DUniformBufferObject::SetEnvelopeMatrices(const glm::mat4* envelopes, const uint32_t count) {
-	if (mUBO == 0 || count > ENVELOPE_MAT_MAX)
+	if (mUBO == 0 || count <= 0 || count > ENVELOPE_MAT_MAX)
 		return;
 
-	glNamedBufferSubData(mUBO, offsetof(J3DUniformBufferObject, EnvelopeMatrices), sizeof(glm::mat4) * count, envelopes);
+	uint32_t t = offsetof(J3DUniformBufferObject, Envelopes);
+	glNamedBufferSubData(mUBO, offsetof(J3DUniformBufferObject, Envelopes), sizeof(glm::mat4) * count, envelopes);
 }
 
 void J3DUniformBufferObject::SetTexMatrices(const glm::mat3x4* envelopes) {

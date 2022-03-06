@@ -251,8 +251,8 @@ enum class EGXTexCoordSlot : uint8_t {
 
 enum class EGXColorChannelId : uint8_t {
 	Color0 = 0,
-	Color1 = 1,
-	Alpha0 = 2,
+	Alpha0 = 1,
+	Color1 = 2,
 	Alpha1 = 3,
 	Color0A0 = 4,
 	Color1A1 = 5,
@@ -311,8 +311,8 @@ enum class EGXTevOp : uint8_t {
 	Comp_BGR24_EQ = 13,
 	Comp_RGB8_GT = 14,
 	Comp_RGB8_EQ = 15,
-	Comp_A8_EQ = Comp_RGB8_EQ,
-	Comp_A8_GT = Comp_RGB8_GT
+	Comp_A8_GT = Comp_RGB8_GT,
+	Comp_A8_EQ = Comp_RGB8_EQ
 };
 
 enum class EGXTevBias : uint8_t {

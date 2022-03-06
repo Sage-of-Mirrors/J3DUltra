@@ -233,15 +233,10 @@ void J3DModelData::Render(float deltaTime) {
                 EnvelopeMatrices[i] += (jointTransform * ibm) * env.Weights[j];
                 weightTotal += env.Weights[j];
             }
-
-            if (weightTotal >= 1.f)
-            {
-                int t = 0;
-            }
         }
     }
 
-    J3DUniformBufferObject::SetEnvelopeMatrices(EnvelopeMatrices);
+    J3DUniformBufferObject::SetEnvelopeMatrices(EnvelopeMatrices, mEnvelopeIndices.size());
 
     glBindVertexArray(mVAO);
 

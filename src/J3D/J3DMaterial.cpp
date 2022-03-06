@@ -2,6 +2,7 @@
 #include "J3D/J3DVertexShaderGenerator.hpp"
 #include "J3D/J3DFragmentShaderGenerator.hpp"
 #include "J3D/J3DShape.hpp"
+#include "J3D/J3DUniformBufferObject.hpp"
 
 #include <iostream>
 #include <vector>
@@ -70,6 +71,15 @@ bool J3DMaterial::GenerateShaders(const int32_t& jointCount) {
 		glProgramUniform1i(mShaderProgram, uniformID, i);
 	}
 
+	uint32_t uniformID = glGetUniformLocation(mShaderProgram, "uMaterialReg[0]");
+	glProgramUniform4fv(mShaderProgram, uniformID, 1, &LightBlock.mMatteColor[0][0]);
+	uniformID = glGetUniformLocation(mShaderProgram, "uMaterialReg[1]");
+	glProgramUniform4fv(mShaderProgram, uniformID, 1, &LightBlock.mMatteColor[1][0]);
+	uniformID = glGetUniformLocation(mShaderProgram, "uAmbientReg[0]");
+	glProgramUniform4fv(mShaderProgram, uniformID, 1, &LightBlock.mAmbientColor[0][0]);
+	uniformID = glGetUniformLocation(mShaderProgram, "uAmbientReg[1]");
+	glProgramUniform4fv(mShaderProgram, uniformID, 1, &LightBlock.mAmbientColor[1][0]);
+
 	// Program linked successfully, detach and delete the shaders because they're not needed now
 	glDetachShader(mShaderProgram, vertShader);
 	glDetachShader(mShaderProgram, fragShader);
@@ -83,6 +93,9 @@ void J3DMaterial::Render(std::vector<uint32_t>& textureHandles) {
 	glUseProgram(mShaderProgram);
 	for (int i = 0; i < TevBlock.mTextureIndices.size(); i++)
 		glBindTextureUnit(i, textureHandles[TevBlock.mTextureIndices[i]]);
+
+	J3DUniformBufferObject::SetTevColors(TevBlock.mTevColors);
+	J3DUniformBufferObject::SetKonstColors(TevBlock.mTevKonstColors);
 
 	if (mShape != nullptr)
 		mShape->RenderShape();

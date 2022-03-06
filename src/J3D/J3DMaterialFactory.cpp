@@ -46,6 +46,11 @@ J3DMaterial* J3DMaterialFactory::Create(bStream::CStream* stream, uint32_t index
 			newMaterial->LightBlock.mMatteColor[i].g = stream->peekUInt8(mBlock->MaterialColorTableOffset + initData.MaterialColor[i] * sizeof(glm::vec4) + 1);
 			newMaterial->LightBlock.mMatteColor[i].b = stream->peekUInt8(mBlock->MaterialColorTableOffset + initData.MaterialColor[i] * sizeof(glm::vec4) + 2);
 			newMaterial->LightBlock.mMatteColor[i].a = stream->peekUInt8(mBlock->MaterialColorTableOffset + initData.MaterialColor[i] * sizeof(glm::vec4) + 3);
+
+			newMaterial->LightBlock.mMatteColor[i].r = newMaterial->LightBlock.mMatteColor[i].r / 255.0;
+			newMaterial->LightBlock.mMatteColor[i].g = newMaterial->LightBlock.mMatteColor[i].g / 255.0;
+			newMaterial->LightBlock.mMatteColor[i].b = newMaterial->LightBlock.mMatteColor[i].b / 255.0;
+			newMaterial->LightBlock.mMatteColor[i].a = newMaterial->LightBlock.mMatteColor[i].a / 255.0;
 		}
 
 		if (initData.AmbientColor[i] != UINT16_MAX) {
@@ -53,6 +58,11 @@ J3DMaterial* J3DMaterialFactory::Create(bStream::CStream* stream, uint32_t index
 			newMaterial->LightBlock.mAmbientColor[i].g = stream->peekUInt8(mBlock->AmbientColorTableOffset + initData.AmbientColor[i] * sizeof(glm::vec4) + 1);
 			newMaterial->LightBlock.mAmbientColor[i].b = stream->peekUInt8(mBlock->AmbientColorTableOffset + initData.AmbientColor[i] * sizeof(glm::vec4) + 2);
 			newMaterial->LightBlock.mAmbientColor[i].a = stream->peekUInt8(mBlock->AmbientColorTableOffset + initData.AmbientColor[i] * sizeof(glm::vec4) + 3);
+
+			newMaterial->LightBlock.mAmbientColor[i].r = newMaterial->LightBlock.mAmbientColor[i].r / 255.0;
+			newMaterial->LightBlock.mAmbientColor[i].g = newMaterial->LightBlock.mAmbientColor[i].g / 255.0;
+			newMaterial->LightBlock.mAmbientColor[i].b = newMaterial->LightBlock.mAmbientColor[i].b / 255.0;
+			newMaterial->LightBlock.mAmbientColor[i].a = newMaterial->LightBlock.mAmbientColor[i].a / 255.0;
 		}
 	}
 
@@ -130,6 +140,11 @@ J3DMaterial* J3DMaterialFactory::Create(bStream::CStream* stream, uint32_t index
 			newMaterial->TevBlock.mTevColors[i].g = stream->peekUInt8(mBlock->TevColorTableOffset + initData.TEVColor[i] * sizeof(glm::vec4) + 1);
 			newMaterial->TevBlock.mTevColors[i].b = stream->peekUInt8(mBlock->TevColorTableOffset + initData.TEVColor[i] * sizeof(glm::vec4) + 2);
 			newMaterial->TevBlock.mTevColors[i].a = stream->peekUInt8(mBlock->TevColorTableOffset + initData.TEVColor[i] * sizeof(glm::vec4) + 3);
+
+			newMaterial->TevBlock.mTevColors[i].r = newMaterial->TevBlock.mTevColors[i].r / 255.0;
+			newMaterial->TevBlock.mTevColors[i].g = newMaterial->TevBlock.mTevColors[i].g / 255.0;
+			newMaterial->TevBlock.mTevColors[i].b = newMaterial->TevBlock.mTevColors[i].b / 255.0;
+			newMaterial->TevBlock.mTevColors[i].a = newMaterial->TevBlock.mTevColors[i].a / 255.0;
 		}
 
 		if (initData.TEVKonstColor[i] != UINT16_MAX) {
@@ -137,6 +152,11 @@ J3DMaterial* J3DMaterialFactory::Create(bStream::CStream* stream, uint32_t index
 			newMaterial->TevBlock.mTevKonstColors[i].g = stream->peekUInt8(mBlock->TevKColorTableOffset + initData.TEVKonstColor[i] * sizeof(uint32_t) + 1);
 			newMaterial->TevBlock.mTevKonstColors[i].b = stream->peekUInt8(mBlock->TevKColorTableOffset + initData.TEVKonstColor[i] * sizeof(uint32_t) + 2);
 			newMaterial->TevBlock.mTevKonstColors[i].a = stream->peekUInt8(mBlock->TevKColorTableOffset + initData.TEVKonstColor[i] * sizeof(uint32_t) + 3);
+
+			newMaterial->TevBlock.mTevKonstColors[i].r = newMaterial->TevBlock.mTevKonstColors[i].r / 255.0;
+			newMaterial->TevBlock.mTevKonstColors[i].g = newMaterial->TevBlock.mTevKonstColors[i].g / 255.0;
+			newMaterial->TevBlock.mTevKonstColors[i].b = newMaterial->TevBlock.mTevKonstColors[i].b / 255.0;
+			newMaterial->TevBlock.mTevKonstColors[i].a = newMaterial->TevBlock.mTevKonstColors[i].a / 255.0;
 		}
 	}
 

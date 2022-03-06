@@ -59,8 +59,8 @@ const std::string TGXTevScale[]{
 
 const std::string TGXTevColorChannelId[]{
 	"oColor[0].rgb",
-	"oColor[1].rgb",
 	"oColor[0].a",
+	"oColor[1].rgb",
 	"oColor[1].a",
 	"oColor[0]",
 	"oColor[1]",
@@ -85,6 +85,11 @@ const std::string TGXTexCoordSlot[]{
 	"oTexCoord5",
 	"oTexCoord6",
 	"oTexCoord7",
+};
+
+const std::string TGXAlphaOp[]{
+	"&&",
+	"||"
 };
 
 // The vec3 inputs that can be used for konst colors.
@@ -137,12 +142,12 @@ const std::string TGXKonstAlphaSel[]{
 	// Constants
 	"255",
 	"223", // 7/8
-	"191",  // 3/4
+	"191", // 3/4
 	"159", // 5/8
-	"128",   // 1/2
-	"96", // 3/8
+	"128", // 1/2
+	"96",  // 3/8
 	"64",  // 1/4
-	"32", // 1/8
+	"32",  // 1/8
 
 	// These aren't valid
 	"0",
