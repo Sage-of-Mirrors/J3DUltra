@@ -1,6 +1,5 @@
 #include "J3D/J3DModelLoader.hpp"
 #include "J3D/J3DModelData.hpp"
-#include "GX/GXEnum.hpp"
 #include "GX/GXStruct.hpp"
 #include "J3D/J3DJoint.hpp"
 #include "J3D/J3DNameTable.hpp"
@@ -9,6 +8,8 @@
 #include "J3D/J3DTextureFactory.hpp"
 #include "J3D/J3DJoint.hpp"
 
+#include <GXGeometryEnums.hpp>
+#include <GXVertexData.hpp>
 #include <bstream.h>
 
 J3DModelLoader::J3DModelLoader() : mModelData(nullptr) {
@@ -107,11 +108,11 @@ void J3DModelLoader::ReadVertexBlock(bStream::CStream* stream, uint32_t flags) {
     vtxBlock.Deserialize(stream);
 
     // Load the attribute data
-    std::vector<GXVertexAttributeList> attributes;
+    std::vector<GXVertexAttributeFormat> attributes;
     stream->seek(vtxBlock.AttributeTableOffset);
 
     while ((EGXAttribute)stream->peekUInt32(stream->tell()) != EGXAttribute::Null) {
-        GXVertexAttributeList attribute {
+        GXVertexAttributeFormat attribute = {
             (EGXAttribute)stream->readUInt32(),
             (EGXComponentCount)stream->readUInt32(),
             (EGXComponentType)stream->readUInt32(),
@@ -123,12 +124,12 @@ void J3DModelLoader::ReadVertexBlock(bStream::CStream* stream, uint32_t flags) {
         stream->skip(3);
     }
 
-    J3DVertexData* vtxData = &mModelData->mVertexData;
+    GXAttributeData* vtxData = &mModelData->mVertexData;
 
     // Now load the vertex data, converting from whatever format it's in to vec2/3/4
     for (auto it = attributes.begin(); it != attributes.end(); it++)
     {
-        GXVertexAttributeList nextAttribute { EGXAttribute::Null };
+        GXVertexAttributeFormat nextAttribute;
         if (it + 1 != attributes.end())
             nextAttribute = *(it + 1);
 
@@ -288,9 +289,11 @@ void J3DModelLoader::ReadShapeBlock(bStream::CStream* stream, uint32_t flags) {
     J3DShapeBlock shapeBlock;
     shapeBlock.Deserialize(stream);
 
+    auto& shapes = mModelData->mGeometry.GetShapes();
+
     J3DShapeFactory shapeFactory(&shapeBlock);
     for (int i = 0; i < shapeBlock.Count; i++) {
-        mModelData->mShapes.push_back(shapeFactory.Create(stream, i));
+        shapes.push_back(shapeFactory.Create(stream, i));
     }
 
     stream->seek(currentStreamPos + shapeBlock.BlockSize);

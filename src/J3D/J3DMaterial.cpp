@@ -1,9 +1,9 @@
 #include "J3D/J3DMaterial.hpp"
 #include "J3D/J3DVertexShaderGenerator.hpp"
 #include "J3D/J3DFragmentShaderGenerator.hpp"
-#include "J3D/J3DShape.hpp"
 #include "J3D/J3DUniformBufferObject.hpp"
 
+#include <GXGeometryData.hpp>
 #include <iostream>
 #include <vector>
 #include <glad/glad.h>
@@ -97,8 +97,12 @@ void J3DMaterial::Render(std::vector<uint32_t>& textureHandles) {
 	J3DUniformBufferObject::SetTevColors(TevBlock.mTevColors);
 	J3DUniformBufferObject::SetKonstColors(TevBlock.mTevKonstColors);
 
-	if (mShape != nullptr)
-		mShape->RenderShape();
+	if (mShape != nullptr) {
+		uint32_t offset, count;
+		mShape->GetVertexOffsetAndCount(offset, count);
+
+		glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_SHORT, (const void*)(offset * sizeof(uint16_t)));
+	}
 
 	glUseProgram(0);
 	for (int i = 0; i < 8; i++)

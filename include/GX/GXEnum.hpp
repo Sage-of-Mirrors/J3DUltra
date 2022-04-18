@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-enum class EGXAttribute {
+/*enum class EGXAttribute {
 	PositionMatrixIdx,
 	Tex0MatrixIdx,
 	Tex1MatrixIdx,
@@ -83,7 +83,7 @@ enum class EGXPrimitiveType : uint8_t {
 	Lines = 0xA8,
 	LineStrips = 0xB0,
 	Points = 0xB8
-};
+};*/
 
 enum class EGXCullMode : uint8_t {
 	None,

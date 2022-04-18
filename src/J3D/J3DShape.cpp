@@ -1,6 +1,7 @@
 #include "J3D/J3DShape.hpp"
-#include "J3D//J3DShapeFactory.hpp"
-#include "GX/GXEnum.hpp"
+#include "J3D/J3DShapeFactory.hpp"
+
+#include <GXGeometryEnums.hpp>
 #include <bstream.h>
 #include <glad/glad.h>
 

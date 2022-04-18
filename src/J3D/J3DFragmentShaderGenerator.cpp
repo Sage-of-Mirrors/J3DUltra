@@ -2,11 +2,11 @@
 #include "J3D/J3DUtil.hpp"
 #include "J3D/J3DMaterial.hpp"
 #include "J3D/J3DMaterialData.hpp"
-#include "../magic_enum/include/magic_enum.hpp"
 #include "GX/GXEnum.hpp"
 #include "J3D/J3DShaderGeneratorCommon.hpp"
 #include "J3D/J3DTEVTokens.hpp"
 
+#include <magic_enum.hpp>
 #include <glad/glad.h>
 #include <string>
 #include <iostream>

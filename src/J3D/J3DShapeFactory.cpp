@@ -1,7 +1,8 @@
 #include "J3D/J3DShapeFactory.hpp"
 #include "J3D/J3DShape.hpp"
 #include "J3D/J3DBlock.hpp"
-#include "GX/GXEnum.hpp"
+
+#include <GXGeometryData.hpp>
 #include <bstream.h>
 
 void J3DShapeInitData::Deserialize(bStream::CStream* stream) {
@@ -21,8 +22,9 @@ void J3DShapeInitData::Deserialize(bStream::CStream* stream) {
 	BoundingBoxMax = glm::vec3(stream->readFloat(), stream->readFloat(), stream->readFloat());
 }
 
-J3DShape* J3DShapeFactory::Create(bStream::CStream* stream, uint32_t index) {
-	J3DShape* newShape = new J3DShape();
+GXShape* J3DShapeFactory::Create(bStream::CStream* stream, uint32_t index) {
+	GXShape* gxShape = new GXShape();
+	//J3DShape* j3dShape = new J3DShape();
 
 	stream->seek(mBlock->InitDataTableOffset + (index * sizeof(J3DShapeInitData)));
 
@@ -31,23 +33,24 @@ J3DShape* J3DShapeFactory::Create(bStream::CStream* stream, uint32_t index) {
 	initData.Deserialize(stream);
 
 	// Load the vertex descriptions that will allow us to properly read the geometry data
+	auto& shapeAttributeTable = gxShape->GetAttributeTable();
 	std::vector<J3DVCDData> vertexAttributes;
+
 	stream->seek(mBlock->VertexDescriptorTableOffset + initData.VCDOffset);
 	while ((EGXAttribute)stream->peekUInt32(stream->tell()) != EGXAttribute::Null) {
 		J3DVCDData vcd = {
 			(EGXAttribute)stream->readUInt32(),
-			(EGXAttributeType)stream->readUInt32()
+			(EGXAttributeIndexType)stream->readUInt32()
 		};
 
+		shapeAttributeTable.push_back(vcd.Attribute);
 		vertexAttributes.push_back(vcd);
 	}
 
-	newShape->EnableAttributes(vertexAttributes);
+	auto& shapePrimitives = gxShape->GetPrimitives();
 
-	// Now load the packet data. This'll be a doozy
+	// Load the primitive data per-packet so we can properly extract the skinning info
 	for (int packetIndex = 0; packetIndex < initData.MatrixNum; packetIndex++) {
-		J3DPacket newPacket;
-
 		uint32_t drawInitOffset = (initData.DrawOffset + packetIndex) * sizeof(J3DShapeDrawInitData);
 		stream->seek(mBlock->DrawInitDataTableOffset + drawInitOffset);
 
@@ -58,34 +61,35 @@ J3DShape* J3DShapeFactory::Create(bStream::CStream* stream, uint32_t index) {
 		};
 
 		stream->seek(mBlock->DrawTableOffset + drawInitData.Start);
-
 		uint32_t endOffset = stream->tell() + drawInitData.Size;
-		while (stream->tell() < endOffset) {
-			std::vector<J3DVertexGX> primitiveVertices;
-			std::vector<uint16_t> primitiveDrawIndices;
 
+		// Load primitives until we're out of space
+		while (stream->tell() < endOffset) {
 			// Get the primitive type. If it's None (0), we're done reading the packet's primitives
 			// because the rest of the bytes are padding.
 			EGXPrimitiveType primType = (EGXPrimitiveType)stream->readUInt8();
 			if (primType == EGXPrimitiveType::None)
 				break;
 
+			GXPrimitive* newPrimitive = new GXPrimitive(primType);
+			auto& primitiveVerts = newPrimitive->GetVertices();
+
 			uint16_t vtxCount = stream->readUInt16();
 			for (int j = 0; j < vtxCount; j++) {
-				J3DVertexGX newVtx;
+				GXVertex newVtx;
 
 				for (auto attribute : vertexAttributes) {
 					uint16_t value = 0;
 
 					// Read the index value
 					switch (attribute.Type) {
-						case EGXAttributeType::Index16:
+						case EGXAttributeIndexType::Index16:
 							value = stream->readUInt16();
 							break;
-						case EGXAttributeType::Index8:
+						case EGXAttributeIndexType::Index8:
 							value = stream->readUInt8();
 							break;
-						case EGXAttributeType::Direct:
+						case EGXAttributeIndexType::Direct:
 							if (attribute.Attribute != EGXAttribute::PositionMatrixIdx) {
 								std::cout << "Found a Direct attribute that wasn't PnMtxIdx!!! (Value: " << (uint32_t)attribute.Attribute << ")\n";
 								continue;
@@ -93,7 +97,7 @@ J3DShape* J3DShapeFactory::Create(bStream::CStream* stream, uint32_t index) {
 
 							value = stream->readUInt8();
 							break;
-						case EGXAttributeType::None:
+						case EGXAttributeIndexType::None:
 						default:
 							continue;
 					}
@@ -105,18 +109,12 @@ J3DShape* J3DShapeFactory::Create(bStream::CStream* stream, uint32_t index) {
 							
 							// Divide by 3 because ???
 							value /= 3;
-							newVtx.DrawIndex = ConvertPosMtxIndexToDrawIndex(stream, initData, packetIndex, value);
+							newVtx.SetIndex(attribute.Attribute, ConvertPosMtxIndexToDrawIndex(stream, initData, packetIndex, value));
 							break;
 						case EGXAttribute::Position:
-							newVtx.Position = value;
-							break;
 						case EGXAttribute::Normal:
-							newVtx.Normal = value;
-							break;
 						case EGXAttribute::Color0:
 						case EGXAttribute::Color1:
-							newVtx.Color[(uint32_t)attribute.Attribute - (uint32_t)EGXAttribute::Color0] = value;
-							break;
 						case EGXAttribute::TexCoord0:
 						case EGXAttribute::TexCoord1:
 						case EGXAttribute::TexCoord2:
@@ -125,25 +123,22 @@ J3DShape* J3DShapeFactory::Create(bStream::CStream* stream, uint32_t index) {
 						case EGXAttribute::TexCoord5:
 						case EGXAttribute::TexCoord6:
 						case EGXAttribute::TexCoord7:
-							newVtx.TexCoord[(uint32_t)attribute.Attribute - (uint32_t)EGXAttribute::TexCoord0] = value;
+							newVtx.SetIndex(attribute.Attribute, value);
 							break;
 					}
 				}
 
 				if (initData.MatrixType == 0)
-					newVtx.DrawIndex = GetUseMatrixValue(stream, initData, packetIndex);
+					newVtx.SetIndex(EGXAttribute::PositionMatrixIdx, GetUseMatrixValue(stream, initData, packetIndex));
 
-				primitiveVertices.push_back(newVtx);
+				primitiveVerts.push_back(newVtx);
 			}
 
-			std::vector<J3DVertexGX> triangulatedVertices = TriangulatePrimitive<J3DVertexGX>(primType, primitiveVertices);
-			newPacket.mVertices.insert(newPacket.mVertices.end(), triangulatedVertices.begin(), triangulatedVertices.end());
+			shapePrimitives.push_back(newPrimitive);
 		}
-
-		newShape->mPackets.push_back(newPacket);
 	}
 
-	return newShape;
+	return gxShape;
 }
 
 uint16_t J3DShapeFactory::ConvertPosMtxIndexToDrawIndex(bStream::CStream* stream, const J3DShapeInitData& initData, const uint16_t& packetIndex, const uint16_t& value) {

@@ -1,14 +1,15 @@
 #pragma once
 
-#include <cstdint>
-#include <vector>
-
-#include "J3DVertexData.hpp"
 #include "J3DEnvelope.hpp"
 #include "J3DJoint.hpp"
 #include "J3DShape.hpp"
 #include "J3DMaterial.hpp"
 #include "J3DBlock.hpp"
+
+#include <GXVertexData.hpp>
+#include <GXGeometryData.hpp>
+#include <cstdint>
+#include <vector>
 
 class J3DModelLoader;
 
@@ -27,7 +28,7 @@ class J3DModelData {
 	std::vector<J3DModelHierarchy> mHierarchyNodes;
 
 	// VTX1 data, vertex buffers
-	J3DVertexData mVertexData;
+	GXAttributeData mVertexData;
 
 	// EVP1 data, skinning envelopes
 	std::vector<J3DEnvelope> mJointEnvelopes;
@@ -42,7 +43,7 @@ class J3DModelData {
 	std::vector<J3DJoint*> mJoints;
 
 	// SHP1 data, geometry
-	std::vector<J3DShape*> mShapes;
+	GXGeometry mGeometry;
 
 	std::vector<J3DVertexGX> mGXVertices;
 	std::vector<J3DVertexGL> mGLVertices;

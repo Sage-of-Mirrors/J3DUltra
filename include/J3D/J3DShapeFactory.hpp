@@ -1,14 +1,14 @@
 #pragma once
 
+#include <GXGeometryEnums.hpp>
+#include <glm/glm.hpp>
 #include <cstdint>
 #include <vector>
-#include "GX/GXEnum.hpp"
-#include "glm/glm.hpp"
 
 namespace bStream { class CStream; }
-class J3DShape;
 struct J3DShapeBlock;
 struct J3DVertex;
+class GXShape;
 
 struct J3DShapeInitData {
 	uint8_t MatrixType;
@@ -37,7 +37,7 @@ struct J3DShapeDrawInitData {
 
 struct J3DVCDData {
 	EGXAttribute Attribute;
-	EGXAttributeType Type;
+	EGXAttributeIndexType Type;
 };
 
 class J3DShapeFactory {
@@ -47,67 +47,9 @@ class J3DShapeFactory {
 	uint16_t GetUseMatrixValue(bStream::CStream* stream, const J3DShapeInitData& initData, const uint16_t& packetIndex);
 	void ReadMatrixInitData(bStream::CStream* stream, J3DShapeMatrixInitData& data, uint32_t index);
 
-	template<typename t>
-	std::vector<t> TriangulatePrimitive(EGXPrimitiveType primType, std::vector<t> const& elements) {
-		switch (primType) {
-		case EGXPrimitiveType::Triangles:
-			return elements;
-		case EGXPrimitiveType::TriangleStrips:
-			return TriangulateTriangleStrip(elements);
-		case EGXPrimitiveType::TriangleFan:
-			return TriangulateTriangleFan(elements);
-		default:
-			return std::vector<t>();
-		}
-	}
-
-	template<typename t>
-	std::vector<t> TriangulateTriangleStrip(std::vector<t> const& elements) {
-		std::vector<t> triangles;
-
-		for (int i = 2; i < elements.size(); i++) {
-			bool isIndexOdd = i % 2 != 0;
-
-			t const& v0 = elements[i - 2];
-			t const& v1 = isIndexOdd ? elements[i] : elements[i - 1];
-			t const& v2 = isIndexOdd ? elements[i - 1] : elements[i];
-
-			// Reject degenerate triangles (triangles where two or more vertices are the same)
-			//if (v0 == v1 || v0 == v2 || v1 == v2)
-				//continue;
-
-			triangles.push_back(v0);
-			triangles.push_back(v1);
-			triangles.push_back(v2);
-		}
-
-		return triangles;
-	}
-
-	template<typename t>
-	std::vector<t> TriangulateTriangleFan(std::vector<t> const& elements) {
-		std::vector<t> triangles;
-
-		for (int i = 1; i < elements.size() - 1; i++) {
-			t const& v0 = elements[i];
-			t const& v1 = elements[i + 1];
-			t const& v2 = elements[0];
-
-			// Reject degenerate triangles (triangles where two or more vertices are the same)
-			if (v0 == v1 || v0 == v2 || v1 == v2)
-				continue;
-
-			triangles.push_back(v0);
-			triangles.push_back(v1);
-			triangles.push_back(v2);
-		}
-
-		return triangles;
-	}
-
 public:
 	J3DShapeFactory(J3DShapeBlock* srcBlock) { mBlock = srcBlock; }
 	~J3DShapeFactory() {}
 
-	J3DShape* Create(bStream::CStream* stream, uint32_t index);
+	GXShape* Create(bStream::CStream* stream, uint32_t index);
 };

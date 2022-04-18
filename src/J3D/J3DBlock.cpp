@@ -1,6 +1,7 @@
 #include "J3D/J3DBlock.hpp"
 #include "J3D/J3DVertexData.hpp"
-#include "GX/GXEnum.hpp"
+
+#include <GXVertexData.hpp>
 #include <bstream.h>
 
 bool J3DBlock::Deserialize(bStream::CStream* stream) {
@@ -79,7 +80,7 @@ bool J3DVertexBlock::Deserialize(bStream::CStream* stream) {
     return true;
 }
 
-uint32_t J3DVertexBlock::GetAttributeElementCount(GXVertexAttributeList& curAttribute) {
+uint32_t J3DVertexBlock::GetAttributeElementCount(GXVertexAttributeFormat& curAttribute) {
     uint32_t elementCount = 0;
     
     switch (curAttribute.Attribute) {
@@ -121,11 +122,11 @@ uint32_t J3DVertexBlock::GetAttributeElementCount(GXVertexAttributeList& curAttr
     return elementCount;
 }
 
-void J3DVertexBlock::LoadAttributeData(J3DVertexData* vertexData, bStream::CStream* stream, GXVertexAttributeList& curAttribute, GXVertexAttributeList& nextAttribute) {
+void J3DVertexBlock::LoadAttributeData(GXAttributeData* vertexData, bStream::CStream* stream, GXVertexAttributeFormat& curAttribute, GXVertexAttributeFormat& nextAttribute) {
     uint32_t attributeCount = CalculateAttributeCount(curAttribute, nextAttribute);
     uint32_t elementCount = GetAttributeElementCount(curAttribute);
 
-    float scaleFactor = powf(0.5f, curAttribute.Fraction);
+    float scaleFactor = powf(0.5f, curAttribute.FixedPoint);
 
     for (int i = 0; i < attributeCount; i++) {
         std::vector<float> floatBuffer;
@@ -169,10 +170,10 @@ void J3DVertexBlock::LoadAttributeData(J3DVertexData* vertexData, bStream::CStre
 
         switch (curAttribute.Attribute) {
             case EGXAttribute::Position:
-                vertexData->Positions.push_back(glm::vec4(floatBuffer[0], floatBuffer[1], floatBuffer[2], 0.f));
+                vertexData->GetPositions().push_back(glm::vec4(floatBuffer[0], floatBuffer[1], floatBuffer[2], 0.f));
                 break;
             case EGXAttribute::Normal:
-                vertexData->Normals.push_back(glm::vec3(floatBuffer[0], floatBuffer[1], floatBuffer[2]));
+                vertexData->GetNormals().push_back(glm::vec3(floatBuffer[0], floatBuffer[1], floatBuffer[2]));
                 break;
             case EGXAttribute::Color0:
             case EGXAttribute::Color1:
@@ -180,9 +181,9 @@ void J3DVertexBlock::LoadAttributeData(J3DVertexData* vertexData, bStream::CStre
                 uint32_t colorIndex = (uint32_t)curAttribute.Attribute - (uint32_t)EGXAttribute::Color0;
 
                 if (curAttribute.ComponentType == EGXComponentType::RGB8)
-                    vertexData->Colors[colorIndex].push_back(glm::vec4(floatBuffer[0], floatBuffer[1], floatBuffer[2], 1.f));
+                    vertexData->GetColors(colorIndex).push_back(glm::vec4(floatBuffer[0], floatBuffer[1], floatBuffer[2], 1.f));
                 else
-                    vertexData->Colors[colorIndex].push_back(glm::vec4(floatBuffer[0], floatBuffer[1], floatBuffer[2], floatBuffer[3]));
+                    vertexData->GetColors(colorIndex).push_back(glm::vec4(floatBuffer[0], floatBuffer[1], floatBuffer[2], floatBuffer[3]));
 
                 break;
             }
@@ -196,7 +197,7 @@ void J3DVertexBlock::LoadAttributeData(J3DVertexData* vertexData, bStream::CStre
             case EGXAttribute::TexCoord7:
             {
                 uint32_t texCoordIndex = (uint32_t)curAttribute.Attribute - (uint32_t)EGXAttribute::TexCoord0;
-                vertexData->TexCoords[texCoordIndex].push_back(glm::vec3(floatBuffer[0], floatBuffer[1], 0.f));
+                vertexData->GetTexCoords(texCoordIndex).push_back(glm::vec3(floatBuffer[0], floatBuffer[1], 0.f));
 
                 break;
             }
@@ -204,7 +205,7 @@ void J3DVertexBlock::LoadAttributeData(J3DVertexData* vertexData, bStream::CStre
     }
 }
 
-uint32_t J3DVertexBlock::CalculateAttributeCount(GXVertexAttributeList& curAttribute, GXVertexAttributeList& nextAttribute) {
+uint32_t J3DVertexBlock::CalculateAttributeCount(GXVertexAttributeFormat& curAttribute, GXVertexAttributeFormat& nextAttribute) {
     uint32_t elementSize = 0, currentAttributeOffset = 0, nextAttributeOffset = 0;
 
     // First check the attribute to get the number of elements. We ignore colors because they're treated differently.

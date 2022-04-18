@@ -1,12 +1,12 @@
 #pragma once
 
 #include "J3D/J3DMaterialData.hpp"
-#include "GX/GXEnum.hpp"
 
+#include <GXGeometryEnums.hpp>
 #include <string>
 #include <vector>
 
-class J3DShape;
+class GXShape;
 
 struct J3DPixelEngineBlock {
 	J3DZMode mZMode;
@@ -53,7 +53,7 @@ struct J3DTevBlock {
 
 class J3DMaterial {
 	int32_t mShaderProgram;
-	J3DShape* mShape;
+	const GXShape* mShape;
 
 public:
 	J3DMaterial();
@@ -67,8 +67,8 @@ public:
 	J3DTexGenBlock TexGenBlock;
 	J3DTevBlock TevBlock;
 
-	const J3DShape* GetShape() const { return mShape; }
-	void SetShape(J3DShape* shape) { mShape = shape; }
+	const GXShape* GetShape() const { return mShape; }
+	void SetShape(const GXShape* shape) { mShape = shape; }
 
 	int32_t GetShaderProgram() const { return mShaderProgram; }
 	bool GenerateShaders(const int32_t& jointCount);

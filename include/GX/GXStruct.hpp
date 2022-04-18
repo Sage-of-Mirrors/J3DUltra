@@ -1,7 +1,7 @@
 #pragma once
 
+#include <GXGeometryEnums.hpp>
 #include <cstdint>
-#include "GXEnum.hpp"
 
 struct GXVertexAttributeList {
 	EGXAttribute Attribute;

@@ -4,8 +4,9 @@
 #include "J3D/J3DShape.hpp"
 #include "J3D/J3DUtil.hpp"
 #include "J3D/J3DShaderGeneratorCommon.hpp"
-#include "../lib/J3DUltra/magic_enum/include/magic_enum.hpp"
 
+#include "GXGeometryData.hpp"
+#include <magic_enum.hpp>
 #include <glad/glad.h>
 #include <sstream>
 
@@ -22,7 +23,7 @@ bool J3DVertexShaderGenerator::GenerateVertexShader(const J3DMaterial* material,
 	shaderHandle = glCreateShader(GL_VERTEX_SHADER);
 
 	std::stringstream vertexShader;
-	vertexShader << GenerateAttributes(material->GetShape()->GetEnabledAttributes());
+	vertexShader << GenerateAttributes(material->GetShape()->GetAttributeTable());
 	vertexShader << GenerateOutputs(material);
 	vertexShader << GenerateUniforms();
 
@@ -74,37 +75,37 @@ bool J3DVertexShaderGenerator::GenerateVertexShader(const J3DMaterial* material,
 	return true;
 }
 
-std::string J3DVertexShaderGenerator::GenerateAttributes(const std::vector<EGLAttribute>& shapeAttributes) {
+std::string J3DVertexShaderGenerator::GenerateAttributes(const std::vector<EGXAttribute>& shapeAttributes) {
 	std::stringstream stream;
 	stream << "#version 460\n\n";
 	stream << "// Input attributes\n";
 
 	for (auto a : shapeAttributes) {
-		if (a == EGLAttribute::PositionMatrixIdx)
+		if (a == EGXAttribute::PositionMatrixIdx)
 			continue;
 
 		stream << "layout (location = " << (uint32_t)a << ") in ";
 
 		switch (a) {
-			case EGLAttribute::Position:
+			case EGXAttribute::Position:
 				stream << "vec4 aPos;\n";
 				break;
-			case EGLAttribute::Normal:
+			case EGXAttribute::Normal:
 				stream << "vec3 aNrm;\n";
 				break;
-			case EGLAttribute::Color0:
-			case EGLAttribute::Color1:
-				stream << "vec4 aCol" << etoi(a) - etoi(EGLAttribute::Color0)<< ";\n";
+			case EGXAttribute::Color0:
+			case EGXAttribute::Color1:
+				stream << "vec4 aCol" << etoi(a) - etoi(EGXAttribute::Color0)<< ";\n";
 				break;
-			case EGLAttribute::TexCoord0:
-			case EGLAttribute::TexCoord1:
-			case EGLAttribute::TexCoord2:
-			case EGLAttribute::TexCoord3:
-			case EGLAttribute::TexCoord4:
-			case EGLAttribute::TexCoord5:
-			case EGLAttribute::TexCoord6:
-			case EGLAttribute::TexCoord7:
-				stream << "vec3 aTex" << etoi(a) - etoi(EGLAttribute::TexCoord0) << ";\n";
+			case EGXAttribute::TexCoord0:
+			case EGXAttribute::TexCoord1:
+			case EGXAttribute::TexCoord2:
+			case EGXAttribute::TexCoord3:
+			case EGXAttribute::TexCoord4:
+			case EGXAttribute::TexCoord5:
+			case EGXAttribute::TexCoord6:
+			case EGXAttribute::TexCoord7:
+				stream << "vec3 aTex" << etoi(a) - etoi(EGXAttribute::TexCoord0) << ";\n";
 				break;
 		}
 	}

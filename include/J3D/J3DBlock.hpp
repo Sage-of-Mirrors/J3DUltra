@@ -1,14 +1,17 @@
 #pragma once
 
-#include <cstdint>
-#include <vector>
 #include "J3DData.hpp"
 #include "GX/GXStruct.hpp"
 #include "glm/mat4x4.hpp"
 #include "glm/vec3.hpp"
 
+#include <GXGeometryEnums.hpp>
+#include <GXVertexData.hpp>
+#include <cstdint>
+#include <vector>
+
 namespace bStream { class CStream; }
-struct J3DVertexData;
+class GXAttributeData;
 
 enum class EJ3DBlockType : uint32_t {
   ANF1 = 0x414E4631, // Joint full animation
@@ -89,11 +92,11 @@ struct J3DVertexBlock : public J3DBlock {
 
   virtual bool Deserialize(bStream::CStream* stream) override;
 
-  void LoadAttributeData(J3DVertexData* vertexData, bStream::CStream* stream, GXVertexAttributeList& curAttribute, GXVertexAttributeList& nextAttribute);
+  void LoadAttributeData(GXAttributeData* vertexData, bStream::CStream* stream, GXVertexAttributeFormat& curAttribute, GXVertexAttributeFormat& nextAttribute);
 
 private:
-	uint32_t GetAttributeElementCount(GXVertexAttributeList& curAttribute);
-	uint32_t CalculateAttributeCount(GXVertexAttributeList& curAttribute, GXVertexAttributeList& nextAttribute);
+	uint32_t GetAttributeElementCount(GXVertexAttributeFormat& curAttribute);
+	uint32_t CalculateAttributeCount(GXVertexAttributeFormat& curAttribute, GXVertexAttributeFormat& nextAttribute);
 };
 
 struct J3DEnvelopeBlock : public J3DBlock {
