@@ -20,7 +20,7 @@ class J3DVertexShaderGenerator {
 	static std::string GenerateLight(const J3DColorChannel& colorChannel, const uint32_t& lightIndex);
 	static std::string GenerateColorChannel(const J3DColorChannel& colorChannnel, const int32_t& index);
 	static std::string GenerateTexGen(const J3DTexCoordInfo& texGen, const uint32_t index);
-	static std::string GenerateMainFunction(const J3DMaterial* material);
+	static std::string GenerateMainFunction(const J3DMaterial* material, const bool hasNormals);
 public:
 	static bool GenerateVertexShader(const J3DMaterial* material, const int32_t& jointCount, uint32_t& shaderHandle);
 };

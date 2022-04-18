@@ -46,7 +46,8 @@ bool J3DVertexShaderGenerator::GenerateVertexShader(const J3DMaterial* material,
 	vertexShader << "\treturn ivec3(FloatToS10(a.r), FloatToS10(a.g), FloatToS10(a.b));\n";
 	vertexShader << "}\n\n";
 
-	vertexShader << GenerateMainFunction(material);
+	bool hasNormals = J3DUtility::VectorContains(material->GetShape()->GetAttributeTable(), EGXAttribute::Normal);
+	vertexShader << GenerateMainFunction(material, hasNormals);
 
 	shaderHandle = glCreateShader(GL_VERTEX_SHADER);
 	
@@ -355,11 +356,12 @@ std::string J3DVertexShaderGenerator::GenerateColorChannel(const J3DColorChannel
 	return stream.str();
 }
 
-std::string J3DVertexShaderGenerator::GenerateMainFunction(const J3DMaterial* material) {
+std::string J3DVertexShaderGenerator::GenerateMainFunction(const J3DMaterial* material, const bool hasNormals) {
 	std::stringstream stream;
 	stream << "void main() {\n";
 
-	stream << "\tvec3 SkinnedNormal = normalize(inverse(transpose(mat3(Envelopes[int(aPos.w)]))) * aNrm);\n";
+	if (hasNormals)
+		stream << "\tvec3 SkinnedNormal = normalize(inverse(transpose(mat3(Envelopes[int(aPos.w)]))) * aNrm);\n";
 	stream << "\tmat4 MVP = Proj * View * Model;\n";
 	stream << "\tvec4 WorldPos = MVP * (Envelopes[int(aPos.w)]) * vec4(aPos.xyz, 1);\n\n";
 

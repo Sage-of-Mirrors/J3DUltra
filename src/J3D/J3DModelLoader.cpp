@@ -231,12 +231,16 @@ void J3DModelLoader::ReadDrawBlock(bStream::CStream* stream, uint32_t flags) {
     J3DDrawBlock drawBlock;
     drawBlock.Deserialize(stream);
 
+    auto& posMtxIdx = mModelData->mVertexData.GetPositionMatrixIndices();
+
     for (int i = 0; i < drawBlock.Count; i++) {
         stream->seek(drawBlock.DrawTableOffset + (i * sizeof(uint8_t)));
         mModelData->mDrawBools.push_back(stream->readUInt8());
 
         stream->seek(drawBlock.IndexTableOffset + (i * sizeof(uint16_t)));
         mModelData->mEnvelopeIndices.push_back(stream->readUInt16());
+
+        posMtxIdx.push_back(i);
     }
 
     stream->seek(currentStreamPos + drawBlock.BlockSize);

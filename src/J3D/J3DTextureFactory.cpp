@@ -1,6 +1,6 @@
 #include "J3D/J3DTextureFactory.hpp"
 #include "J3D/J3DBlock.hpp"
-#include "png.hpp"
+//#include "png.hpp"
 #include "glad/glad.h"
 
 #include "bstream.h"
@@ -34,7 +34,7 @@ void J3DTextureEntry::Deserialize(bStream::CStream* stream) {
 }
 
 void J3DTextureFactory::OutputPNG(uint32_t index, uint8_t* imageData, J3DTextureEntry& entry) {
-	std::string texName = mNameTable.GetName(index);
+	/*std::string texName = mNameTable.GetName(index);
 
 	png::image<png::rgba_pixel> image(entry.Width, entry.Height);
 
@@ -45,7 +45,7 @@ void J3DTextureFactory::OutputPNG(uint32_t index, uint8_t* imageData, J3DTexture
 		}
 	}
 
-	image.write("./" + texName + ".png");
+	image.write("./" + texName + ".png");*/
 }
 
 J3DTextureFactory::J3DTextureFactory(J3DTextureBlock* srcBlock, bStream::CStream* stream) {

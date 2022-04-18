@@ -97,6 +97,12 @@ void J3DMaterial::Render(std::vector<uint32_t>& textureHandles) {
 	J3DUniformBufferObject::SetTevColors(TevBlock.mTevColors);
 	J3DUniformBufferObject::SetKonstColors(TevBlock.mTevKonstColors);
 
+	glm::mat3x4 t[10];
+	for (int i = 0; i < 10; i++)
+		t[i] = glm::identity<glm::mat3x4>();
+
+	J3DUniformBufferObject::SetTexMatrices(t);
+
 	if (mShape != nullptr) {
 		uint32_t offset, count;
 		mShape->GetVertexOffsetAndCount(offset, count);
