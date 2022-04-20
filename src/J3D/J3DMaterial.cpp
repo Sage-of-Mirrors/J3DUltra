@@ -71,10 +71,12 @@ bool J3DMaterial::GenerateShaders(const int32_t& jointCount) {
 		glProgramUniform1i(mShaderProgram, uniformID, i);
 	}
 
+	glm::vec4 test(0, 0, 0, 1.0);
+
 	uint32_t uniformID = glGetUniformLocation(mShaderProgram, "uMaterialReg[0]");
 	glProgramUniform4fv(mShaderProgram, uniformID, 1, &LightBlock.mMatteColor[0][0]);
 	uniformID = glGetUniformLocation(mShaderProgram, "uMaterialReg[1]");
-	glProgramUniform4fv(mShaderProgram, uniformID, 1, &LightBlock.mMatteColor[1][0]);
+	glProgramUniform4fv(mShaderProgram, uniformID, 1, &test[0]);
 	uniformID = glGetUniformLocation(mShaderProgram, "uAmbientReg[0]");
 	glProgramUniform4fv(mShaderProgram, uniformID, 1, &LightBlock.mAmbientColor[0][0]);
 	uniformID = glGetUniformLocation(mShaderProgram, "uAmbientReg[1]");
@@ -97,9 +99,9 @@ void J3DMaterial::Render(std::vector<uint32_t>& textureHandles) {
 	J3DUniformBufferObject::SetTevColors(TevBlock.mTevColors);
 	J3DUniformBufferObject::SetKonstColors(TevBlock.mTevKonstColors);
 
-	glm::mat3x4 t[10];
+	glm::mat4 t[10];
 	for (int i = 0; i < 10; i++)
-		t[i] = glm::identity<glm::mat3x4>();
+		t[i] = glm::identity<glm::mat4>();
 
 	J3DUniformBufferObject::SetTexMatrices(t);
 

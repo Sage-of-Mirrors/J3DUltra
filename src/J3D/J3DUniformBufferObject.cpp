@@ -23,7 +23,7 @@ namespace J3DUniformBufferObject {
 
 			J3DLight Lights[LIGHTS_MAX];
 			glm::mat4 Envelopes[ENVELOPE_MAT_MAX];
-			glm::mat3x4 TexMatrices[TEX_MAT_MAX];
+			glm::mat4 TexMatrices[TEX_MAT_MAX];
 		};
 
 		uint32_t mUBO = 0;
@@ -101,9 +101,9 @@ void J3DUniformBufferObject::SetEnvelopeMatrices(const glm::mat4* envelopes, con
 	glNamedBufferSubData(mUBO, offsetof(J3DUniformBufferObject, Envelopes), sizeof(glm::mat4) * count, envelopes);
 }
 
-void J3DUniformBufferObject::SetTexMatrices(const glm::mat3x4* envelopes) {
+void J3DUniformBufferObject::SetTexMatrices(const glm::mat4* envelopes) {
 	if (mUBO == 0)
 		return;
 
-	glNamedBufferSubData(mUBO, offsetof(J3DUniformBufferObject, TexMatrices), sizeof(glm::mat3x4) * TEX_MAT_MAX, envelopes);
+	glNamedBufferSubData(mUBO, offsetof(J3DUniformBufferObject, TexMatrices), sizeof(glm::mat4) * TEX_MAT_MAX, envelopes);
 }

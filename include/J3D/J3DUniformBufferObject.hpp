@@ -24,5 +24,5 @@ namespace J3DUniformBufferObject {
 	// Updates the UBO's envelope matrix array - count must be between 1 and 256. Usually used by a model instance.
 	void SetEnvelopeMatrices(const glm::mat4* envelopes, const uint32_t count);
 	// Updates the UBO's tex matrix array - assumes an array of 10 elements. Usually used by a model instance.
-	void SetTexMatrices(const glm::mat3x4* matrices);
+	void SetTexMatrices(const glm::mat4* matrices);
 }

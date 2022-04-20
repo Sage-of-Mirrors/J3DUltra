@@ -24,7 +24,7 @@ std::string J3DShaderGeneratorCommon::GenerateStructs() {
 		"\tvec4 KonstColor[4];\n\n"
 		"\tGXLight Lights[8];\n"
 		"\tmat4 Envelopes[256];\n"
-		"\tmat3x4 TexMatrices[10];\n"
+		"\tmat4 TexMatrices[10];\n"
 		"};\n\n";
 
 	return stream.str();

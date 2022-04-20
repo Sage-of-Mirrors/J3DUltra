@@ -58,12 +58,12 @@ const std::string TGXTevScale[]{
 };
 
 const std::string TGXTevColorChannelId[]{
-	"oColor[0].rgb",
-	"oColor[0].a",
-	"oColor[1].rgb",
-	"oColor[1].a",
-	"oColor[0]",
-	"oColor[1]",
+	"oColor0.rgb",
+	"oColor0.a",
+	"oColor1.rgb",
+	"oColor1.a",
+	"oColor0",
+	"oColor1",
 	"ivec4(0, 0, 0, 0)",
 	"NORMAL_BUMP_UNSUPPORTED",
 	"ALPHA_BUMP_UNSUPPORTED"

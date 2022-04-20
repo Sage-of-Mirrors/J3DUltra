@@ -68,7 +68,17 @@ bool J3DVertexShaderGenerator::GenerateVertexShader(const J3DMaterial* material,
 	int32_t success = 0;
 	glGetShaderiv(shaderHandle, GL_COMPILE_STATUS, &success);
 	if (!success) {
-		std::cout << "Vertex shader compilation failed!" << std::endl;
+		std::cout << "Vertex shader compilation for " << material->Name << " failed! Details:" << std::endl;
+
+		int32_t logSize = 0;
+		glGetShaderiv(shaderHandle, GL_INFO_LOG_LENGTH, &logSize);
+
+		std::vector<char> log(logSize);
+		glGetShaderInfoLog(shaderHandle, logSize, nullptr, &log[0]);
+
+		std::cout << std::string(log.data()) << std::endl;
+
+		glDeleteShader(shaderHandle);
 
 		return false;
 	}
@@ -120,7 +130,8 @@ std::string J3DVertexShaderGenerator::GenerateOutputs(const J3DMaterial* materia
 	stream << "// Vertex shader outputs\n";
 
 	stream << "// Number of color channel controls: " << std::to_string(material->LightBlock.mColorChannels.size()) << "\n";
-	stream << "out ivec4 oColor[2];\n\n";
+	stream << "out vec4 oColor0;\n";
+	stream << "out vec4 oColor1;\n\n";
 
 	uint32_t texGenCount = material->TexGenBlock.mTexCoordInfo.size();
 	stream << "// Tex gen count: " << texGenCount << "\n";
@@ -156,22 +167,22 @@ std::string J3DVertexShaderGenerator::GenerateTexGen(const J3DTexCoordInfo& texG
 	std::stringstream source;
 	switch (texGen.Source) {
 		case EGXTexGenSrc::Position:
-			source << "aPos";
+			source << "vec4(aPos.xyz, 1.0)";
 			break;
 		case EGXTexGenSrc::Normal:
-			source << "aNrm";
+			source << "vec4(aNrm.xyz, 1.0)";
 			break;
 		case EGXTexGenSrc::Binormal:
-			source << "aBin";
+			source << "vec4(aBin.xyz, 1.0)";
 			break;
 		case EGXTexGenSrc::Tangent:
-			source << "aTan";
+			source << "vec4(aTan.xyz, 1.0)";
 			break;
 		case EGXTexGenSrc::Color0:
-			source << "oColor[0]";
+			source << "oColor0";
 			break;
 		case EGXTexGenSrc::Color1:
-			source << "oColor[1]";
+			source << "oColor1";
 			break;
 		case EGXTexGenSrc::Tex0:
 		case EGXTexGenSrc::Tex1:
@@ -183,7 +194,7 @@ std::string J3DVertexShaderGenerator::GenerateTexGen(const J3DTexCoordInfo& texG
 		case EGXTexGenSrc::Tex7:
 		{
 			uint32_t texIndex = etoi(texGen.Source) - etoi(EGXTexGenSrc::Tex0);
-			source << "aTex" << texIndex;
+			source << "vec4(aTex" << texIndex << ".xy, 1.0, 1.0)";
 			break;
 		}
 		case EGXTexGenSrc::TexCoord0:
@@ -195,25 +206,30 @@ std::string J3DVertexShaderGenerator::GenerateTexGen(const J3DTexCoordInfo& texG
 		case EGXTexGenSrc::TexCoord6:
 		{
 			uint32_t texCoordIndex = etoi(texGen.Source) - etoi(EGXTexGenSrc::TexCoord0);
-			source << "vec4(oTexCoord" << texCoordIndex << ".xy, 1, 1)";
+			source << "vec4(oTexCoord" << texCoordIndex << ".xyz, 1.0)";
 			break;
 		}
 	}
 
 	// Apply a texmatrix to the coords we found above.
 	if (texGen.TexMatrix == EGXTexMatrix::Identity) {
-		stream << source.str() << ".xyz;\n";
+		if (texGen.Type == EGXTexGenType::SRTG)
+			stream << "vec3(" << source.str() << ".xy, 1.0);\n";
+		else
+			stream << source.str() << ".xyz;\n";
 	}
 	else {
 		uint32_t texMatrixIndex = (etoi(texGen.TexMatrix) - etoi(EGXTexMatrix::TexMtx0)) / 3;
 
 		switch (texGen.Type) {
 			case EGXTexGenType::Matrix2x4:
-				stream << "(TexMatrices[" << texMatrixIndex << "] * vec3(" << source.str() << ".xy, 1.0)).xyz;\n";
+				stream << "vec3((TexMatrices[" << texMatrixIndex << "] * " << source.str() << ").xy, 1.0);\n";
 				break;
 			case EGXTexGenType::Matrix3x4:
-				stream << "TexMatrices[" << texMatrixIndex << "] * " << source.str() << ".xyz; \n";
+			{
+				stream << "(TexMatrices[" << texMatrixIndex << "] * " << source.str() << ").xyz;\n";
 				break;
+			}
 			case EGXTexGenType::SRTG:
 				stream << "vec3(" << source.str() << ".rg, 1.0);\n";
 				break;
@@ -236,7 +252,7 @@ std::string J3DVertexShaderGenerator::GenerateLight(const J3DColorChannel& color
 	// Generate diffuse function
 	switch (colorChannel.DiffuseFunction) {
 		case EGXDiffuseFunction::Signed:
-			diffuseFunction = "max(dot(SkinnedNormal, PosLightDir), 0.0)";
+			diffuseFunction = "dot(SkinnedNormal, PosLightDir)";
 			break;
 		case EGXDiffuseFunction::Clamp:
 			diffuseFunction = "max(dot(SkinnedNormal, PosLightDir), 0.0)";
@@ -306,20 +322,20 @@ std::string J3DVertexShaderGenerator::GenerateColorChannel(const J3DColorChannel
 
 	switch (chanId) {
 	case EGXColorChannelId::Color0:
-		colorDestination = "oColor[0]";
+		colorDestination = "oColor0";
 		compDestination = ".rgb";
 		break;
-	case EGXColorChannelId::Color1:
-		colorDestination = "oColor[1]";
+	case EGXColorChannelId::Alpha0:
+		colorDestination = "oColor1";
 		compDestination = ".rgb";
 		channelIndex = 1;
 		break;
-	case EGXColorChannelId::Alpha0:
-		colorDestination = "oColor[0]";
+	case EGXColorChannelId::Color1:
+		colorDestination = "oColor0";
 		compDestination = ".a";
 		break;
 	case EGXColorChannelId::Alpha1:
-		colorDestination = "oColor[1]";
+		colorDestination = "oColor1";
 		compDestination = ".a";
 		channelIndex = 1;
 		break;
@@ -347,12 +363,12 @@ std::string J3DVertexShaderGenerator::GenerateColorChannel(const J3DColorChannel
 
 	stream << "\t\t// Apply color channel " << index << "\n";
 
-	if (chanId == EGXColorChannelId::Color0 || chanId == EGXColorChannelId::Color1)
-		stream << "\t\t" << colorDestination << compDestination << " = VecFloatToS10((" << materialSource << " * clamp(Accumulator, 0.0, 1.0))" << compDestination << ");\n";
-	else if (chanId == EGXColorChannelId::Alpha0 || chanId == EGXColorChannelId::Alpha1)
-		stream << "\t\t" << colorDestination << compDestination << " = FloatToS10((" << materialSource << " * clamp(Accumulator, 0.0, 1.0))" << compDestination << ");\n";
+	if (chanId == EGXColorChannelId::Color0 || chanId == EGXColorChannelId::Alpha0)
+		stream << "\t\t" << colorDestination << compDestination << " = ((" << materialSource << " * clamp(Accumulator, 0.0, 1.0))" << compDestination << ");\n";
+	else if (chanId == EGXColorChannelId::Color1 || chanId == EGXColorChannelId::Alpha1)
+		stream << "\t\t" << colorDestination << compDestination << " = ((" << materialSource << " * clamp(Accumulator, 0.0, 1.0))" << compDestination << ");\n";
 
-	stream << "\t}\n";
+	stream << "\t}\n\n";
 	return stream.str();
 }
 
@@ -361,7 +377,7 @@ std::string J3DVertexShaderGenerator::GenerateMainFunction(const J3DMaterial* ma
 	stream << "void main() {\n";
 
 	if (hasNormals)
-		stream << "\tvec3 SkinnedNormal = normalize(inverse(transpose(mat3(Envelopes[int(aPos.w)]))) * aNrm);\n";
+		stream << "\tvec3 SkinnedNormal = mat3(transpose(inverse(Envelopes[int(aPos.w)]))) * aNrm;\n";
 	stream << "\tmat4 MVP = Proj * View * Model;\n";
 	stream << "\tvec4 WorldPos = MVP * (Envelopes[int(aPos.w)]) * vec4(aPos.xyz, 1);\n\n";
 
@@ -370,19 +386,17 @@ std::string J3DVertexShaderGenerator::GenerateMainFunction(const J3DMaterial* ma
 	for (int i = 0; i < material->LightBlock.mColorChannels.size(); i++) {
 		stream << GenerateColorChannel(material->LightBlock.mColorChannels[i], i);
 
-		if (magic_enum::enum_value<EGXColorChannelId>(i) == EGXColorChannelId::Alpha0)
+		if (magic_enum::enum_value<EGXColorChannelId>(i) == EGXColorChannelId::Color1)
 			wroteAlpha0 = true;
 		if (magic_enum::enum_value<EGXColorChannelId>(i) == EGXColorChannelId::Alpha1)
 			wroteAlpha1 = true;
 	}
 
 	if (!wroteAlpha0) {
-		stream << "\n";
-		stream << "\toColor[0].a = 255;\n";
+		stream << "\toColor0.a = 255;\n";
 	}
 	if (!wroteAlpha1) {
-		stream << "\n";
-		stream << "\toColor[1].a = 255;\n";
+		stream << "\toColor1.a = 255;\n";
 	}
 
 	stream << "\n";
