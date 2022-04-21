@@ -16,8 +16,8 @@ J3DModelLoader::J3DModelLoader() : mModelData(nullptr) {
 
 }
 
-J3DModelData* J3DModelLoader::Load(bStream::CStream* stream, uint32_t flags) {
-    mModelData = new J3DModelData();
+std::shared_ptr<J3DModelData> J3DModelLoader::Load(bStream::CStream* stream, uint32_t flags) {
+    mModelData = std::make_shared<J3DModelData>();
     
     J3DDataBase header;
     header.Deserialize(stream);
@@ -57,6 +57,7 @@ J3DModelData* J3DModelLoader::Load(bStream::CStream* stream, uint32_t flags) {
 
     uint32_t index = 0;
     mModelData->MakeHierarchy(nullptr, index);
+    mModelData->CalculateRestPose();
 
     return mModelData;
 }

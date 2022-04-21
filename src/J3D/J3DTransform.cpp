@@ -11,6 +11,10 @@ uint16_t FloatToU16(float val) {
 	return (uint16_t)(val * (32768.f / 180.f));
 }
 
+J3DTransformInfo::J3DTransformInfo()  : Scale(glm::vec3(1.0, 1.0, 1.0)), Rotation(glm::quat()), 
+	Translation(glm::vec3(0.0, 0.0, 0.0)) {
+}
+
 void J3DTransformInfo::Deserialize(bStream::CStream* stream) {
 	Scale.x = stream->readFloat();
 	Scale.y = stream->readFloat();

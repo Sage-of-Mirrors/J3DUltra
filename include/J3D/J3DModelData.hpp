@@ -10,11 +10,14 @@
 #include <GXGeometryData.hpp>
 #include <cstdint>
 #include <vector>
+#include <memory>
 
 class J3DModelLoader;
+class J3DModelInstance;
 
-class J3DModelData {
+class J3DModelData : public std::enable_shared_from_this<J3DModelData> {
 	friend J3DModelLoader;
+	friend J3DModelInstance;
 
 	// Rendering stuff
 	bool mGLInitialized = false;
@@ -55,16 +58,20 @@ class J3DModelData {
 	// TEX1 data, textures
 	std::vector<uint32_t> mTextureHandles;
 
-	glm::mat4 EnvelopeMatrices[256];
+	std::vector<glm::mat4> mRestPose;
 
 	void MakeHierarchy(J3DJoint* const root, uint32_t& index);
-	void ConvertGXVerticesToGL();
 
+	void CalculateRestPose();
+	
 	bool InitializeGL();
+	void Render(float deltaTime);
 
 public:
 	J3DModelData() {}
 	virtual ~J3DModelData() {}
 
-	void Render(float deltaTime);
+	std::shared_ptr<J3DModelInstance> GetInstance();
+	std::vector<glm::mat4> GetRestPose() const;
+	const std::vector<J3DEnvelope>& GetJointEnvelopes() const { return mJointEnvelopes; }
 };

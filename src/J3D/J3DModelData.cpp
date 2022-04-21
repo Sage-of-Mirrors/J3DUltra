@@ -2,6 +2,7 @@
 #include "J3D/J3DNode.hpp"
 #include "J3D/J3DUtil.hpp"
 #include "J3D/J3DUniformBufferObject.hpp"
+#include "J3D/J3DModelInstance.hpp"
 
 #include <glad/glad.h>
 
@@ -73,7 +74,30 @@ void J3DModelData::MakeHierarchy(J3DJoint* const root, uint32_t& index) {
     }
 }
 
-void J3DModelData::ConvertGXVerticesToGL() {
+void J3DModelData::CalculateRestPose() {
+    for (int i = 0; i < mEnvelopeIndices.size(); i++) {
+        if (mDrawBools[i] == false) {
+            mRestPose.push_back(mJoints[mEnvelopeIndices[i]]->GetTransformMatrix());
+        }
+        else {
+            glm::mat4 matrix = glm::zero<glm::mat4>();
+
+            J3DEnvelope env = mJointEnvelopes[mEnvelopeIndices[i]];
+            float weightTotal = 0.f;
+
+            for (int j = 0; j < env.Weights.size(); j++) {
+                uint32_t jointIndex = env.JointIndices[j];
+
+                glm::mat4 ibm = mInverseBindMatrices[jointIndex];
+                glm::mat4 jointTransform = mJoints[jointIndex]->GetTransformMatrix();
+
+                matrix += (jointTransform * ibm) * env.Weights[j];
+                weightTotal += env.Weights[j];
+            }
+
+            mRestPose.push_back(matrix);
+        }
+    }
 }
 
 bool J3DModelData::InitializeGL() {
@@ -195,37 +219,19 @@ bool J3DModelData::InitializeGL() {
     return true;
 }
 
+std::shared_ptr<J3DModelInstance> J3DModelData::GetInstance() {
+    return std::make_shared<J3DModelInstance>(shared_from_this());
+}
+
+std::vector<glm::mat4> J3DModelData::GetRestPose() const {
+    return mRestPose;
+}
+
 void J3DModelData::Render(float deltaTime) {
     if (!mGLInitialized)
         mGLInitialized = InitializeGL();
 
-    for (int i = 0; i < mEnvelopeIndices.size(); i++) {
-        if (mDrawBools[i] == false) {
-            EnvelopeMatrices[i] = mJoints[mEnvelopeIndices[i]]->GetTransformMatrix();
-        }
-        else {
-            EnvelopeMatrices[i] = glm::zero<glm::mat4>();
-
-            J3DEnvelope env = mJointEnvelopes[mEnvelopeIndices[i]];
-            float weightTotal = 0.f;
-
-            for (int j = 0; j < env.Weights.size(); j++) {
-                uint32_t jointIndex = env.JointIndices[j];
-
-                glm::mat4 ibm = mInverseBindMatrices[jointIndex];
-                glm::mat4 jointTransform = mJoints[jointIndex]->GetTransformMatrix();
-
-                EnvelopeMatrices[i] += (jointTransform * ibm) * env.Weights[j];
-                weightTotal += env.Weights[j];
-            }
-        }
-    }
-
-    J3DUniformBufferObject::SetEnvelopeMatrices(EnvelopeMatrices, mEnvelopeIndices.size());
-
     glBindVertexArray(mVAO);
-
     mRootJoint->RenderRecursive(mTextureHandles);
-
     glBindVertexArray(0);
 }

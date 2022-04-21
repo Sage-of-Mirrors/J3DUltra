@@ -1,8 +1,9 @@
 #pragma once
 
-#include <cstdint>
-
 #include "J3DBlock.hpp"
+
+#include <cstdint>
+#include <memory>
 
 namespace bStream { class CStream; }
 class J3DModelData;
@@ -11,13 +12,13 @@ class J3DJoint;
 constexpr uint32_t FLAGS_MATRIX_MASK = 0x0000000F;
 
 class J3DModelLoader {
-	J3DModelData* mModelData;
+	std::shared_ptr<J3DModelData> mModelData;
 
 public:
 	J3DModelLoader();
 	virtual ~J3DModelLoader() {}
 
-	virtual J3DModelData* Load(bStream::CStream* stream, uint32_t flags);
+	virtual std::shared_ptr<J3DModelData> Load(bStream::CStream* stream, uint32_t flags);
 
 protected:
 

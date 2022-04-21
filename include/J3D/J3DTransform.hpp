@@ -10,6 +10,8 @@ struct J3DTransformInfo {
 	glm::quat Rotation;
 	glm::vec3 Translation;
 
+	J3DTransformInfo();
+
 	J3DTransformInfo& operator=(J3DTransformInfo const& info) {
 		Scale = info.Scale;
 		Rotation = info.Rotation;
