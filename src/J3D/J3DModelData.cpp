@@ -220,7 +220,10 @@ bool J3DModelData::InitializeGL() {
 }
 
 std::shared_ptr<J3DModelInstance> J3DModelData::GetInstance() {
-    return std::make_shared<J3DModelInstance>(shared_from_this());
+    std::shared_ptr<J3DModelInstance> newInstance = std::make_shared<J3DModelInstance>(shared_from_this());
+    mInstances.push_back(newInstance);
+
+    return newInstance;
 }
 
 std::vector<glm::mat4> J3DModelData::GetRestPose() const {

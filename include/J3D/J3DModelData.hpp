@@ -58,6 +58,7 @@ class J3DModelData : public std::enable_shared_from_this<J3DModelData> {
 	// TEX1 data, textures
 	std::vector<uint32_t> mTextureHandles;
 
+	// Calculated envelopes for the model's rest pose
 	std::vector<glm::mat4> mRestPose;
 
 	void MakeHierarchy(J3DJoint* const root, uint32_t& index);
