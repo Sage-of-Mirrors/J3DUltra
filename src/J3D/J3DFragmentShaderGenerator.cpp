@@ -87,7 +87,7 @@ std::string J3DFragmentShaderGenerator::GenerateUtilityFunctions() {
 	stream << "\ta = a & 0xFF;\n";
 	stream << "\tb = b & 0xFF;\n";
 	stream << "\tc = c & 0xFF;\n\n";
-	stream << "\treturn a + ((b - a) * c / 255);\n";
+	stream << "\treturn clamp(a + ((b - a) * c / 255), 0, 255);\n";
 	stream << "}\n\n";
 
 	// Component-wise mix() for ivec3.
@@ -150,14 +150,16 @@ std::string J3DFragmentShaderGenerator::GenerateMainFunction(J3DMaterial* materi
 	stream << "void main() {\n";
 
 	// The four locations that TEV stages can output to, initialized by the TevColor array.
-	stream << "\tivec4 TevPrev = VecFloatToS10(TevColor[3]);\n";
-	stream << "\tivec4 Reg0 = ivec4(255, 255, 255, 255);//VecFloatToS10(TevColor[0]);\n";
-	stream << "\tivec4 Reg1 = VecFloatToS10(TevColor[1]);\n";
-	stream << "\tivec4 Reg2 = VecFloatToS10(TevColor[2]);\n\n";
+	stream << "\tivec4 TevPrev = ivec4(TevColor[3]);\n";
+	stream << "\tivec4 Reg0 = ivec4(TevColor[0]);\n";
+	stream << "\tivec4 Reg1 = ivec4(TevColor[1]);\n";
+	stream << "\tivec4 Reg2 = ivec4(TevColor[2]);\n\n";
 
 	for (int i = 0; i < material->TevBlock.mTevStages.size(); i++) {
 		stream << GenerateTEVStage(material, i);
 	}
+
+	stream << "\n\tTevPrev = TevPrev & 0xFF;\n";
 
 	stream << GenerateAlphaCompare(material->PEBlock.mAlphaCompare);
 	stream << "\n\tPixelColor = VecS10ToFloat(TevPrev);\n";
@@ -326,10 +328,10 @@ std::string J3DFragmentShaderGenerator::GenerateAlphaCombiner(J3DTevStageInfo& s
 			tevCalcStream << "(Tev_A_D - mix(Tev_A_A, Tev_A_B, Tev_A_C)" << TGXTevBias[etoi(stage.AlphaBias)] << ")" << TGXTevScale[etoi(stage.AlphaScale)];
 			break;
 		case EGXTevOp::Comp_A8_GT:
-			tevCalcStream << "Tev_A_D + (Tev_A_A > Tev_A_B ? Tev_C_C : 0)";
+			tevCalcStream << "Tev_A_D + (Tev_A_A > Tev_A_B ? Tev_A_C : 0)";
 			break;
 		case EGXTevOp::Comp_A8_EQ:
-			tevCalcStream << "Tev_A_D + (Tev_A_A == Tev_A_B ? Tev_C_C : 0)";
+			tevCalcStream << "Tev_A_D + (Tev_A_A == Tev_A_B ? Tev_A_C : 0)";
 			break;
 	}
 
@@ -400,7 +402,7 @@ std::string J3DFragmentShaderGenerator::GenerateAlphaCompare(J3DAlphaCompare& al
 	std::string compare0 = GenerateAlphaCompareComponent(alphaCompare.CompareFunc0, alphaCompare.Reference0);
 	std::string compare1 = GenerateAlphaCompareComponent(alphaCompare.CompareFunc1, alphaCompare.Reference1);
 
-	stream << "\n\tif ((";
+	stream << "\n\tif (!(";
 
 	switch (alphaCompare.Operation) {
 		case EGXAlphaOp::And:
@@ -419,7 +421,6 @@ std::string J3DFragmentShaderGenerator::GenerateAlphaCompare(J3DAlphaCompare& al
 
 	stream << ")) {\n";
 	stream << "\t\tdiscard;\n";
-	//stream << "\t\treturn;\n";
 	stream << "\t}\n";
 
 	return stream.str();

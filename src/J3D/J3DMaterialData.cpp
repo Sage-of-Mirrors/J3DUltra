@@ -14,7 +14,7 @@ void J3DAlphaCompare::Deserialize(bStream::CStream* stream) {
 	Operation = (EGXAlphaOp)stream->readUInt8();
 
 	CompareFunc1 = (EGXCompareType)stream->readUInt8();
-	Reference0 = stream->readUInt8();
+	Reference1 = stream->readUInt8();
 }
 
 void J3DBlendMode::Deserialize(bStream::CStream* stream) {

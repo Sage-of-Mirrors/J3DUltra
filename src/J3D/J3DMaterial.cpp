@@ -91,10 +91,108 @@ bool J3DMaterial::GenerateShaders(const int32_t& jointCount) {
 	return true;
 }
 
+int GXBlendModeControlToGLFactor(EGXBlendModeControl Control)
+{
+	switch (Control)
+	{
+		case EGXBlendModeControl::Zero:
+			return GL_ZERO;
+		case EGXBlendModeControl::One:
+			return GL_ONE;
+		case EGXBlendModeControl::SrcColor:
+			return GL_SRC_COLOR;
+		case EGXBlendModeControl::SrcAlpha:
+			return GL_SRC_ALPHA;
+		case EGXBlendModeControl::DstAlpha:
+			return GL_DST_ALPHA;
+		case EGXBlendModeControl::InverseSrcColor:
+			return GL_ONE_MINUS_SRC_COLOR;
+		case EGXBlendModeControl::InverseSrcAlpha:
+			return GL_ONE_MINUS_SRC_ALPHA;
+		case EGXBlendModeControl::InverseDstAlpha:
+			return GL_ONE_MINUS_DST_ALPHA;
+		default:
+			return GL_ONE;
+	}
+}
+
 void J3DMaterial::Render(std::vector<uint32_t>& textureHandles) {
 	glUseProgram(mShaderProgram);
 	for (int i = 0; i < TevBlock.mTextureIndices.size(); i++)
 		glBindTextureUnit(i, textureHandles[TevBlock.mTextureIndices[i]]);
+
+	if (PEBlock.mBlendMode.Type != EGXBlendMode::None)
+	{
+		glEnable(GL_BLEND);
+
+		switch (PEBlock.mBlendMode.Type)
+		{
+			case EGXBlendMode::Blend:
+				glBlendEquation(GL_FUNC_ADD);
+				break;
+			case EGXBlendMode::Subtract:
+				glBlendEquation(GL_FUNC_SUBTRACT);
+				break;
+			case EGXBlendMode::Logic:
+				glBlendEquation(GL_FUNC_ADD);
+				break;
+		}
+
+		glBlendFunc(GXBlendModeControlToGLFactor(PEBlock.mBlendMode.SourceFactor), GXBlendModeControlToGLFactor(PEBlock.mBlendMode.DestinationFactor));
+	}
+
+	if (LightBlock.mCullMode != EGXCullMode::None)
+	{
+		glEnable(GL_CULL_FACE);
+
+		switch (LightBlock.mCullMode)
+		{
+			case (EGXCullMode::All):
+				glCullFace(GL_FRONT_AND_BACK);
+				break;
+			case (EGXCullMode::Front):
+				glCullFace(GL_BACK);
+				break;
+			case (EGXCullMode::Back):
+				glCullFace(GL_FRONT);
+				break;
+		}
+	}
+
+	if (PEBlock.mZMode.Enable == true)
+	{
+		glEnable(GL_DEPTH_TEST);
+
+		switch (PEBlock.mZMode.Function)
+		{
+			case EGXCompareType::Always:
+				glDepthFunc(GL_ALWAYS);
+				break;
+			case EGXCompareType::Never:
+				glDepthFunc(GL_NEVER);
+				break;
+			case EGXCompareType::Equal:
+				glDepthFunc(GL_EQUAL);
+				break;
+			case EGXCompareType::GEqual:
+				glDepthFunc(GL_GEQUAL);
+				break;
+			case EGXCompareType::Greater:
+				glDepthFunc(GL_GREATER);
+				break;
+			case EGXCompareType::LEqual:
+				glDepthFunc(GL_LEQUAL);
+				break;
+			case EGXCompareType::Less:
+				glDepthFunc(GL_LESS);
+				break;
+			case EGXCompareType::NEqual:
+				glDepthFunc(GL_NOTEQUAL);
+				break;
+		}
+
+		glDepthMask(PEBlock.mZMode.UpdateEnable ? GL_TRUE : GL_FALSE);
+	}
 
 	J3DUniformBufferObject::SetTevColors(TevBlock.mTevColors);
 	J3DUniformBufferObject::SetKonstColors(TevBlock.mTevKonstColors);
@@ -115,4 +213,15 @@ void J3DMaterial::Render(std::vector<uint32_t>& textureHandles) {
 	glUseProgram(0);
 	for (int i = 0; i < 8; i++)
 		glBindTextureUnit(i, 0);
+
+	glDisable(GL_BLEND);
+	glBlendEquation(GL_FUNC_ADD);
+	glBlendFunc(GL_ONE, GL_ZERO);
+
+	glDisable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+
+	glDisable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+	glDepthMask(GL_TRUE);
 }

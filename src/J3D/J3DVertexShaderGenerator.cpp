@@ -345,7 +345,7 @@ std::string J3DVertexShaderGenerator::GenerateColorChannel(const J3DColorChannel
 	std::string ambientSource = colorChannel.AmbientSource == EGXColorSource::Vertex ? "aCol" + std::to_string(channelIndex) : "uAmbientReg[" + std::to_string(channelIndex) + "]";
 
 	if (colorChannel.LightingEnabled == false) {
-		stream << "\t\t" << colorDestination << " = VecFloatToS10(" << materialSource << ");\n";
+		stream << "\t\t" << colorDestination << " = " << materialSource << ";\n";
 		stream << "\t}\n\n";
 		return stream.str();
 	}
