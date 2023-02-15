@@ -38,7 +38,7 @@ void J3DModelData::MakeHierarchy(J3DJoint* const root, uint32_t& index) {
             break;
             // This node represents a material, so grab that material.
         case EJ3DHierarchyType::Material:
-            currentMaterial = mMaterials[mHierarchyNodes[index].Index];
+            currentMaterial = mMaterials[mHierarchyNodes[index].Index].get();
             index++;
 
             break;
@@ -68,7 +68,7 @@ void J3DModelData::MakeHierarchy(J3DJoint* const root, uint32_t& index) {
             J3DMaterial* shapeMaterial = root->GetLastMaterial();
 
             shapeMaterial->SetShape(currentShape);
-            shapeMaterial->GenerateShaders(mJoints.size());
+            shapeMaterial->GenerateShaders();
             J3DUniformBufferObject::LinkMaterialToUBO(shapeMaterial);
         }
     }
@@ -226,6 +226,10 @@ std::shared_ptr<J3DModelInstance> J3DModelData::GetInstance() {
 
 std::vector<glm::mat4> J3DModelData::GetRestPose() const {
     return mRestPose;
+}
+
+std::vector<std::shared_ptr<J3DMaterial>> J3DModelData::GetMaterials() const {
+    return mMaterials;
 }
 
 void J3DModelData::Render(float deltaTime) {

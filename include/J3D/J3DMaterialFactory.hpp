@@ -5,6 +5,7 @@
 #include <vector>
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 
 namespace bStream { class CStream; }
 class J3DMaterial;
@@ -74,5 +75,5 @@ public:
 	J3DMaterialFactory(J3DMaterialBlock* srcBlock, bStream::CStream* stream);
 	~J3DMaterialFactory() {}
 
-	J3DMaterial* Create(bStream::CStream* stream, uint32_t index);
+	std::shared_ptr<J3DMaterial> Create(bStream::CStream* stream, uint32_t index);
 };

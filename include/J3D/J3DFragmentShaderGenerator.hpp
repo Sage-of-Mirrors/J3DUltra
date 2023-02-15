@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <string>
+#include <memory>
 
 enum class EGXKonstColorSel : uint8_t;
 enum class EGXKonstAlphaSel : uint8_t;
@@ -16,12 +17,12 @@ class J3DFragmentShaderGenerator {
 	static std::string GenerateMainFunction(J3DMaterial* material);
 	
 	// TEV stuff
-	static std::string GenerateTextureColor(J3DTevOrderInfo& tevOrder);
-	static std::string GenerateRasterColor(J3DTevOrderInfo& tevOrder);
+	static std::string GenerateTextureColor(std::shared_ptr<J3DTevOrderInfo> tevOrder);
+	static std::string GenerateRasterColor(std::shared_ptr<J3DTevOrderInfo> tevOrder);
 	static std::string GenerateKonstColor(EGXKonstColorSel colorSel, EGXKonstAlphaSel alphaSel);
 	static std::string GenerateTEVStage(J3DMaterial* material, uint32_t index);
-	static std::string GenerateColorCombiner(J3DTevStageInfo& stage);
-	static std::string GenerateAlphaCombiner(J3DTevStageInfo& stage);
+	static std::string GenerateColorCombiner(std::shared_ptr<J3DTevStageInfo> stage);
+	static std::string GenerateAlphaCombiner(std::shared_ptr<J3DTevStageInfo> stage);
 	static std::string GenerateAlphaCompare(J3DAlphaCompare& alphaCompare);
 public:
 	static bool GenerateFragmentShader(J3DMaterial* material, uint32_t& shaderHandle);

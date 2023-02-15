@@ -5,6 +5,7 @@
 #include <GXGeometryEnums.hpp>
 #include <string>
 #include <vector>
+#include <memory>
 
 class GXShape;
 
@@ -26,7 +27,7 @@ struct J3DLightBlock {
 	glm::vec4 mMatteColor[2];
 	glm::vec4 mAmbientColor[2];
 
-	std::vector<J3DColorChannel> mColorChannels;
+	std::vector<std::shared_ptr<J3DColorChannel>> mColorChannels;
 
 public:
 	J3DLightBlock() : mCullMode(EGXCullMode::None) {}
@@ -34,15 +35,15 @@ public:
 
 struct J3DTexGenBlock {
 	J3DNBTScaleInfo mNBTScale;
-	std::vector<J3DTexCoordInfo> mTexCoordInfo;
-	std::vector<J3DTexCoordInfo> mTexCoord2Info;
-	std::vector<J3DTexMatrixInfo> mTexMatrix;
+	std::vector<std::shared_ptr<J3DTexCoordInfo>> mTexCoordInfo;
+	std::vector<std::shared_ptr<J3DTexCoordInfo>> mTexCoord2Info;
+	std::vector<std::shared_ptr<J3DTexMatrixInfo>> mTexMatrix;
 };
 
 struct J3DTevBlock {
 	std::vector<uint16_t> mTextureIndices;
-	std::vector<J3DTevOrderInfo> mTevOrders;
-	std::vector<J3DTevStageInfo> mTevStages;
+	std::vector<std::shared_ptr<J3DTevOrderInfo>> mTevOrders;
+	std::vector<std::shared_ptr<J3DTevStageInfo>> mTevStages;
 
 	glm::vec4 mTevColors[4];
 	glm::vec4 mTevKonstColors[4];
@@ -65,13 +66,13 @@ public:
 	J3DPixelEngineBlock PEBlock;
 	J3DLightBlock LightBlock;
 	J3DTexGenBlock TexGenBlock;
-	J3DTevBlock TevBlock;
+	std::shared_ptr<J3DTevBlock> TevBlock;
 
 	const GXShape* GetShape() const { return mShape; }
 	void SetShape(const GXShape* shape) { mShape = shape; }
 
 	int32_t GetShaderProgram() const { return mShaderProgram; }
-	bool GenerateShaders(const int32_t& jointCount);
+	bool GenerateShaders();
 
 	void Render(std::vector<uint32_t>& textureHandles);
 };

@@ -33,10 +33,10 @@ void J3DFog::Deserialize(bStream::CStream* stream) {
 	NearZ = stream->readFloat();
 	FarZ = stream->readFloat();
 
-	Color.r = stream->readUInt8();
-	Color.g = stream->readUInt8();
-	Color.b = stream->readUInt8();
-	Color.a = stream->readUInt8();
+	Color.r = stream->readUInt8() / 255.0f;
+	Color.g = stream->readUInt8() / 255.0f;
+	Color.b = stream->readUInt8() / 255.0f;
+	Color.a = stream->readUInt8() / 255.0f;
 
 	for (int i = 0; i < 10; i++)
 		AdjustmentTable[i] = stream->readUInt16();
@@ -51,15 +51,23 @@ void J3DColorChannel::Deserialize(bStream::CStream* stream) {
 	AmbientSource = (EGXColorSource)stream->readUInt8();
 }
 
+J3DTexCoordInfo::J3DTexCoordInfo() : Type(EGXTexGenType::Matrix2x4), Source(EGXTexGenSrc::TexCoord0), TexMatrix(EGXTexMatrix::Identity) { }
+
 void J3DTexCoordInfo::Deserialize(bStream::CStream* stream) {
 	Type = (EGXTexGenType)stream->readUInt8();
 	Source = (EGXTexGenSrc)stream->readUInt8();
 	TexMatrix = (EGXTexMatrix)stream->readUInt8();
 }
 
+J3DTexMatrixInfo::J3DTexMatrixInfo() : Projection(EJ3DTexMatrixProjection::STQ), Type(EGXTexMatrixType::Matrix2x4), Origin(glm::vec3(0.5f, 0.5f, 0.5f)), Matrix(glm::identity<glm::mat4>()) {
+	Transform.Scale = glm::vec2(1.0f, 1.0f);
+	Transform.Rotation = 0.0f;
+	Transform.Translation = glm::vec2(0.0f, 0.0f);
+}
+
 void J3DTexMatrixInfo::Deserialize(bStream::CStream* stream) {
 	Projection = (EJ3DTexMatrixProjection)stream->readUInt8();
-	Type = stream->readUInt8();
+	Type = (EGXTexMatrixType)stream->readUInt8();
 	
 	stream->skip(2);
 
@@ -86,10 +94,22 @@ void J3DNBTScaleInfo::Deserialize(bStream::CStream* stream) {
 	Scale.z = stream->readFloat();
 }
 
+J3DTevOrderInfo::J3DTevOrderInfo() : TexCoordId(EGXTexCoordSlot::Null), TexMap(0xFF), ChannelId(EGXColorChannelId::Color0A0),
+	mTexSwapTable{ 0, 1, 2, 3 }, mRasSwapTable{ 0, 1, 2, 3 } {
+
+}
+
 void J3DTevOrderInfo::Deserialize(bStream::CStream* stream) {
 	TexCoordId = (EGXTexCoordSlot)stream->readUInt8();
 	TexMap = stream->readUInt8();
 	ChannelId = (EGXColorChannelId)stream->readUInt8();
+}
+
+J3DTevStageInfo::J3DTevStageInfo() : ColorInput{ EGXCombineColorInput::Zero, EGXCombineColorInput::Zero, EGXCombineColorInput::Zero, EGXCombineColorInput::ColorPrev},
+	ColorOperation(EGXTevOp::Add), ColorBias(EGXTevBias::Zero), ColorScale(EGXTevScale::Scale_1), ColorClamp(true), ColorOutputRegister(EGXTevRegister::Prev),
+	AlphaInput{ EGXCombineAlphaInput::Zero, EGXCombineAlphaInput::Zero, EGXCombineAlphaInput::Zero, EGXCombineAlphaInput::AlphaPrev},
+	AlphaOperation(EGXTevOp::Add), AlphaBias(EGXTevBias::Zero), AlphaScale(EGXTevScale::Scale_1), AlphaClamp(true), AlphaOutputRegister(EGXTevRegister::Prev) {
+
 }
 
 void J3DTevStageInfo::Deserialize(bStream::CStream* stream) {

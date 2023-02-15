@@ -53,7 +53,7 @@ class J3DModelData : public std::enable_shared_from_this<J3DModelData> {
 	std::vector<uint16_t> mIndices;
 
 	// MAT3 data, materials
-	std::vector<J3DMaterial*> mMaterials;
+	std::vector<std::shared_ptr<J3DMaterial>> mMaterials;
 
 	// TEX1 data, textures
 	std::vector<uint32_t> mTextureHandles;
@@ -74,5 +74,6 @@ public:
 
 	std::shared_ptr<J3DModelInstance> GetInstance();
 	std::vector<glm::mat4> GetRestPose() const;
+	std::vector<std::shared_ptr<J3DMaterial>> GetMaterials() const;
 	const std::vector<J3DEnvelope>& GetJointEnvelopes() const { return mJointEnvelopes; }
 };

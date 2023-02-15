@@ -93,6 +93,8 @@ struct J3DTexCoordInfo : public J3DMaterialComponentBase {
 	EGXTexGenSrc Source;
 	EGXTexMatrix TexMatrix;
 
+	J3DTexCoordInfo();
+
 	virtual void Deserialize(bStream::CStream* stream);
 	virtual size_t GetElementSize() override { return 4; }
 };
@@ -104,11 +106,13 @@ enum class EJ3DTexMatrixProjection : uint8_t {
 
 struct J3DTexMatrixInfo : public J3DMaterialComponentBase {
 	EJ3DTexMatrixProjection Projection;
-	uint8_t Type;
+	EGXTexMatrixType Type;
 	glm::vec3 Origin;
 
 	J3DTextureSRTInfo Transform;
 	glm::mat4 Matrix;
+
+	J3DTexMatrixInfo();
 
 	virtual void Deserialize(bStream::CStream* stream);
 	virtual size_t GetElementSize() override { return 100; }
@@ -129,6 +133,8 @@ struct J3DTevOrderInfo : public J3DMaterialComponentBase {
 
 	uint8_t mTexSwapTable[4]{};
 	uint8_t mRasSwapTable[4]{};
+
+	J3DTevOrderInfo();
 
 	virtual void Deserialize(bStream::CStream* stream);
 	virtual size_t GetElementSize() override { return 4; }
@@ -152,6 +158,8 @@ struct J3DTevStageInfo : public J3DMaterialComponentBase {
 	EGXTevRegister AlphaOutputRegister;
 
 	uint8_t Unknown1;
+
+	J3DTevStageInfo();
 
 	virtual void Deserialize(bStream::CStream* stream);
 	virtual size_t GetElementSize() override { return 20; }

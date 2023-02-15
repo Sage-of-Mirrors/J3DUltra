@@ -237,6 +237,11 @@ enum class EGXTexMatrix : uint8_t {
 	Identity = 60,
 };
 
+enum class EGXTexMatrixType : uint8_t {
+	Matrix3x4,
+	Matrix2x4
+};
+
 enum class EGXTexCoordSlot : uint8_t {
 	TexCoord0 = 0,
 	TexCoord1 = 1,

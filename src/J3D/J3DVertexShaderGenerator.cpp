@@ -16,7 +16,7 @@
 
 #define etoi magic_enum::enum_integer
 
-bool J3DVertexShaderGenerator::GenerateVertexShader(const J3DMaterial* material, const int32_t& jointCount, uint32_t& shaderHandle) {
+bool J3DVertexShaderGenerator::GenerateVertexShader(const J3DMaterial* material, uint32_t& shaderHandle) {
 	if (material == nullptr || material->GetShape() == nullptr)
 		return false;
 	
@@ -155,17 +155,17 @@ std::string J3DVertexShaderGenerator::GenerateUniforms() {
 	return stream.str();
 }
 
-std::string J3DVertexShaderGenerator::GenerateTexGen(const J3DTexCoordInfo& texGen, const uint32_t index) {
+std::string J3DVertexShaderGenerator::GenerateTexGen(std::shared_ptr<J3DTexCoordInfo> texGen, const uint32_t index) {
 	std::stringstream stream;
-	stream << "\t// TexGen Source: " << magic_enum::enum_name(texGen.Source) << ", ";
-	stream << "Type: " << magic_enum::enum_name(texGen.Type) << ", ";
-	stream << "TexMatrix: " << magic_enum::enum_name(texGen.TexMatrix) << "\n";
+	stream << "\t// TexGen Source: " << magic_enum::enum_name(texGen->Source) << ", ";
+	stream << "Type: " << magic_enum::enum_name(texGen->Type) << ", ";
+	stream << "TexMatrix: " << magic_enum::enum_name(texGen->TexMatrix) << "\n";
 
 	stream << "\toTexCoord" << index << " = ";
 
 	// Figure out where the initial tex coord is coming from.
 	std::stringstream source;
-	switch (texGen.Source) {
+	switch (texGen->Source) {
 		case EGXTexGenSrc::Position:
 			source << "vec4(aPos.xyz, 1.0)";
 			break;
@@ -193,7 +193,7 @@ std::string J3DVertexShaderGenerator::GenerateTexGen(const J3DTexCoordInfo& texG
 		case EGXTexGenSrc::Tex6:
 		case EGXTexGenSrc::Tex7:
 		{
-			uint32_t texIndex = etoi(texGen.Source) - etoi(EGXTexGenSrc::Tex0);
+			uint32_t texIndex = etoi(texGen->Source) - etoi(EGXTexGenSrc::Tex0);
 			source << "vec4(aTex" << texIndex << ".xy, 1.0, 1.0)";
 			break;
 		}
@@ -205,23 +205,23 @@ std::string J3DVertexShaderGenerator::GenerateTexGen(const J3DTexCoordInfo& texG
 		case EGXTexGenSrc::TexCoord5:
 		case EGXTexGenSrc::TexCoord6:
 		{
-			uint32_t texCoordIndex = etoi(texGen.Source) - etoi(EGXTexGenSrc::TexCoord0);
+			uint32_t texCoordIndex = etoi(texGen->Source) - etoi(EGXTexGenSrc::TexCoord0);
 			source << "vec4(oTexCoord" << texCoordIndex << ".xyz, 1.0)";
 			break;
 		}
 	}
 
 	// Apply a texmatrix to the coords we found above.
-	if (texGen.TexMatrix == EGXTexMatrix::Identity) {
-		if (texGen.Type == EGXTexGenType::SRTG)
+	if (texGen->TexMatrix == EGXTexMatrix::Identity) {
+		if (texGen->Type == EGXTexGenType::SRTG)
 			stream << "vec3(" << source.str() << ".xy, 1.0);\n";
 		else
 			stream << source.str() << ".xyz;\n";
 	}
 	else {
-		uint32_t texMatrixIndex = (etoi(texGen.TexMatrix) - etoi(EGXTexMatrix::TexMtx0)) / 3;
+		uint32_t texMatrixIndex = (etoi(texGen->TexMatrix) - etoi(EGXTexMatrix::TexMtx0)) / 3;
 
-		switch (texGen.Type) {
+		switch (texGen->Type) {
 			case EGXTexGenType::Matrix2x4:
 				stream << "vec3((TexMatrices[" << texMatrixIndex << "] * " << source.str() << ").xy, 1.0);\n";
 				break;
@@ -242,7 +242,7 @@ std::string J3DVertexShaderGenerator::GenerateTexGen(const J3DTexCoordInfo& texG
 	return stream.str();
 }
 
-std::string J3DVertexShaderGenerator::GenerateLight(const J3DColorChannel& colorChannel, const uint32_t& lightIndex) {
+std::string J3DVertexShaderGenerator::GenerateLight(std::shared_ptr<J3DColorChannel> colorChannel, const uint32_t& lightIndex) {
 	std::stringstream stream;
 
 	std::string lightName = "Lights[" + std::to_string(lightIndex) + "]";
@@ -250,7 +250,7 @@ std::string J3DVertexShaderGenerator::GenerateLight(const J3DColorChannel& color
 	std::string attenuationFunction = "";
 
 	// Generate diffuse function
-	switch (colorChannel.DiffuseFunction) {
+	switch (colorChannel->DiffuseFunction) {
 		case EGXDiffuseFunction::Signed:
 			diffuseFunction = "dot(SkinnedNormal, PosLightDir)";
 			break;
@@ -265,7 +265,7 @@ std::string J3DVertexShaderGenerator::GenerateLight(const J3DColorChannel& color
 
 	std::string attn = "1.0";
 	// Generate attenuation function
-	switch (colorChannel.AttenuationFunction) {
+	switch (colorChannel->AttenuationFunction) {
 		case EGXAttenuationFunction::Spec:
 		{
 			attn = "(dot(SkinnedNormal, PosLightDir) >= 0.0) ? max(0.0, dot(SkinnedNormal, " + lightName + ".Direction.xyz)) : 0.0";
@@ -302,16 +302,16 @@ std::string J3DVertexShaderGenerator::GenerateLight(const J3DColorChannel& color
 	return stream.str();
 }
 
-std::string J3DVertexShaderGenerator::GenerateColorChannel(const J3DColorChannel& colorChannel, const int32_t& index) {
+std::string J3DVertexShaderGenerator::GenerateColorChannel(std::shared_ptr<J3DColorChannel> colorChannel, const int32_t& index) {
 	std::stringstream stream;
 
 	stream << "\t// Color channel " << index << ": " <<
-		"Lighting enabled: " << std::to_string(colorChannel.LightingEnabled) << ", " <<
-		"Material Source: " << magic_enum::enum_name(colorChannel.MaterialSource) << ", " <<
-		"Light Mask: " << std::to_string(colorChannel.LightMask) << ", " <<
-		"Diffuse Function: " << magic_enum::enum_name(colorChannel.DiffuseFunction) << ", " <<
-		"Atten Function: " << magic_enum::enum_name(colorChannel.AttenuationFunction) << ", " <<
-		"Ambient Source: " << magic_enum::enum_name(colorChannel.AmbientSource) << "\n";
+		"Lighting enabled: " << std::to_string(colorChannel->LightingEnabled) << ", " <<
+		"Material Source: " << magic_enum::enum_name(colorChannel->MaterialSource) << ", " <<
+		"Light Mask: " << std::to_string(colorChannel->LightMask) << ", " <<
+		"Diffuse Function: " << magic_enum::enum_name(colorChannel->DiffuseFunction) << ", " <<
+		"Atten Function: " << magic_enum::enum_name(colorChannel->AttenuationFunction) << ", " <<
+		"Ambient Source: " << magic_enum::enum_name(colorChannel->AmbientSource) << "\n";
 
 	stream << "\t{\n";
 
@@ -341,10 +341,10 @@ std::string J3DVertexShaderGenerator::GenerateColorChannel(const J3DColorChannel
 		break;
 	}
 
-	std::string materialSource = colorChannel.MaterialSource == EGXColorSource::Vertex ? "aCol" + std::to_string(channelIndex) : "uMaterialReg[" + std::to_string(channelIndex) + "]";
-	std::string ambientSource = colorChannel.AmbientSource == EGXColorSource::Vertex ? "aCol" + std::to_string(channelIndex) : "uAmbientReg[" + std::to_string(channelIndex) + "]";
+	std::string materialSource = colorChannel->MaterialSource == EGXColorSource::Vertex ? "aCol" + std::to_string(channelIndex) : "uMaterialReg[" + std::to_string(channelIndex) + "]";
+	std::string ambientSource = colorChannel->AmbientSource == EGXColorSource::Vertex ? "aCol" + std::to_string(channelIndex) : "uAmbientReg[" + std::to_string(channelIndex) + "]";
 
-	if (colorChannel.LightingEnabled == false) {
+	if (colorChannel->LightingEnabled == false) {
 		stream << "\t\t" << colorDestination << " = " << materialSource << ";\n";
 		stream << "\t}\n\n";
 		return stream.str();
@@ -355,7 +355,7 @@ std::string J3DVertexShaderGenerator::GenerateColorChannel(const J3DColorChannel
 	stream << "\t\tfloat PosLightDistSq, PosLightDist, Attenuation;\n\n";
 
 	for (int i = 0; i < 8; i++) {
-		if (!(colorChannel.LightMask & (1 << i)))
+		if (!(colorChannel->LightMask & (1 << i)))
 			continue;
 
 		stream << GenerateLight(colorChannel, i);

@@ -9,7 +9,7 @@
 #include <glad/glad.h>
 
 J3DMaterial::J3DMaterial() : mShaderProgram(-1) {
-
+	TevBlock = std::make_shared<J3DTevBlock>();
 }
 
 J3DMaterial::~J3DMaterial() {
@@ -17,10 +17,14 @@ J3DMaterial::~J3DMaterial() {
 		glDeleteProgram(mShaderProgram);
 }
 
-bool J3DMaterial::GenerateShaders(const int32_t& jointCount) {
+bool J3DMaterial::GenerateShaders() {
 	uint32_t vertShader, fragShader;
 
-	if (!J3DVertexShaderGenerator::GenerateVertexShader(this, jointCount, vertShader)) {
+	if (mShaderProgram != -1) {
+		glDeleteProgram(mShaderProgram);
+	}
+
+	if (!J3DVertexShaderGenerator::GenerateVertexShader(this, vertShader)) {
 		std::cout << "Error in vertex shader generator!" << std::endl;
 		return false;
 	}
@@ -118,8 +122,8 @@ int GXBlendModeControlToGLFactor(EGXBlendModeControl Control)
 
 void J3DMaterial::Render(std::vector<uint32_t>& textureHandles) {
 	glUseProgram(mShaderProgram);
-	for (int i = 0; i < TevBlock.mTextureIndices.size(); i++)
-		glBindTextureUnit(i, textureHandles[TevBlock.mTextureIndices[i]]);
+	for (int i = 0; i < TevBlock->mTextureIndices.size(); i++)
+		glBindTextureUnit(i, textureHandles[TevBlock->mTextureIndices[i]]);
 
 	if (PEBlock.mBlendMode.Type != EGXBlendMode::None)
 	{
@@ -194,8 +198,8 @@ void J3DMaterial::Render(std::vector<uint32_t>& textureHandles) {
 		glDepthMask(PEBlock.mZMode.UpdateEnable ? GL_TRUE : GL_FALSE);
 	}
 
-	J3DUniformBufferObject::SetTevColors(TevBlock.mTevColors);
-	J3DUniformBufferObject::SetKonstColors(TevBlock.mTevKonstColors);
+	J3DUniformBufferObject::SetTevColors(TevBlock->mTevColors);
+	J3DUniformBufferObject::SetKonstColors(TevBlock->mTevKonstColors);
 
 	glm::mat4 t[10];
 	for (int i = 0; i < 10; i++)
