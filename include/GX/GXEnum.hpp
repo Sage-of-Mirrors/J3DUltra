@@ -391,6 +391,13 @@ enum class EGXKonstAlphaSel : uint8_t {
 	KASel_K3_A = 0x1F   // K3[A] Register
 };
 
+enum class EGXSwapMode : uint8_t {
+	R,
+	G,
+	B,
+	A
+};
+
 enum class EGXTextureFormat : uint32_t {
 	I4,     // 4BPP, 8x8 blocks, monochrome
 	I8,     // 8BPP, 8x8 blocks, monochrome

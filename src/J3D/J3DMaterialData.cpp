@@ -1,12 +1,22 @@
 #include "J3D/J3DMaterialData.hpp"
 #include <bstream.h>
 
+/* == J3DZMode == */
 void J3DZMode::Deserialize(bStream::CStream* stream) {
 	Enable = stream->readUInt8();
 	Function = (EGXCompareType)stream->readUInt8();
 	UpdateEnable = stream->readUInt8();
 }
 
+bool J3DZMode::operator==(const J3DZMode& other) const {
+	return Enable == other.Enable && Function == other.Function && UpdateEnable == other.UpdateEnable;
+}
+
+bool J3DZMode::operator!=(const J3DZMode& other) const {
+	return !operator==(other);
+}
+
+/* == J3DAlphaCompare == */
 void J3DAlphaCompare::Deserialize(bStream::CStream* stream) {
 	CompareFunc0 = (EGXCompareType)stream->readUInt8();
 	Reference0 = stream->readUInt8();
@@ -17,6 +27,16 @@ void J3DAlphaCompare::Deserialize(bStream::CStream* stream) {
 	Reference1 = stream->readUInt8();
 }
 
+bool J3DAlphaCompare::operator==(const J3DAlphaCompare& other) const {
+	return CompareFunc0 == other.CompareFunc0 && Reference0 == other.Reference0 && Operation == other.Operation &&
+		CompareFunc1 == other.CompareFunc1 && Reference1 == other.Reference1;
+}
+
+bool J3DAlphaCompare::operator!=(const J3DAlphaCompare& other) const {
+	return !operator==(other);
+}
+
+/* == J3DBlendMode == */
 void J3DBlendMode::Deserialize(bStream::CStream* stream) {
 	Type = (EGXBlendMode)stream->readUInt8();
 	SourceFactor = (EGXBlendModeControl)stream->readUInt8();
@@ -24,6 +44,16 @@ void J3DBlendMode::Deserialize(bStream::CStream* stream) {
 	Operation = (EGXLogicOp)stream->readUInt8();
 }
 
+bool J3DBlendMode::operator==(const J3DBlendMode& other) const {
+	return Type == other.Type && SourceFactor == other.SourceFactor && DestinationFactor == other.DestinationFactor &&
+		Operation == other.Operation;
+}
+
+bool J3DBlendMode::operator!=(const J3DBlendMode& other) const {
+	return !operator==(other);
+}
+
+/* == J3DFog == */
 void J3DFog::Deserialize(bStream::CStream* stream) {
 	Type = (EGXFogType)stream->readUInt8();
 	Enable = stream->readUInt8();
@@ -42,6 +72,27 @@ void J3DFog::Deserialize(bStream::CStream* stream) {
 		AdjustmentTable[i] = stream->readUInt16();
 }
 
+bool J3DFog::operator==(const J3DFog& other) const {
+	bool comparison = Type == other.Type && Enable == other.Enable && Center == other.Center &&
+		StartZ == other.StartZ && EndZ == other.EndZ && NearZ == other.NearZ && FarZ == other.FarZ && Color == other.Color;
+
+	for (int i = 0; i < 10; i++) {
+		bool adjTest = AdjustmentTable[i] == other.AdjustmentTable[i];
+
+		if (!adjTest) {
+			comparison = false;
+			break;
+		}
+	}
+
+	return comparison;
+}
+
+bool J3DFog::operator!=(const J3DFog& other) const {
+	return !operator==(other);
+}
+
+/* == J3DColorChannel == */
 void J3DColorChannel::Deserialize(bStream::CStream* stream) {
 	LightingEnabled = stream->readUInt8();
 	MaterialSource = (EGXColorSource)stream->readUInt8();
@@ -51,7 +102,19 @@ void J3DColorChannel::Deserialize(bStream::CStream* stream) {
 	AmbientSource = (EGXColorSource)stream->readUInt8();
 }
 
-J3DTexCoordInfo::J3DTexCoordInfo() : Type(EGXTexGenType::Matrix2x4), Source(EGXTexGenSrc::TexCoord0), TexMatrix(EGXTexMatrix::Identity) { }
+bool J3DColorChannel::operator==(const J3DColorChannel& other) const {
+	return LightingEnabled == other.LightingEnabled && MaterialSource == other.MaterialSource && LightMask == other.LightMask &&
+		DiffuseFunction == other.DiffuseFunction && AttenuationFunction == other.AttenuationFunction && AmbientSource == other.AmbientSource;
+}
+
+bool J3DColorChannel::operator!=(const J3DColorChannel& other) const {
+	return !operator==(other);
+}
+
+/* == J3DTexCoordInfo == */
+J3DTexCoordInfo::J3DTexCoordInfo() : Type(EGXTexGenType::Matrix2x4), Source(EGXTexGenSrc::TexCoord0), TexMatrix(EGXTexMatrix::Identity) {
+
+}
 
 void J3DTexCoordInfo::Deserialize(bStream::CStream* stream) {
 	Type = (EGXTexGenType)stream->readUInt8();
@@ -59,6 +122,15 @@ void J3DTexCoordInfo::Deserialize(bStream::CStream* stream) {
 	TexMatrix = (EGXTexMatrix)stream->readUInt8();
 }
 
+bool J3DTexCoordInfo::operator==(const J3DTexCoordInfo& other) const {
+	return Type == other.Type && Source == other.Source && TexMatrix == other.TexMatrix;
+}
+
+bool J3DTexCoordInfo::operator!=(const J3DTexCoordInfo& other) const {
+	return !operator==(other);
+}
+
+/* == J3DTexMatrixInfo == */
 J3DTexMatrixInfo::J3DTexMatrixInfo() : Projection(EJ3DTexMatrixProjection::STQ), Type(EGXTexMatrixType::Matrix2x4), Origin(glm::vec3(0.5f, 0.5f, 0.5f)), Matrix(glm::identity<glm::mat4>()) {
 	Transform.Scale = glm::vec2(1.0f, 1.0f);
 	Transform.Rotation = 0.0f;
@@ -84,6 +156,15 @@ void J3DTexMatrixInfo::Deserialize(bStream::CStream* stream) {
 	}
 }
 
+bool J3DTexMatrixInfo::operator==(const J3DTexMatrixInfo& other) const {
+	return Projection == other.Projection && Type == other.Type && Origin == other.Origin && Transform == other.Transform;
+}
+
+bool J3DTexMatrixInfo::operator!=(const J3DTexMatrixInfo& other) const {
+	return !operator==(other);
+}
+
+/* == J3DNBTScaleInfo == */
 void J3DNBTScaleInfo::Deserialize(bStream::CStream* stream) {
 	Enable = stream->readUInt8();
 	
@@ -94,8 +175,18 @@ void J3DNBTScaleInfo::Deserialize(bStream::CStream* stream) {
 	Scale.z = stream->readFloat();
 }
 
+bool J3DNBTScaleInfo::operator==(const J3DNBTScaleInfo& other) const {
+	return Enable == other.Enable && Scale == other.Scale;
+}
+
+bool J3DNBTScaleInfo::operator!=(const J3DNBTScaleInfo& other) const {
+	return !operator==(other);
+}
+
+/* == J3DTevOrderInfo == */
 J3DTevOrderInfo::J3DTevOrderInfo() : TexCoordId(EGXTexCoordSlot::Null), TexMap(0xFF), ChannelId(EGXColorChannelId::Color0A0),
-	mTexSwapTable{ 0, 1, 2, 3 }, mRasSwapTable{ 0, 1, 2, 3 } {
+	mTexSwapTable{ EGXSwapMode::R, EGXSwapMode::G, EGXSwapMode::B, EGXSwapMode::A },
+	mRasSwapTable{ EGXSwapMode::R, EGXSwapMode::G, EGXSwapMode::B, EGXSwapMode::A } {
 
 }
 
@@ -105,10 +196,20 @@ void J3DTevOrderInfo::Deserialize(bStream::CStream* stream) {
 	ChannelId = (EGXColorChannelId)stream->readUInt8();
 }
 
+bool J3DTevOrderInfo::operator==(const J3DTevOrderInfo& other) const {
+	return TexCoordId == other.TexCoordId && TexMap == other.TexMap && ChannelId == other.ChannelId;
+}
+
+bool J3DTevOrderInfo::operator!=(const J3DTevOrderInfo& other) const {
+	return !operator==(other);
+}
+
+/* == J3DTevStageInfo == */
 J3DTevStageInfo::J3DTevStageInfo() : ColorInput{ EGXCombineColorInput::Zero, EGXCombineColorInput::Zero, EGXCombineColorInput::Zero, EGXCombineColorInput::ColorPrev},
 	ColorOperation(EGXTevOp::Add), ColorBias(EGXTevBias::Zero), ColorScale(EGXTevScale::Scale_1), ColorClamp(true), ColorOutputRegister(EGXTevRegister::Prev),
 	AlphaInput{ EGXCombineAlphaInput::Zero, EGXCombineAlphaInput::Zero, EGXCombineAlphaInput::Zero, EGXCombineAlphaInput::AlphaPrev},
-	AlphaOperation(EGXTevOp::Add), AlphaBias(EGXTevBias::Zero), AlphaScale(EGXTevScale::Scale_1), AlphaClamp(true), AlphaOutputRegister(EGXTevRegister::Prev) {
+	AlphaOperation(EGXTevOp::Add), AlphaBias(EGXTevBias::Zero), AlphaScale(EGXTevScale::Scale_1), AlphaClamp(true), AlphaOutputRegister(EGXTevRegister::Prev),
+	Unknown0(0), Unknown1(0) {
 
 }
 
@@ -138,4 +239,25 @@ void J3DTevStageInfo::Deserialize(bStream::CStream* stream) {
 	AlphaOutputRegister = (EGXTevRegister)stream->readUInt8();
 
 	Unknown1 = stream->readUInt8();
+}
+
+bool J3DTevStageInfo::operator==(const J3DTevStageInfo& other) const {
+	bool comparison = ColorOperation == other.ColorOperation && ColorBias == other.ColorBias && ColorScale == other.ColorScale &&
+		ColorClamp == other.ColorClamp && ColorOutputRegister == other.ColorOutputRegister && AlphaOperation == other.AlphaOperation &&
+		AlphaBias == other.AlphaBias && AlphaScale == other.AlphaScale && AlphaClamp == other.AlphaClamp && AlphaOutputRegister == other.AlphaOutputRegister;
+
+	for (int i = 0; i < 4; i++) {
+		bool inputTest = (ColorInput[i] == other.ColorInput[i]) && (AlphaInput[i] == other.AlphaInput[i]);
+
+		if (!inputTest) {
+			comparison = false;
+			break;
+		}
+	}
+
+	return comparison;
+}
+
+bool J3DTevStageInfo::operator!=(const J3DTevStageInfo& other) const {
+	return !operator==(other);
 }

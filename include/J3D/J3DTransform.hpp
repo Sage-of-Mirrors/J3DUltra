@@ -22,6 +22,9 @@ struct J3DTransformInfo {
 
 	void Deserialize(bStream::CStream* stream);
 	glm::mat4 ToMat4();
+
+	bool operator==(const J3DTransformInfo& other) const;
+	bool operator!=(const J3DTransformInfo& other) const;
 };
 
 struct J3DTextureSRTInfo {
@@ -31,4 +34,7 @@ struct J3DTextureSRTInfo {
 
 	void Deserialize(bStream::CStream* stream);
 	glm::mat4 ToMat4();
+
+	bool operator==(const J3DTextureSRTInfo& other) const;
+	bool operator!=(const J3DTextureSRTInfo& other) const;
 };

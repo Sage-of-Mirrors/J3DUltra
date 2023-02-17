@@ -32,6 +32,9 @@ struct J3DZMode : public J3DMaterialComponentBase {
 
 	virtual void Deserialize(bStream::CStream* stream);
 	virtual size_t GetElementSize() override { return 4; }
+
+	bool operator==(const J3DZMode& other) const;
+	bool operator!=(const J3DZMode& other) const;
 };
 
 // Alpha compare settings. The formula is:
@@ -48,6 +51,9 @@ struct J3DAlphaCompare : public J3DMaterialComponentBase {
 
 	virtual void Deserialize(bStream::CStream* stream);
 	virtual size_t GetElementSize() override { return 8; }
+
+	bool operator==(const J3DAlphaCompare& other) const;
+	bool operator!=(const J3DAlphaCompare& other) const;
 };
 
 struct J3DBlendMode : public J3DMaterialComponentBase {
@@ -58,6 +64,9 @@ struct J3DBlendMode : public J3DMaterialComponentBase {
 
 	virtual void Deserialize(bStream::CStream* stream);
 	virtual size_t GetElementSize() override { return 4; }
+
+	bool operator==(const J3DBlendMode& other) const;
+	bool operator!=(const J3DBlendMode& other) const;
 };
 
 struct J3DFog : public J3DMaterialComponentBase {
@@ -74,6 +83,9 @@ struct J3DFog : public J3DMaterialComponentBase {
 
 	virtual void Deserialize(bStream::CStream* stream);
 	virtual size_t GetElementSize() override { return 44; }
+
+	bool operator==(const J3DFog& other) const;
+	bool operator!=(const J3DFog& other) const;
 };
 
 struct J3DColorChannel : public J3DMaterialComponentBase {
@@ -86,6 +98,9 @@ struct J3DColorChannel : public J3DMaterialComponentBase {
 
 	virtual void Deserialize(bStream::CStream* stream);
 	virtual size_t GetElementSize() override { return 8; }
+
+	bool operator==(const J3DColorChannel& other) const;
+	bool operator!=(const J3DColorChannel& other) const;
 };
 
 struct J3DTexCoordInfo : public J3DMaterialComponentBase {
@@ -97,6 +112,9 @@ struct J3DTexCoordInfo : public J3DMaterialComponentBase {
 
 	virtual void Deserialize(bStream::CStream* stream);
 	virtual size_t GetElementSize() override { return 4; }
+
+	bool operator==(const J3DTexCoordInfo& other) const;
+	bool operator!=(const J3DTexCoordInfo& other) const;
 };
 
 enum class EJ3DTexMatrixProjection : uint8_t {
@@ -116,6 +134,9 @@ struct J3DTexMatrixInfo : public J3DMaterialComponentBase {
 
 	virtual void Deserialize(bStream::CStream* stream);
 	virtual size_t GetElementSize() override { return 100; }
+
+	bool operator==(const J3DTexMatrixInfo& other) const;
+	bool operator!=(const J3DTexMatrixInfo& other) const;
 };
 
 struct J3DNBTScaleInfo : public J3DMaterialComponentBase {
@@ -124,6 +145,9 @@ struct J3DNBTScaleInfo : public J3DMaterialComponentBase {
 
 	virtual void Deserialize(bStream::CStream* stream);
 	virtual size_t GetElementSize() override { return 16; }
+
+	bool operator==(const J3DNBTScaleInfo& other) const;
+	bool operator!=(const J3DNBTScaleInfo& other) const;
 };
 
 struct J3DTevOrderInfo : public J3DMaterialComponentBase {
@@ -131,13 +155,16 @@ struct J3DTevOrderInfo : public J3DMaterialComponentBase {
 	uint8_t TexMap;
 	EGXColorChannelId ChannelId;
 
-	uint8_t mTexSwapTable[4]{};
-	uint8_t mRasSwapTable[4]{};
+	EGXSwapMode mTexSwapTable[4]{};
+	EGXSwapMode mRasSwapTable[4]{};
 
 	J3DTevOrderInfo();
 
 	virtual void Deserialize(bStream::CStream* stream);
 	virtual size_t GetElementSize() override { return 4; }
+
+	bool operator==(const J3DTevOrderInfo& other) const;
+	bool operator!=(const J3DTevOrderInfo& other) const;
 };
 
 struct J3DTevStageInfo : public J3DMaterialComponentBase {
@@ -163,4 +190,7 @@ struct J3DTevStageInfo : public J3DMaterialComponentBase {
 
 	virtual void Deserialize(bStream::CStream* stream);
 	virtual size_t GetElementSize() override { return 20; }
+
+	bool operator==(const J3DTevStageInfo& other) const;
+	bool operator!=(const J3DTevStageInfo& other) const;
 };

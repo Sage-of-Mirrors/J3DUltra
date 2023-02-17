@@ -68,6 +68,8 @@ public:
 	J3DTexGenBlock TexGenBlock;
 	std::shared_ptr<J3DTevBlock> TevBlock;
 
+	int TEVStageGenMax;
+
 	const GXShape* GetShape() const { return mShape; }
 	void SetShape(const GXShape* shape) { mShape = shape; }
 

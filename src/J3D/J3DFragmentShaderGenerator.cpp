@@ -155,7 +155,7 @@ std::string J3DFragmentShaderGenerator::GenerateMainFunction(J3DMaterial* materi
 	stream << "\tivec4 Reg1 = ivec4(TevColor[1]);\n";
 	stream << "\tivec4 Reg2 = ivec4(TevColor[2]);\n\n";
 
-	for (int i = 0; i < material->TevBlock->mTevStages.size(); i++) {
+	for (int i = 0; i < material->TEVStageGenMax; i++) {
 		stream << GenerateTEVStage(material, i);
 	}
 
@@ -174,7 +174,7 @@ std::string J3DFragmentShaderGenerator::GenerateTextureColor(std::shared_ptr<J3D
 	if (tevOrder->TexCoordId != EGXTexCoordSlot::Null) {
 		std::string componentSwap = "rgba";
 		for (int i = 0; i < 4; i++)
-			componentSwap[i] = TGXTevSwapComponents[tevOrder->mTexSwapTable[i]];
+			componentSwap[i] = TGXTevSwapComponents[(uint8_t)tevOrder->mTexSwapTable[i]];
 
 		stream << "\t\t// Texture Coords: " << magic_enum::enum_name(tevOrder->TexCoordId)
 			<< ", Texture Map: " << std::to_string(tevOrder->TexMap) << ", Component Swap: " << componentSwap << "\n";
@@ -197,7 +197,7 @@ std::string J3DFragmentShaderGenerator::GenerateRasterColor(std::shared_ptr<J3DT
 	if (tevOrder->ChannelId != EGXColorChannelId::ColorNull) {
 		std::string componentSwap = "rgba";
 		for (int i = 0; i < 4; i++)
-			componentSwap[i] = TGXTevSwapComponents[tevOrder->mRasSwapTable[i]];
+			componentSwap[i] = TGXTevSwapComponents[(uint8_t)tevOrder->mRasSwapTable[i]];
 
 		stream << "\t\t// Raster color source: " << magic_enum::enum_name(tevOrder->ChannelId) << ", Component Swap: " << componentSwap << "\n";
 		stream << "\t\tivec4 RasTemp = ";
