@@ -107,22 +107,15 @@ std::shared_ptr<J3DMaterial> J3DMaterialFactory::Create(bStream::CStream* stream
 
 		uint32_t currentOffset = stream->tell();
 		if (initData.TEVSwapMode[i] != UINT16_MAX) {
-			uint8_t tex, ras;
 			stream->seek(mBlock->TevSwapModeTableOffset + (initData.TEVSwapMode[i] * 4));
-			tex = stream->readUInt8();
-			ras = stream->readUInt8();
+			J3DSwapModeInfo info;
+			info.Deserialize(stream);
 
-			stream->seek(mBlock->TevSwapTableOffset + initData.TEVSwapModeTable[tex] * 4);
-			newMaterial->TevBlock->mTevOrders[i]->mTexSwapTable[0] = (EGXSwapMode)stream->readUInt8();
-			newMaterial->TevBlock->mTevOrders[i]->mTexSwapTable[1] = (EGXSwapMode)stream->readUInt8();
-			newMaterial->TevBlock->mTevOrders[i]->mTexSwapTable[2] = (EGXSwapMode)stream->readUInt8();
-			newMaterial->TevBlock->mTevOrders[i]->mTexSwapTable[3] = (EGXSwapMode)stream->readUInt8();
+			stream->seek(mBlock->TevSwapTableOffset + initData.TEVSwapModeTable[info.TexIndex] * 4);
+			newMaterial->TevBlock->mTevOrders[i]->mTexSwapMode.Deserialize(stream);
 
-			stream->seek(mBlock->TevSwapTableOffset + initData.TEVSwapModeTable[ras] * 4);
-			newMaterial->TevBlock->mTevOrders[i]->mRasSwapTable[0] = (EGXSwapMode)stream->readUInt8();
-			newMaterial->TevBlock->mTevOrders[i]->mRasSwapTable[1] = (EGXSwapMode)stream->readUInt8();
-			newMaterial->TevBlock->mTevOrders[i]->mRasSwapTable[2] = (EGXSwapMode)stream->readUInt8();
-			newMaterial->TevBlock->mTevOrders[i]->mRasSwapTable[3] = (EGXSwapMode)stream->readUInt8();
+			stream->seek(mBlock->TevSwapTableOffset + initData.TEVSwapModeTable[info.RasIndex] * 4);
+			newMaterial->TevBlock->mTevOrders[i]->mRasSwapMode.Deserialize(stream);
 		}
 		stream->seek(currentOffset);
 

@@ -150,13 +150,38 @@ struct J3DNBTScaleInfo : public J3DMaterialComponentBase {
 	bool operator!=(const J3DNBTScaleInfo& other) const;
 };
 
+struct J3DSwapModeInfo : public J3DMaterialComponentBase {
+	uint8_t RasIndex, TexIndex;
+
+	J3DSwapModeInfo();
+	J3DSwapModeInfo(uint8_t ras, uint8_t tex);
+
+	virtual void Deserialize(bStream::CStream* stream);
+	virtual size_t GetElementSize() override { return 4; }
+
+	bool operator==(const J3DSwapModeInfo& other) const;
+	bool operator!=(const J3DSwapModeInfo& other) const;
+};
+
+struct J3DSwapModeTableInfo : public J3DMaterialComponentBase {
+	EGXSwapMode R, G, B, A;
+
+	J3DSwapModeTableInfo();
+
+	virtual void Deserialize(bStream::CStream* stream);
+	virtual size_t GetElementSize() override { return 4; }
+
+	bool operator==(const J3DSwapModeTableInfo& other) const;
+	bool operator!=(const J3DSwapModeTableInfo& other) const;
+};
+
 struct J3DTevOrderInfo : public J3DMaterialComponentBase {
 	EGXTexCoordSlot TexCoordId;
 	uint8_t TexMap;
 	EGXColorChannelId ChannelId;
 
-	EGXSwapMode mTexSwapTable[4]{};
-	EGXSwapMode mRasSwapTable[4]{};
+	J3DSwapModeTableInfo mTexSwapMode;
+	J3DSwapModeTableInfo mRasSwapMode;
 
 	J3DTevOrderInfo();
 

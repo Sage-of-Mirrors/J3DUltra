@@ -184,9 +184,8 @@ bool J3DNBTScaleInfo::operator!=(const J3DNBTScaleInfo& other) const {
 }
 
 /* == J3DTevOrderInfo == */
-J3DTevOrderInfo::J3DTevOrderInfo() : TexCoordId(EGXTexCoordSlot::Null), TexMap(0xFF), ChannelId(EGXColorChannelId::Color0A0),
-	mTexSwapTable{ EGXSwapMode::R, EGXSwapMode::G, EGXSwapMode::B, EGXSwapMode::A },
-	mRasSwapTable{ EGXSwapMode::R, EGXSwapMode::G, EGXSwapMode::B, EGXSwapMode::A } {
+J3DTevOrderInfo::J3DTevOrderInfo() : TexCoordId(EGXTexCoordSlot::Null), TexMap(0xFF),
+	ChannelId(EGXColorChannelId::Color0A0) {
 
 }
 
@@ -201,6 +200,48 @@ bool J3DTevOrderInfo::operator==(const J3DTevOrderInfo& other) const {
 }
 
 bool J3DTevOrderInfo::operator!=(const J3DTevOrderInfo& other) const {
+	return !operator==(other);
+}
+
+/* == J3DSwapModeInfo == */
+J3DSwapModeInfo::J3DSwapModeInfo() : J3DSwapModeInfo(0, 0) {
+
+}
+
+J3DSwapModeInfo::J3DSwapModeInfo(uint8_t ras, uint8_t tex) : RasIndex(ras), TexIndex(tex) {
+
+}
+
+void J3DSwapModeInfo::Deserialize(bStream::CStream* stream) {
+	RasIndex = stream->readUInt8();
+	TexIndex = stream->readUInt8();
+}
+
+bool J3DSwapModeInfo::operator==(const J3DSwapModeInfo& other) const {
+	return RasIndex == other.RasIndex && TexIndex == other.TexIndex;
+}
+
+bool J3DSwapModeInfo::operator!=(const J3DSwapModeInfo& other) const {
+	return !operator==(other);
+}
+
+/* == J3DSwapModeTableInfo == */
+J3DSwapModeTableInfo::J3DSwapModeTableInfo() : R(EGXSwapMode::R), G(EGXSwapMode::G), B(EGXSwapMode::B), A(EGXSwapMode::A) {
+
+}
+
+void J3DSwapModeTableInfo::Deserialize(bStream::CStream* stream) {
+	R = (EGXSwapMode)stream->readUInt8();
+	G = (EGXSwapMode)stream->readUInt8();
+	B = (EGXSwapMode)stream->readUInt8();
+	A = (EGXSwapMode)stream->readUInt8();
+}
+
+bool J3DSwapModeTableInfo::operator==(const J3DSwapModeTableInfo& other) const {
+	return R == other.R && G == other.G && B == other.B && A == other.A;
+}
+
+bool J3DSwapModeTableInfo::operator!=(const J3DSwapModeTableInfo& other) const {
 	return !operator==(other);
 }
 
