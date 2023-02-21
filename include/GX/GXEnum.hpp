@@ -254,6 +254,18 @@ enum class EGXTexCoordSlot : uint8_t {
 	Null = 0xFF
 };
 
+enum class EGXTexMapSlot : uint8_t {
+	TexMap0 = 0,
+	TexMap1 = 1,
+	TexMap2 = 2,
+	TexMap3 = 3,
+	TexMap4 = 4,
+	TexMap5 = 5,
+	TexMap6 = 6,
+	TexMap7 = 7,
+	Null = 0xFF
+};
+
 enum class EGXColorChannelId : uint8_t {
 	Color0 = 0,
 	Alpha0 = 1,
@@ -265,6 +277,25 @@ enum class EGXColorChannelId : uint8_t {
 	AlphaBump = 7,
 	AlphaBumpN = 8,
 	ColorNull = 0xFF,
+};
+
+enum class EGXTevStageId : uint8_t {
+	TevStage_0,
+	TevStage_1,
+	TevStage_2,
+	TevStage_3,
+	TevStage_4,
+	TevStage_5,
+	TevStage_6,
+	TevStage_7,
+	TevStage_8,
+	TevStage_9,
+	TevStage_10,
+	TevStage_11,
+	TevStage_12,
+	TevStage_13,
+	TevStage_14,
+	TevStage_15,
 };
 
 enum class EGXTevRegister : uint8_t {
@@ -440,4 +471,69 @@ enum class EGXFilterMode : uint32_t {
 	NearestMipmapLinear,      // Bilinear Filtering, Discrete Mipmap
 	LinearMipmapNearest,      // Point Sampling, Linear MipMap
 	LinearMipmapLinear,       // Trilinear Filtering
+};
+
+enum class EGXIndirectTexScale : uint8_t {
+	IndDivide_1,
+	IndDivide_2,
+	IndDivide_4,
+	IndDivide_8,
+	IndDivide_16,
+	IndDivide_32,
+	IndDivide_64,
+	IndDivide_128,
+	IndDivide_256
+};
+
+enum class EGXIndirectTexFormat : uint8_t {
+	IndFormat_8,
+	IndFormat_5,
+	IndFormat_4,
+	IndFormat_3
+};
+
+enum class EGXIndirectTexBias : uint8_t {
+	IndBias_None,
+	IndBias_S,
+	IndBias_T,
+	IndBias_ST,
+	IndBias_U,
+	IndBias_SU,
+	IndBias_TU,
+	IndBias_STU
+};
+
+enum class EGXIndirectTexMatrixId : uint8_t {
+	IndTexMtx_Off = 0,
+
+	IndTexMtx_0 = 1,
+	IndTexMtx_1 = 2,
+	IndTexMtx_2 = 3,
+
+	IndTexMtx_S0 = 5,
+	IndTexMtx_S1 = 6,
+	IndTexMtx_S2 = 7,
+
+	IndTexMtx_T0 = 9,
+	IndTexMtx_T1 = 10,
+	IndTexMtx_T2 = 11
+};
+
+enum class EGXIndirectWrapMode : uint8_t {
+	IndWrapMode_Off,
+
+	IndWrapMode_256,
+	IndWrapMode_128,
+	IndWrapMode_64,
+	IndWrapMode_32,
+	IndWrapMode_16,
+	IndWrapMode_0,
+};
+
+enum class EGXIndirectAlphaSel : uint8_t {
+	IndAlphaSel_Off,
+
+	IndAlphaSel_S,
+	IndAlphaSel_T,
+	IndAlphaSel_U
 };

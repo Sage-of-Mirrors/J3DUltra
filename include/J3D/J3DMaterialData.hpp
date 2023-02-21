@@ -17,6 +17,7 @@ enum class EPixelEngineMode : uint8_t {
 };
 
 struct J3DMaterialComponentBase {
+	virtual void Serialize(bStream::CStream* stream) = 0;
 	virtual void Deserialize(bStream::CStream* stream) = 0;
 	virtual size_t GetElementSize() = 0;
 };
@@ -30,7 +31,8 @@ struct J3DZMode : public J3DMaterialComponentBase {
 	// Enable or disable updates to the Z buffer.
 	bool UpdateEnable = false;
 
-	virtual void Deserialize(bStream::CStream* stream);
+	virtual void Serialize(bStream::CStream* stream) override;
+	virtual void Deserialize(bStream::CStream* stream) override;
 	virtual size_t GetElementSize() override { return 4; }
 
 	bool operator==(const J3DZMode& other) const;
@@ -49,6 +51,7 @@ struct J3DAlphaCompare : public J3DMaterialComponentBase {
 	EGXCompareType CompareFunc1 = EGXCompareType::Never;
 	uint8_t Reference1 = 0;
 
+	virtual void Serialize(bStream::CStream* stream) override;
 	virtual void Deserialize(bStream::CStream* stream);
 	virtual size_t GetElementSize() override { return 8; }
 
@@ -62,6 +65,7 @@ struct J3DBlendMode : public J3DMaterialComponentBase {
 	EGXBlendModeControl DestinationFactor = EGXBlendModeControl::Zero;
 	EGXLogicOp Operation = EGXLogicOp::Copy;
 
+	virtual void Serialize(bStream::CStream* stream) override;
 	virtual void Deserialize(bStream::CStream* stream);
 	virtual size_t GetElementSize() override { return 4; }
 
@@ -81,6 +85,7 @@ struct J3DFog : public J3DMaterialComponentBase {
 
 	uint16_t AdjustmentTable[10];
 
+	virtual void Serialize(bStream::CStream* stream) override;
 	virtual void Deserialize(bStream::CStream* stream);
 	virtual size_t GetElementSize() override { return 44; }
 
@@ -96,6 +101,7 @@ struct J3DColorChannel : public J3DMaterialComponentBase {
 	EGXAttenuationFunction AttenuationFunction;
 	EGXColorSource AmbientSource;
 
+	virtual void Serialize(bStream::CStream* stream) override;
 	virtual void Deserialize(bStream::CStream* stream);
 	virtual size_t GetElementSize() override { return 8; }
 
@@ -110,6 +116,7 @@ struct J3DTexCoordInfo : public J3DMaterialComponentBase {
 
 	J3DTexCoordInfo();
 
+	virtual void Serialize(bStream::CStream* stream) override;
 	virtual void Deserialize(bStream::CStream* stream);
 	virtual size_t GetElementSize() override { return 4; }
 
@@ -132,6 +139,7 @@ struct J3DTexMatrixInfo : public J3DMaterialComponentBase {
 
 	J3DTexMatrixInfo();
 
+	virtual void Serialize(bStream::CStream* stream) override;
 	virtual void Deserialize(bStream::CStream* stream);
 	virtual size_t GetElementSize() override { return 100; }
 
@@ -143,6 +151,7 @@ struct J3DNBTScaleInfo : public J3DMaterialComponentBase {
 	bool Enable;
 	glm::vec3 Scale;
 
+	virtual void Serialize(bStream::CStream* stream) override;
 	virtual void Deserialize(bStream::CStream* stream);
 	virtual size_t GetElementSize() override { return 16; }
 
@@ -156,6 +165,7 @@ struct J3DSwapModeInfo : public J3DMaterialComponentBase {
 	J3DSwapModeInfo();
 	J3DSwapModeInfo(uint8_t ras, uint8_t tex);
 
+	virtual void Serialize(bStream::CStream* stream) override;
 	virtual void Deserialize(bStream::CStream* stream);
 	virtual size_t GetElementSize() override { return 4; }
 
@@ -168,6 +178,7 @@ struct J3DSwapModeTableInfo : public J3DMaterialComponentBase {
 
 	J3DSwapModeTableInfo();
 
+	virtual void Serialize(bStream::CStream* stream) override;
 	virtual void Deserialize(bStream::CStream* stream);
 	virtual size_t GetElementSize() override { return 4; }
 
@@ -177,7 +188,7 @@ struct J3DSwapModeTableInfo : public J3DMaterialComponentBase {
 
 struct J3DTevOrderInfo : public J3DMaterialComponentBase {
 	EGXTexCoordSlot TexCoordId;
-	uint8_t TexMap;
+	EGXTexMapSlot TexMapId;
 	EGXColorChannelId ChannelId;
 
 	J3DSwapModeTableInfo mTexSwapMode;
@@ -185,6 +196,7 @@ struct J3DTevOrderInfo : public J3DMaterialComponentBase {
 
 	J3DTevOrderInfo();
 
+	virtual void Serialize(bStream::CStream* stream) override;
 	virtual void Deserialize(bStream::CStream* stream);
 	virtual size_t GetElementSize() override { return 4; }
 
@@ -213,9 +225,73 @@ struct J3DTevStageInfo : public J3DMaterialComponentBase {
 
 	J3DTevStageInfo();
 
+	virtual void Serialize(bStream::CStream* stream) override;
 	virtual void Deserialize(bStream::CStream* stream);
 	virtual size_t GetElementSize() override { return 20; }
 
 	bool operator==(const J3DTevStageInfo& other) const;
 	bool operator!=(const J3DTevStageInfo& other) const;
+};
+
+struct J3DIndirectTexMatrixInfo : public J3DMaterialComponentBase {
+	glm::mat2x3 TexMatrix;
+	uint8_t Exponent;
+
+	J3DIndirectTexMatrixInfo();
+
+	virtual void Serialize(bStream::CStream* stream) override;
+	virtual void Deserialize(bStream::CStream* stream);
+	virtual size_t GetElementSize() override { return 20; }
+
+	bool operator==(const J3DIndirectTexMatrixInfo& other) const;
+	bool operator!=(const J3DIndirectTexMatrixInfo& other) const;
+};
+
+struct J3DIndirectTexScaleInfo : public J3DMaterialComponentBase {
+	EGXIndirectTexScale ScaleS;
+	EGXIndirectTexScale ScaleT;
+
+	J3DIndirectTexScaleInfo();
+
+	virtual void Serialize(bStream::CStream* stream) override;
+	virtual void Deserialize(bStream::CStream* stream);
+	virtual size_t GetElementSize() override { return 20; }
+
+	bool operator==(const J3DIndirectTexScaleInfo& other) const;
+	bool operator!=(const J3DIndirectTexScaleInfo& other) const;
+};
+
+struct J3DIndirectTexOrderInfo : public J3DMaterialComponentBase {
+	EGXTexCoordSlot TexCoordId;
+	EGXTexMapSlot TexMapId;
+
+	J3DIndirectTexOrderInfo();
+
+	virtual void Serialize(bStream::CStream* stream) override;
+	virtual void Deserialize(bStream::CStream* stream);
+	virtual size_t GetElementSize() override { return 20; }
+
+	bool operator==(const J3DIndirectTexOrderInfo& other) const;
+	bool operator!=(const J3DIndirectTexOrderInfo& other) const;
+};
+
+struct J3DIndirectTevStageInfo : public J3DMaterialComponentBase {
+	EGXTevStageId TevStageId;
+	EGXIndirectTexFormat TexFormat;
+	EGXIndirectTexBias TexBias;
+	EGXIndirectTexMatrixId TexMtxId;
+	EGXIndirectWrapMode TexWrapS;
+	EGXIndirectWrapMode TexWrapT;
+	bool AddPrev;
+	bool UtcLod;
+	EGXIndirectAlphaSel AlphaSel;
+
+	J3DIndirectTevStageInfo();
+
+	virtual void Serialize(bStream::CStream* stream) override;
+	virtual void Deserialize(bStream::CStream* stream);
+	virtual size_t GetElementSize() override { return 20; }
+
+	bool operator==(const J3DIndirectTevStageInfo& other) const;
+	bool operator!=(const J3DIndirectTevStageInfo& other) const;
 };

@@ -18,8 +18,7 @@ struct J3DPixelEngineBlock {
 	bool mZCompLoc;
 	bool mDither;
 
-public:
-	J3DPixelEngineBlock() : mZCompLoc(false), mDither(false) {}
+	J3DPixelEngineBlock() : mZCompLoc(false), mDither(false) { }
 };
 
 struct J3DLightBlock {
@@ -52,6 +51,18 @@ struct J3DTevBlock {
 	EGXKonstAlphaSel mKonstAlphaSelection[16];
 };
 
+struct J3DIndirectBlock {
+	bool mEnabled;
+	uint32_t mNumStages;
+
+	std::vector<std::shared_ptr<J3DIndirectTexOrderInfo>> mIndirectTexOrders;
+	std::vector<std::shared_ptr<J3DIndirectTexMatrixInfo>> mIndirectTexMatrices;
+	std::vector<std::shared_ptr<J3DIndirectTexScaleInfo>> mIndirectTexCoordScales;
+	std::vector<std::shared_ptr<J3DIndirectTevStageInfo>> mIndirectTevStages;
+
+	J3DIndirectBlock() : mEnabled(false) { }
+};
+
 class J3DMaterial {
 	int32_t mShaderProgram;
 	const GXShape* mShape;
@@ -67,6 +78,7 @@ public:
 	J3DLightBlock LightBlock;
 	J3DTexGenBlock TexGenBlock;
 	std::shared_ptr<J3DTevBlock> TevBlock;
+	std::shared_ptr<J3DIndirectBlock> IndirectBlock;
 
 	int TEVStageGenMax;
 

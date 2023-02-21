@@ -51,6 +51,17 @@ bool J3DTransformInfo::operator!=(const J3DTransformInfo& other) const {
 }
 
 /* == J3DTextureSRTInfo == */
+void J3DTextureSRTInfo::Serialize(bStream::CStream* stream) {
+	stream->writeFloat(Scale.x);
+	stream->writeFloat(Scale.y);
+
+	stream->writeUInt16(FloatToU16(glm::degrees(Rotation)));
+	stream->writeUInt16(UINT16_MAX);
+
+	stream->writeFloat(Translation.x);
+	stream->writeFloat(Translation.y);
+}
+
 void J3DTextureSRTInfo::Deserialize(bStream::CStream* stream) {
 	Scale.x = stream->readFloat();
 	Scale.y = stream->readFloat();

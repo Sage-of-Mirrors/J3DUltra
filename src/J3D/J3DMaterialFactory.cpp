@@ -149,6 +149,42 @@ std::shared_ptr<J3DMaterial> J3DMaterialFactory::Create(bStream::CStream* stream
 		}
 	}
 
+	// Indirect block
+	stream->seek(mBlock->IndirectInitDataTableOffset + index * 0x138);
+	newMaterial->IndirectBlock = std::make_shared<J3DIndirectBlock>();
+
+	newMaterial->IndirectBlock->mEnabled = stream->readUInt8();
+	newMaterial->IndirectBlock->mNumStages = stream->readUInt8();
+	stream->skip(2);
+
+	for (int i = 0; i < 4; i++) {
+		std::shared_ptr<J3DIndirectTexOrderInfo> texOrder = std::make_shared<J3DIndirectTexOrderInfo>();
+		texOrder->Deserialize(stream);
+
+		newMaterial->IndirectBlock->mIndirectTexOrders.push_back(texOrder);
+	}
+
+	for (int i = 0; i < 3; i++) {
+		std::shared_ptr<J3DIndirectTexMatrixInfo> texMatrix = std::make_shared<J3DIndirectTexMatrixInfo>();
+		texMatrix->Deserialize(stream);
+
+		newMaterial->IndirectBlock->mIndirectTexMatrices.push_back(texMatrix);
+	}
+
+	for (int i = 0; i < 4; i++) {
+		std::shared_ptr<J3DIndirectTexScaleInfo> texScale = std::make_shared<J3DIndirectTexScaleInfo>();
+		texScale->Deserialize(stream);
+
+		newMaterial->IndirectBlock->mIndirectTexCoordScales.push_back(texScale);
+	}
+
+	for (int i = 0; i < 16; i++) {
+		std::shared_ptr<J3DIndirectTevStageInfo> tevStage = std::make_shared<J3DIndirectTevStageInfo>();
+		tevStage->Deserialize(stream);
+
+		newMaterial->IndirectBlock->mIndirectTevStages.push_back(tevStage);
+	}
+
 	return newMaterial;
 }
 

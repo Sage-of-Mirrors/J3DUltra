@@ -179,9 +179,9 @@ std::string J3DFragmentShaderGenerator::GenerateTextureColor(std::shared_ptr<J3D
 		componentSwap[3] = TGXTevSwapComponents[(uint8_t)tevOrder->mTexSwapMode.A];
 
 		stream << "\t\t// Texture Coords: " << magic_enum::enum_name(tevOrder->TexCoordId)
-			<< ", Texture Map: " << std::to_string(tevOrder->TexMap) << ", Component Swap: " << componentSwap << "\n";
+			<< ", Texture Map: " << magic_enum::enum_name(tevOrder->TexMapId) << ", Component Swap: " << componentSwap << "\n";
 
-		stream << "\t\tivec4 TexTemp = VecFloatToS10(texture(Texture[" << std::to_string(tevOrder->TexMap) << "], vec2(";
+		stream << "\t\tivec4 TexTemp = VecFloatToS10(texture(Texture[" << std::to_string(etoi(tevOrder->TexMapId)) << "], vec2(";
 		stream << TGXTexCoordSlot[etoi(tevOrder->TexCoordId)] << ".x / " << TGXTexCoordSlot[etoi(tevOrder->TexCoordId)] << ".z, ";
 		stream << TGXTexCoordSlot[etoi(tevOrder->TexCoordId)] << ".y / " << TGXTexCoordSlot[etoi(tevOrder->TexCoordId)] << ".z))." << componentSwap << ");\n\n";
 	}

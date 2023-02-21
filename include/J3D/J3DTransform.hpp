@@ -32,6 +32,7 @@ struct J3DTextureSRTInfo {
 	float Rotation;
 	glm::vec2 Translation;
 
+	void Serialize(bStream::CStream* stream);
 	void Deserialize(bStream::CStream* stream);
 	glm::mat4 ToMat4();
 

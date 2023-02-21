@@ -7,6 +7,8 @@
 #include <cstddef>
 #include <algorithm>
 
+namespace bStream { class CStream; }
+
 namespace J3DUtility {
     // Returns the index of the given element in the given vector, or -1 if the element is not in that vector.
     template<typename T>
@@ -43,4 +45,6 @@ namespace J3DUtility {
     }
 
     std::string LoadTextFile(std::filesystem::path filePath);
+
+    void PadStreamWithString(bStream::CStream* stream, uint32_t padValue, std::string str = "");
 }
