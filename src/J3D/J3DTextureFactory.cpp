@@ -1,52 +1,13 @@
 #include "J3D/J3DTextureFactory.hpp"
 #include "J3D/J3DBlock.hpp"
-//#include "png.hpp"
-#include "glad/glad.h"
 
+#include "glad/glad.h"
 #include "bstream.h"
 
-void J3DTextureEntry::Deserialize(bStream::CStream* stream) {
-	TextureFormat = (EGXTextureFormat)stream->readUInt8();
-	AlphaEnabled = stream->readUInt8();
-	Width = stream->readUInt16();
-	Height = stream->readUInt16();
-	WrapS = (EGXWrapMode)stream->readUInt8();
-	WrapT = (EGXWrapMode)stream->readUInt8();
+#include <cmath>
 
-	PalettesEnabled = stream->readUInt8();
-	PaletteFormat = (EGXPaletteFormat)stream->readUInt8();
-	PaletteCount = stream->readUInt16();
-	PaletteOffset = stream->readUInt32();
-
-	MipmapsEnabled = stream->readUInt8();
-	DoEdgeLOD = stream->readUInt8();
-	BiasClamp = stream->readUInt8();
-	MaxAnisotropy = stream->readUInt8();
-	MinFilter = (EGXFilterMode)stream->readUInt8();
-	MagFilter = (EGXFilterMode)stream->readUInt8();
-
-	MinLOD = stream->readUInt8();
-	MaxLOD = stream->readUInt8();
-	MipmapCount = stream->readUInt8();
-	Unknown = stream->readUInt8();
-	LODBias = stream->readUInt16();
-	TextureOffset = stream->readUInt32();
-}
-
-void J3DTextureFactory::OutputPNG(uint32_t index, uint8_t* imageData, J3DTextureEntry& entry) {
-	/*std::string texName = mNameTable.GetName(index);
-
-	png::image<png::rgba_pixel> image(entry.Width, entry.Height);
-
-	for (int y = 0; y < entry.Height; y++) {
-		for (int x = 0; x < entry.Width; x++) {
-			uint32_t px = (y * entry.Width + x) * 4;
-			image[y][x] = png::rgba_pixel(imageData[px], imageData[px + 1], imageData[px + 2], imageData[px + 3]);
-		}
-	}
-
-	image.write("./" + texName + ".png");*/
-}
+const float ONE_EIGHTH = 0.125f;
+const float ONE_HUNDREDTH = 0.01;
 
 J3DTextureFactory::J3DTextureFactory(J3DTextureBlock* srcBlock, bStream::CStream* stream) {
 	mBlock = srcBlock;
@@ -55,96 +16,100 @@ J3DTextureFactory::J3DTextureFactory(J3DTextureBlock* srcBlock, bStream::CStream
 	mNameTable.Deserialize(stream);
 }
 
-uint32_t J3DTextureFactory::Create(bStream::CStream* stream, uint32_t index) {
+std::shared_ptr<J3DTexture> J3DTextureFactory::Create(bStream::CStream* stream, uint32_t index) {
 	uint32_t dataOffset = mBlock->TexTableOffset + (index * TEXTURE_ENTRY_SIZE);
 	stream->seek(dataOffset);
 
-	J3DTextureEntry entry;
-	entry.Deserialize(stream);
+	std::shared_ptr<J3DTexture> texture = std::make_shared<J3DTexture>();
+	texture->Deserialize(stream);
 
-	uint8_t* imageData = new uint8_t[entry.Width * entry.Height * 4]{};
+	texture->Name = mNameTable.GetName(index);
 
-	switch (entry.TextureFormat) {
+	// Generate GL data
+	texture->TexHandle = UINT32_MAX;
+	glCreateTextures(GL_TEXTURE_2D, 1, &texture->TexHandle);
+
+	glTextureParameteri(texture->TexHandle, GL_TEXTURE_WRAP_S, GXWrapToGLWrap(texture->WrapS));
+	glTextureParameteri(texture->TexHandle, GL_TEXTURE_WRAP_T, GXWrapToGLWrap(texture->WrapT));
+	glTextureParameteri(texture->TexHandle, GL_TEXTURE_MIN_FILTER, GXFilterToGLFilter(texture->MinFilter));
+	glTextureParameteri(texture->TexHandle, GL_TEXTURE_MAG_FILTER, GXFilterToGLFilter(texture->MagFilter));
+	glTextureParameterf(texture->TexHandle, GL_TEXTURE_MIN_LOD, static_cast<float>(texture->MinLOD) * ONE_EIGHTH);
+	glTextureParameterf(texture->TexHandle, GL_TEXTURE_MAX_LOD, static_cast<float>(texture->MaxLOD) * ONE_EIGHTH);
+	glTextureParameterf(texture->TexHandle, GL_TEXTURE_LOD_BIAS, static_cast<float>(texture->LODBias) * ONE_HUNDREDTH);
+	glTextureParameterf(texture->TexHandle, GL_TEXTURE_MAX_ANISOTROPY, GXAnisoToGLAniso(texture->MaxAnisotropy));
+
+	glTextureStorage2D(texture->TexHandle, texture->MipmapCount, GL_RGBA8, texture->Width, texture->Height);
+
+	// Load image data
+	stream->seek(dataOffset + texture->TextureOffset);
+
+	for (int i = 0; i < texture->MipmapCount; i++) {
+		uint16_t mipWidth = texture->Width / std::pow(2.0f, i);
+		uint16_t mipHeight = texture->Height / std::pow(2.0f, i);
+
+		uint8_t* imgData = new uint8_t[mipWidth * mipHeight * 4]{ };
+
+		switch (texture->TextureFormat) {
 		case EGXTextureFormat::I4:
-			stream->seek(dataOffset + entry.TextureOffset);
-			DecodeI4(stream, imageData, entry);
+			DecodeI4(stream, mipWidth, mipHeight, imgData);
 			break;
 		case EGXTextureFormat::I8:
-			stream->seek(dataOffset + entry.TextureOffset);
-			DecodeI8(stream, imageData, entry);
+			DecodeI8(stream, mipWidth, mipHeight, imgData);
 			break;
 		case EGXTextureFormat::IA4:
-			stream->seek(dataOffset + entry.TextureOffset);
-			DecodeIA4(stream, imageData, entry);
+			DecodeIA4(stream, mipWidth, mipHeight, imgData);
 			break;
 		case EGXTextureFormat::IA8:
-			stream->seek(dataOffset + entry.TextureOffset);
-			DecodeIA8(stream, imageData, entry);
+			DecodeIA8(stream, mipWidth, mipHeight, imgData);
 			break;
 		case EGXTextureFormat::RGB565:
-			stream->seek(dataOffset + entry.TextureOffset);
-			DecodeRGB565(stream, imageData, entry);
+			DecodeRGB565(stream, mipWidth, mipHeight, imgData);
 			break;
 		case EGXTextureFormat::RGB5A3:
-			stream->seek(dataOffset + entry.TextureOffset);
-			DecodeRGB5A3(stream, imageData, entry);
+			DecodeRGB5A3(stream, mipWidth, mipHeight, imgData);
 			break;
 		case EGXTextureFormat::RGBA32:
-			stream->seek(dataOffset + entry.TextureOffset);
-			DecodeRGBA32(stream, imageData, entry);
+			DecodeRGBA32(stream, mipWidth, mipHeight, imgData);
 			break;
 		case EGXTextureFormat::C4:
 		case EGXTextureFormat::C8:
 		case EGXTextureFormat::C14X2:
-			DecodePaletteFormat(stream, imageData, entry, dataOffset);
+			DecodePaletteFormat(stream, mipWidth, mipHeight, imgData, dataOffset, texture);
 			break;
 		case EGXTextureFormat::CMPR:
-			stream->seek(dataOffset + entry.TextureOffset);
-			DecodeCMPR(stream, imageData, entry);
+			DecodeCMPR(stream, mipWidth, mipHeight, imgData);
 			break;
+		}
+
+		texture->ImageData.push_back(imgData);
+		glTextureSubImage2D(texture->TexHandle, i, 0, 0, mipWidth, mipHeight, GL_RGBA, GL_UNSIGNED_BYTE, imgData);
 	}
 
-	// Debug output
-	OutputPNG(index, imageData, entry);
-
-	// Generate GL data
-	uint32_t texHandle = UINT32_MAX;
-	glCreateTextures(GL_TEXTURE_2D, 1, &texHandle);
-
-	glTextureParameteri(texHandle, GL_TEXTURE_WRAP_S, GXWrapToGLWrap(entry.WrapS));
-	glTextureParameteri(texHandle, GL_TEXTURE_WRAP_T, GXWrapToGLWrap(entry.WrapT));
-	glTextureParameteri(texHandle, GL_TEXTURE_MIN_FILTER, GXFilterToGLFilter(entry.MinFilter));
-	glTextureParameteri(texHandle, GL_TEXTURE_MAG_FILTER, GXFilterToGLFilter(entry.MagFilter));
-
-	glTextureStorage2D(texHandle, 1, GL_RGBA8, entry.Width, entry.Height);
-	glTextureSubImage2D(texHandle, 0, 0, 0, entry.Width, entry.Height, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
-
-	delete[] imageData;
-	return texHandle;
+	return texture;
 }
 
-void J3DTextureFactory::DecodePaletteFormat(bStream::CStream* stream, uint8_t* imageData, J3DTextureEntry& entry, uint32_t dataOffset) {
-	if (imageData == nullptr || !entry.PalettesEnabled)
+void J3DTextureFactory::DecodePaletteFormat(bStream::CStream* stream, uint16_t width, uint16_t height, uint8_t* imageData, uint32_t dataOffset, std::shared_ptr<J3DTexture> texture) {
+	if (imageData == nullptr || !texture->PalettesEnabled)
 		return;
 
 	// Read palette data first.
-	stream->seek(dataOffset + entry.PaletteOffset);
+	stream->seek(dataOffset + texture->PaletteOffset);
 
-	uint32_t paletteDataSize = entry.PaletteCount * 2;
-	uint8_t* paletteData = new uint8_t[entry.PaletteCount * 2];
+	uint32_t paletteDataSize = texture->PaletteCount * 2;
+	uint8_t* paletteData = new uint8_t[texture->PaletteCount * 2];
 
 	for (int i = 0; i < paletteDataSize; i++) {
 		paletteData[i] = stream->readUInt8();
 	}
 
-	stream->seek(dataOffset + entry.TextureOffset);
+	stream->seek(dataOffset + texture->TextureOffset);
 
-	switch (entry.TextureFormat) {
+	switch (texture->TextureFormat) {
 		case EGXTextureFormat::C4:
-			DecodeC4(stream, imageData, entry, paletteData);
+			DecodeC4(stream, width, height, imageData, paletteData, texture->PaletteFormat);
 			break;
 		case EGXTextureFormat::C8:
-			DecodeC8(stream, imageData, entry, paletteData);
+			DecodeC8(stream, width, height, imageData, paletteData, texture->PaletteFormat);
 			break;
 		case EGXTextureFormat::C14X2:
 		default:
@@ -154,12 +119,12 @@ void J3DTextureFactory::DecodePaletteFormat(bStream::CStream* stream, uint8_t* i
 	delete[] paletteData;
 }
 
-void J3DTextureFactory::DecodeI4(bStream::CStream* stream, uint8_t* imageData, J3DTextureEntry& entry) {
+void J3DTextureFactory::DecodeI4(bStream::CStream* stream, uint16_t width, uint16_t height, uint8_t* imageData) {
 	if (imageData == nullptr)
 		return;
 
-	uint32_t numBlocksW = entry.Width / 8;
-	uint32_t numBlocksH = entry.Height / 8;
+	uint32_t numBlocksW = width / 8;
+	uint32_t numBlocksH = height / 8;
 	
 	// Iterate the blocks in the image
 	for (int blockY = 0; blockY < numBlocksH; blockY++) {
@@ -168,7 +133,7 @@ void J3DTextureFactory::DecodeI4(bStream::CStream* stream, uint8_t* imageData, J
 			for (int pixelY = 0; pixelY < 8; pixelY++) {
 				for (int pixelX = 0; pixelX < 8; pixelX += 2) {
 					// Bounds check to ensure the pixel is within the image.
-					if ((blockX * 8 + pixelX >= entry.Width) || (blockY * 8 + pixelY >= entry.Height))
+					if ((blockX * 8 + pixelX >= width) || (blockY * 8 + pixelY >= height))
 						continue;
 
 					uint8_t data = stream->readUInt8();
@@ -177,7 +142,7 @@ void J3DTextureFactory::DecodeI4(bStream::CStream* stream, uint8_t* imageData, J
 					uint8_t pixel0 = (data & 0xF0) >> 4;
 					uint8_t pixel1 = (data & 0x0F);
 
-					uint32_t destIndex = (entry.Width * ((blockY * 8) + pixelY) + (blockX * 8) + pixelX) * 4;
+					uint32_t destIndex = (width * ((blockY * 8) + pixelY) + (blockX * 8) + pixelX) * 4;
 
 					imageData[destIndex] = pixel0 * 0x11;
 					imageData[destIndex + 1] = pixel0 * 0x11;
@@ -194,12 +159,12 @@ void J3DTextureFactory::DecodeI4(bStream::CStream* stream, uint8_t* imageData, J
 	}
 }
 
-void J3DTextureFactory::DecodeI8(bStream::CStream* stream, uint8_t* imageData, J3DTextureEntry& entry) {
+void J3DTextureFactory::DecodeI8(bStream::CStream* stream, uint16_t width, uint16_t height, uint8_t* imageData) {
 	if (imageData == nullptr)
 		return;
 
-	uint32_t numBlocksW = entry.Width / 8;
-	uint32_t numBlocksH = entry.Height / 4;
+	uint32_t numBlocksW = width / 8;
+	uint32_t numBlocksH = height / 4;
 
 	// Iterate the blocks in the image
 	for (int blockY = 0; blockY < numBlocksH; blockY++) {
@@ -208,12 +173,12 @@ void J3DTextureFactory::DecodeI8(bStream::CStream* stream, uint8_t* imageData, J
 			for (int pixelY = 0; pixelY < 4; pixelY++) {
 				for (int pixelX = 0; pixelX < 8; pixelX++) {
 					// Bounds check to ensure the pixel is within the image.
-					if ((blockX * 8 + pixelX >= entry.Width) || (blockY * 4 + pixelY >= entry.Height))
+					if ((blockX * 8 + pixelX >= width) || (blockY * 4 + pixelY >= height))
 						continue;
 
 					uint8_t data = stream->readUInt8();
 
-					uint32_t destIndex = (entry.Width * ((blockY * 4) + pixelY) + (blockX * 8) + pixelX) * 4;
+					uint32_t destIndex = (width * ((blockY * 4) + pixelY) + (blockX * 8) + pixelX) * 4;
 
 					imageData[destIndex] = data;
 					imageData[destIndex + 1] = data;
@@ -225,12 +190,12 @@ void J3DTextureFactory::DecodeI8(bStream::CStream* stream, uint8_t* imageData, J
 	}
 }
 
-void J3DTextureFactory::DecodeIA4(bStream::CStream* stream, uint8_t* imageData, J3DTextureEntry& entry) {
+void J3DTextureFactory::DecodeIA4(bStream::CStream* stream, uint16_t width, uint16_t height, uint8_t* imageData) {
 	if (imageData == nullptr)
 		return;
 
-	uint32_t numBlocksW = entry.Width / 8;
-	uint32_t numBlocksH = entry.Height / 4;
+	uint32_t numBlocksW = width / 8;
+	uint32_t numBlocksH = height / 4;
 
 	// Iterate the blocks in the image
 	for (int blockY = 0; blockY < numBlocksH; blockY++) {
@@ -239,7 +204,7 @@ void J3DTextureFactory::DecodeIA4(bStream::CStream* stream, uint8_t* imageData, 
 			for (int pixelY = 0; pixelY < 4; pixelY++) {
 				for (int pixelX = 0; pixelX < 8; pixelX++) {
 					// Bounds check to ensure the pixel is within the image.
-					if ((blockX * 8 + pixelX >= entry.Width) || (blockY * 4 + pixelY >= entry.Height))
+					if ((blockX * 8 + pixelX >= width) || (blockY * 4 + pixelY >= height))
 						continue;
 
 					uint8_t data = stream->readUInt8();
@@ -248,7 +213,7 @@ void J3DTextureFactory::DecodeIA4(bStream::CStream* stream, uint8_t* imageData, 
 					uint8_t alpha = (data & 0xF0) >> 4;
 					uint8_t luminance = (data & 0x0F);
 
-					uint32_t destIndex = (entry.Width * ((blockY * 4) + pixelY) + (blockX * 8) + pixelX) * 4;
+					uint32_t destIndex = (width * ((blockY * 4) + pixelY) + (blockX * 8) + pixelX) * 4;
 
 					imageData[destIndex] = luminance * 0x11;
 					imageData[destIndex + 1] = luminance * 0x11;
@@ -260,12 +225,12 @@ void J3DTextureFactory::DecodeIA4(bStream::CStream* stream, uint8_t* imageData, 
 	}
 }
 
-void J3DTextureFactory::DecodeIA8(bStream::CStream* stream, uint8_t* imageData, J3DTextureEntry& entry) {
+void J3DTextureFactory::DecodeIA8(bStream::CStream* stream, uint16_t width, uint16_t height, uint8_t* imageData) {
 	if (imageData == nullptr)
 		return;
 
-	uint32_t numBlocksW = entry.Width / 4;
-	uint32_t numBlocksH = entry.Height / 4;
+	uint32_t numBlocksW = width / 4;
+	uint32_t numBlocksH = height / 4;
 
 	// Iterate the blocks in the image
 	for (int blockY = 0; blockY < numBlocksH; blockY++) {
@@ -274,14 +239,14 @@ void J3DTextureFactory::DecodeIA8(bStream::CStream* stream, uint8_t* imageData, 
 			for (int pixelY = 0; pixelY < 4; pixelY++) {
 				for (int pixelX = 0; pixelX < 4; pixelX++) {
 					// Bounds check to ensure the pixel is within the image.
-					if ((blockX * 4 + pixelX >= entry.Width) || (blockY * 4 + pixelY >= entry.Height))
+					if ((blockX * 4 + pixelX >= width) || (blockY * 4 + pixelY >= height))
 						continue;
 
 					// The alpha and luminance values of the current pixel are stored in two bytes.
 					uint8_t alpha = stream->readUInt8();
 					uint8_t luminance = stream->readUInt8();
 
-					uint32_t destIndex = (entry.Width * ((blockY * 4) + pixelY) + (blockX * 4) + pixelX) * 4;
+					uint32_t destIndex = (width * ((blockY * 4) + pixelY) + (blockX * 4) + pixelX) * 4;
 
 					imageData[destIndex] = luminance;
 					imageData[destIndex + 1] = luminance;
@@ -293,12 +258,12 @@ void J3DTextureFactory::DecodeIA8(bStream::CStream* stream, uint8_t* imageData, 
 	}
 }
 
-void J3DTextureFactory::DecodeRGB565(bStream::CStream* stream, uint8_t* imageData, J3DTextureEntry& entry) {
+void J3DTextureFactory::DecodeRGB565(bStream::CStream* stream, uint16_t width, uint16_t height, uint8_t* imageData) {
 	if (imageData == nullptr)
 		return;
 
-	uint32_t numBlocksW = entry.Width / 4;
-	uint32_t numBlocksH = entry.Height / 4;
+	uint32_t numBlocksW = width / 4;
+	uint32_t numBlocksH = height / 4;
 
 	// Iterate the blocks in the image
 	for (int blockY = 0; blockY < numBlocksH; blockY++) {
@@ -307,14 +272,14 @@ void J3DTextureFactory::DecodeRGB565(bStream::CStream* stream, uint8_t* imageDat
 			for (int pixelY = 0; pixelY < 4; pixelY++) {
 				for (int pixelX = 0; pixelX < 4; pixelX++) {
 					// Bounds check to ensure the pixel is within the image.
-					if ((blockX * 4 + pixelX >= entry.Width) || (blockY * 4 + pixelY >= entry.Height))
+					if ((blockX * 4 + pixelX >= width) || (blockY * 4 + pixelY >= height))
 						continue;
 
 					// RGB values for this pixel are stored in a 16-bit integer.
 					uint16_t data = stream->readUInt16();
 					uint32_t rgba8 = RGB565toRGBA8(data);
 
-					uint32_t destIndex = (entry.Width * ((blockY * 4) + pixelY) + (blockX * 4) + pixelX) * 4;
+					uint32_t destIndex = (width * ((blockY * 4) + pixelY) + (blockX * 4) + pixelX) * 4;
 
 					imageData[destIndex] = (rgba8 & 0xFF000000) >> 24;
 					imageData[destIndex + 1] = (rgba8 & 0x00FF0000) >> 16;
@@ -326,12 +291,12 @@ void J3DTextureFactory::DecodeRGB565(bStream::CStream* stream, uint8_t* imageDat
 	}
 }
 
-void J3DTextureFactory::DecodeRGB5A3(bStream::CStream* stream, uint8_t* imageData, J3DTextureEntry& entry) {
+void J3DTextureFactory::DecodeRGB5A3(bStream::CStream* stream, uint16_t width, uint16_t height, uint8_t* imageData) {
 	if (imageData == nullptr)
 		return;
 
-	uint32_t numBlocksW = entry.Width / 4;
-	uint32_t numBlocksH = entry.Height / 4;
+	uint32_t numBlocksW = width / 4;
+	uint32_t numBlocksH = height / 4;
 
 	// Iterate the blocks in the image
 	for (int blockY = 0; blockY < numBlocksH; blockY++) {
@@ -340,14 +305,14 @@ void J3DTextureFactory::DecodeRGB5A3(bStream::CStream* stream, uint8_t* imageDat
 			for (int pixelY = 0; pixelY < 4; pixelY++) {
 				for (int pixelX = 0; pixelX < 4; pixelX++) {
 					// Bounds check to ensure the pixel is within the image.
-					if ((blockX * 4 + pixelX >= entry.Width) || (blockY * 4 + pixelY >= entry.Height))
+					if ((blockX * 4 + pixelX >= width) || (blockY * 4 + pixelY >= height))
 						continue;
 
 					// RGB values for this pixel are stored in a 16-bit integer.
 					uint16_t data = stream->readUInt16();
 					uint32_t rgba8 = RGB5A3toRGBA8(data);
 
-					uint32_t destIndex = (entry.Width * ((blockY * 4) + pixelY) + (blockX * 4) + pixelX) * 4;
+					uint32_t destIndex = (width * ((blockY * 4) + pixelY) + (blockX * 4) + pixelX) * 4;
 
 					imageData[destIndex] = (rgba8 & 0xFF000000) >> 24;
 					imageData[destIndex + 1] = (rgba8 & 0x00FF0000) >> 16;
@@ -359,12 +324,12 @@ void J3DTextureFactory::DecodeRGB5A3(bStream::CStream* stream, uint8_t* imageDat
 	}
 }
 
-void J3DTextureFactory::DecodeRGBA32(bStream::CStream* stream, uint8_t* imageData, J3DTextureEntry& entry) {
+void J3DTextureFactory::DecodeRGBA32(bStream::CStream* stream, uint16_t width, uint16_t height, uint8_t* imageData) {
 	if (imageData == nullptr)
 		return;
 
-	uint32_t numBlocksW = entry.Width / 4;
-	uint32_t numBlocksH = entry.Height / 4;
+	uint32_t numBlocksW = width / 4;
+	uint32_t numBlocksH = height / 4;
 
 	// Iterate the blocks in the image
 	for (int blockY = 0; blockY < numBlocksH; blockY++) {
@@ -375,10 +340,10 @@ void J3DTextureFactory::DecodeRGBA32(bStream::CStream* stream, uint8_t* imageDat
 			for (int pixelY = 0; pixelY < 4; pixelY++) {
 				for (int pixelX = 0; pixelX < 4; pixelX++) {
 					// Bounds check to ensure the pixel is within the image.
-					if ((blockX * 4 + pixelX >= entry.Width) || (blockY * 4 + pixelY >= entry.Height))
+					if ((blockX * 4 + pixelX >= width) || (blockY * 4 + pixelY >= height))
 						continue;
 
-					uint32_t destIndex = (entry.Width * ((blockY * 4) + pixelY) + (blockX * 4) + pixelX) * 4;
+					uint32_t destIndex = (width * ((blockY * 4) + pixelY) + (blockX * 4) + pixelX) * 4;
 
 					imageData[destIndex + 3] = stream->readUInt8();
 					imageData[destIndex + 2] = stream->readUInt8();
@@ -389,10 +354,10 @@ void J3DTextureFactory::DecodeRGBA32(bStream::CStream* stream, uint8_t* imageDat
 			for (int pixelY = 0; pixelY < 4; pixelY++) {
 				for (int pixelX = 0; pixelX < 4; pixelX++) {
 					// Bounds check to ensure the pixel is within the image.
-					if ((blockX * 4 + pixelX >= entry.Width) || (blockY * 4 + pixelY >= entry.Height))
+					if ((blockX * 4 + pixelX >= width) || (blockY * 4 + pixelY >= height))
 						continue;
 
-					uint32_t destIndex = (entry.Width * ((blockY * 4) + pixelY) + (blockX * 4) + pixelX) * 4;
+					uint32_t destIndex = (width * ((blockY * 4) + pixelY) + (blockX * 4) + pixelX) * 4;
 
 					imageData[destIndex + 1] = stream->readUInt8();
 					imageData[destIndex] = stream->readUInt8();
@@ -402,14 +367,14 @@ void J3DTextureFactory::DecodeRGBA32(bStream::CStream* stream, uint8_t* imageDat
 	}
 }
 
-void J3DTextureFactory::DecodeC4(bStream::CStream* stream, uint8_t* imageData, J3DTextureEntry& entry, uint8_t* palette) {
+void J3DTextureFactory::DecodeC4(bStream::CStream* stream, uint16_t width, uint16_t height, uint8_t* imageData, uint8_t* palette, EGXPaletteFormat paletteFormat) {
 	if (imageData == nullptr || palette == nullptr)
 		return;
 
-	uint8_t* buffer = new uint8_t[entry.Width * entry.Height * 8];
+	uint8_t* buffer = new uint8_t[width * height * 8];
 
-	uint32_t numBlocksW = entry.Width / 8;
-	uint32_t numBlocksH = entry.Height / 8;
+	uint32_t numBlocksW = width / 8;
+	uint32_t numBlocksH = height / 8;
 
 	// Iterate the blocks in the image
 	for (int blockY = 0; blockY < numBlocksH; blockY++) {
@@ -418,7 +383,7 @@ void J3DTextureFactory::DecodeC4(bStream::CStream* stream, uint8_t* imageData, J
 			for (int pixelY = 0; pixelY < 8; pixelY++) {
 				for (int pixelX = 0; pixelX < 8; pixelX += 2) {
 					// Bounds check to ensure the pixel is within the image.
-					if ((blockX * 8 + pixelX >= entry.Width) || (blockY * 8 + pixelY >= entry.Height))
+					if ((blockX * 8 + pixelX >= width) || (blockY * 8 + pixelY >= height))
 						continue;
 
 					uint8_t data = stream->readUInt8();
@@ -427,7 +392,7 @@ void J3DTextureFactory::DecodeC4(bStream::CStream* stream, uint8_t* imageData, J
 					uint8_t pixel0 = (data & 0xF0) >> 4;
 					uint8_t pixel1 = (data & 0x0F);
 
-					uint32_t destIndex = (entry.Width * ((blockY * 8) + pixelY) + (blockX * 8) + pixelX);
+					uint32_t destIndex = (width * ((blockY * 8) + pixelY) + (blockX * 8) + pixelX);
 
 					buffer[destIndex] = pixel0;
 					buffer[destIndex + 1] = pixel1;
@@ -436,11 +401,11 @@ void J3DTextureFactory::DecodeC4(bStream::CStream* stream, uint8_t* imageData, J
 		}
 	}
 
-	uint32_t pixelSize = entry.PaletteFormat == EGXPaletteFormat::IA8 ? 2 : 4;
+	uint32_t pixelSize = paletteFormat == EGXPaletteFormat::IA8 ? 2 : 4;
 	uint32_t destOffset = 0;
-	for (int y = 0; y < entry.Height; y++) {
-		for (int x = 0; x < entry.Width; x++) {
-			UnpackPixelFromPalette(palette, buffer[y * entry.Width + x], imageData, destOffset, entry.PaletteFormat);
+	for (int y = 0; y < height; y++) {
+		for (int x = 0; x < width; x++) {
+			UnpackPixelFromPalette(palette, buffer[y * width + x], imageData, destOffset, paletteFormat);
 			destOffset += pixelSize;
 		}
 	}
@@ -448,14 +413,14 @@ void J3DTextureFactory::DecodeC4(bStream::CStream* stream, uint8_t* imageData, J
 	delete[] buffer;
 }
 
-void J3DTextureFactory::DecodeC8(bStream::CStream* stream, uint8_t* imageData, J3DTextureEntry& entry, uint8_t* palette) {
+void J3DTextureFactory::DecodeC8(bStream::CStream* stream, uint16_t width, uint16_t height, uint8_t* imageData, uint8_t* palette, EGXPaletteFormat paletteFormat) {
 	if (imageData == nullptr || palette == nullptr)
 		return;
 
-	uint8_t* buffer = new uint8_t[entry.Width * entry.Height * 8];
+	uint8_t* buffer = new uint8_t[width * height * 8];
 
-	uint32_t numBlocksW = entry.Width / 8;
-	uint32_t numBlocksH = entry.Height / 4;
+	uint32_t numBlocksW = width / 8;
+	uint32_t numBlocksH = height / 4;
 
 	// Iterate the blocks in the image
 	for (int blockY = 0; blockY < numBlocksH; blockY++) {
@@ -464,11 +429,11 @@ void J3DTextureFactory::DecodeC8(bStream::CStream* stream, uint8_t* imageData, J
 			for (int pixelY = 0; pixelY < 4; pixelY++) {
 				for (int pixelX = 0; pixelX < 8; pixelX++) {
 					// Bounds check to ensure the pixel is within the image.
-					if ((blockX * 8 + pixelX >= entry.Width) || (blockY * 4 + pixelY >= entry.Height))
+					if ((blockX * 8 + pixelX >= width) || (blockY * 4 + pixelY >= height))
 						continue;
 
 					uint8_t data = stream->readUInt8();
-					uint32_t destIndex = (entry.Width * ((blockY * 4) + pixelY) + (blockX * 8) + pixelX);
+					uint32_t destIndex = (width * ((blockY * 4) + pixelY) + (blockX * 8) + pixelX);
 
 					buffer[destIndex] = data;
 				}
@@ -476,11 +441,11 @@ void J3DTextureFactory::DecodeC8(bStream::CStream* stream, uint8_t* imageData, J
 		}
 	}
 
-	uint32_t pixelSize = entry.PaletteFormat == EGXPaletteFormat::IA8 ? 2 : 4;
+	uint32_t pixelSize = paletteFormat == EGXPaletteFormat::IA8 ? 2 : 4;
 	uint32_t destOffset = 0;
-	for (int y = 0; y < entry.Height; y++) {
-		for (int x = 0; x < entry.Width; x++) {
-			UnpackPixelFromPalette(palette, buffer[y * entry.Width + x], imageData, destOffset, entry.PaletteFormat);
+	for (int y = 0; y < height; y++) {
+		for (int x = 0; x < width; x++) {
+			UnpackPixelFromPalette(palette, buffer[y * width + x], imageData, destOffset, paletteFormat);
 			destOffset += pixelSize;
 		}
 	}
@@ -488,12 +453,12 @@ void J3DTextureFactory::DecodeC8(bStream::CStream* stream, uint8_t* imageData, J
 	delete[] buffer;
 }
 
-void J3DTextureFactory::DecodeCMPR(bStream::CStream* stream, uint8_t* imageData, J3DTextureEntry& entry) {
+void J3DTextureFactory::DecodeCMPR(bStream::CStream* stream, uint16_t width, uint16_t height, uint8_t* imageData) {
 	if (imageData == nullptr)
 		return;
 
-	uint32_t numBlocksW = (entry.Width + 7) / 8;
-	uint32_t numBlocksH = (entry.Height + 7) / 8;
+	uint32_t numBlocksW = (width + 7) / 8;
+	uint32_t numBlocksH = (height + 7) / 8;
 
 	// Iterate the blocks in the image
 	for (int blockY = 0; blockY < numBlocksH; blockY++) {
@@ -501,8 +466,8 @@ void J3DTextureFactory::DecodeCMPR(bStream::CStream* stream, uint8_t* imageData,
 			// Each block has a set of 2x2 sub-blocks.
 			for (int subBlockY = 0; subBlockY < 2; subBlockY++) {
 				for (int subBlockX = 0; subBlockX < 2; subBlockX++) {
-					uint32_t subBlockWidth = std::max(0, std::min(4, entry.Width - (subBlockX * 4 + blockX * 8)));
-					uint32_t subBlockHeight = std::max(0, std::min(4, entry.Height - (subBlockY * 4 + blockY * 8)));
+					uint32_t subBlockWidth = std::max(0, std::min(4, width - (subBlockX * 4 + blockX * 8)));
+					uint32_t subBlockHeight = std::max(0, std::min(4, height - (subBlockY * 4 + blockY * 8)));
 
 					uint8_t* subBlockData = DecodeCMPRSubBlock(stream);
 
@@ -510,10 +475,10 @@ void J3DTextureFactory::DecodeCMPR(bStream::CStream* stream, uint8_t* imageData,
 						uint32_t destX = blockX * 8 + subBlockX * 4;
 						uint32_t destY = blockY * 8 + (subBlockY * 4) + pixelY;
 
-						if (destX >= entry.Width || destY >= entry.Height)
+						if (destX >= width || destY >= height)
 							continue;
 
-						uint32_t destOffset = (destY * entry.Width + destX) * 4;
+						uint32_t destOffset = (destY * width + destX) * 4;
 						memcpy(imageData + destOffset, subBlockData + (pixelY * 4 * 4), subBlockWidth * 4);
 					}
 
@@ -692,4 +657,17 @@ uint32_t J3DTextureFactory::GXFilterToGLFilter(EGXFilterMode gxFilter) {
 		case EGXFilterMode::LinearMipmapLinear:
 			return GL_LINEAR_MIPMAP_LINEAR;
 	}
+}
+
+float J3DTextureFactory::GXAnisoToGLAniso(EGXMaxAnisotropy aniso) {
+	switch (aniso) {
+		case EGXMaxAnisotropy::One:
+			return 1.0f;
+		case EGXMaxAnisotropy::Two:
+			return 2.0f;
+		case EGXMaxAnisotropy::Four:
+			return 4.0f;
+	}
+
+	return 1.0f;
 }

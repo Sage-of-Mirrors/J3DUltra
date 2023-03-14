@@ -101,7 +101,7 @@ void J3DModelData::CalculateRestPose() {
 }
 
 bool J3DModelData::InitializeGL() {
-    mGeometry.ModernizeGeometry(mVertexData);
+    mGeometry.CreateVertexArray();
 
     const auto& verts = mGeometry.GetModelVertices();
     const auto& indices = mGeometry.GetModelIndices();
@@ -112,7 +112,7 @@ bool J3DModelData::InitializeGL() {
 
     // Create IBO
     glCreateBuffers(1, &mIBO);
-    glNamedBufferStorage(mIBO, indices.size() * sizeof(uint16_t), indices.data(), GL_MAP_WRITE_BIT | GL_DYNAMIC_STORAGE_BIT);
+    glNamedBufferStorage(mIBO, indices.size() * sizeof(uint32_t), indices.data(), GL_MAP_WRITE_BIT | GL_DYNAMIC_STORAGE_BIT);
 
     // Create VAO
     glCreateVertexArrays(1, &mVAO);
@@ -232,11 +232,15 @@ std::vector<std::shared_ptr<J3DMaterial>> J3DModelData::GetMaterials() const {
     return mMaterials;
 }
 
+std::vector<std::shared_ptr<J3DTexture>> J3DModelData::GetTextures() const {
+    return mTextures;
+}
+
 void J3DModelData::Render(float deltaTime) {
     if (!mGLInitialized)
         mGLInitialized = InitializeGL();
 
     glBindVertexArray(mVAO);
-    mRootJoint->RenderRecursive(mTextureHandles);
+    mRootJoint->RenderRecursive(mTextures);
     glBindVertexArray(0);
 }

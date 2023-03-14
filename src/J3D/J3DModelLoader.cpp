@@ -298,7 +298,7 @@ void J3DModelLoader::ReadShapeBlock(bStream::CStream* stream, uint32_t flags) {
 
     J3DShapeFactory shapeFactory(&shapeBlock);
     for (int i = 0; i < shapeBlock.Count; i++) {
-        shapes.push_back(shapeFactory.Create(stream, i));
+        shapes.push_back(shapeFactory.Create(stream, i, &mModelData->mVertexData));
     }
 
     stream->seek(currentStreamPos + shapeBlock.BlockSize);
@@ -326,7 +326,7 @@ void J3DModelLoader::ReadTextureBlock(bStream::CStream* stream, uint32_t flags) 
 
     J3DTextureFactory textureFactory(&texBlock, stream);
     for (int i = 0; i < texBlock.Count; i++) {
-        mModelData->mTextureHandles.push_back(textureFactory.Create(stream, i));
+        mModelData->mTextures.push_back(textureFactory.Create(stream, i));
     }
 
     stream->seek(currentStreamPos + texBlock.BlockSize);

@@ -9,6 +9,7 @@ namespace bStream { class CStream; }
 struct J3DShapeBlock;
 struct J3DVertex;
 class GXShape;
+class GXAttributeData;
 
 struct J3DShapeInitData {
 	uint8_t MatrixType;
@@ -51,5 +52,5 @@ public:
 	J3DShapeFactory(J3DShapeBlock* srcBlock) { mBlock = srcBlock; }
 	~J3DShapeFactory() {}
 
-	GXShape* Create(bStream::CStream* stream, uint32_t index);
+	GXShape* Create(bStream::CStream* stream, uint32_t index, const GXAttributeData* attributes);
 };

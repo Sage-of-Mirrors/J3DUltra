@@ -22,7 +22,7 @@ void J3DShapeInitData::Deserialize(bStream::CStream* stream) {
 	BoundingBoxMax = glm::vec3(stream->readFloat(), stream->readFloat(), stream->readFloat());
 }
 
-GXShape* J3DShapeFactory::Create(bStream::CStream* stream, uint32_t index) {
+GXShape* J3DShapeFactory::Create(bStream::CStream* stream, uint32_t index, const GXAttributeData* attributes) {
 	GXShape* gxShape = new GXShape();
 	//J3DShape* j3dShape = new J3DShape();
 
@@ -76,7 +76,7 @@ GXShape* J3DShapeFactory::Create(bStream::CStream* stream, uint32_t index) {
 
 			uint16_t vtxCount = stream->readUInt16();
 			for (int j = 0; j < vtxCount; j++) {
-				GXVertex newVtx;
+				ModernVertex newVtx;
 
 				for (auto attribute : vertexAttributes) {
 					uint16_t value = 0;
@@ -90,11 +90,6 @@ GXShape* J3DShapeFactory::Create(bStream::CStream* stream, uint32_t index) {
 							value = stream->readUInt8();
 							break;
 						case EGXAttributeIndexType::Direct:
-							if (attribute.Attribute != EGXAttribute::PositionMatrixIdx) {
-								std::cout << "Found a Direct attribute that wasn't PnMtxIdx!!! (Value: " << (uint32_t)attribute.Attribute << ")\n";
-								continue;
-							}
-
 							value = stream->readUInt8();
 							break;
 						case EGXAttributeIndexType::None:
@@ -104,36 +99,120 @@ GXShape* J3DShapeFactory::Create(bStream::CStream* stream, uint32_t index) {
 
 					// Assign it to the proper member of the vertex
 					switch (attribute.Attribute) {
+						/* Matrix indices */
 						case EGXAttribute::PositionMatrixIdx:
-							// Special case! We will calculate the index into DRW1 to use later, and store it in the draw indices vector.
-							
-							// Divide by 3 because ???
-							value /= 3;
-							newVtx.SetIndex(attribute.Attribute, ConvertPosMtxIndexToDrawIndex(stream, initData, packetIndex, value));
+							newVtx.Position.w = static_cast<float>(ConvertPosMtxIndexToDrawIndex(stream, initData, packetIndex, value / 3));
 							break;
+						case EGXAttribute::Tex0MatrixIdx:
+							newVtx.TexCoords[0].z = value / 3.0f;
+							break;
+						case EGXAttribute::Tex1MatrixIdx:
+							newVtx.TexCoords[1].z = value / 3.0f;
+							break;
+						case EGXAttribute::Tex2MatrixIdx:
+							newVtx.TexCoords[2].z = value / 3.0f;
+							break;
+						case EGXAttribute::Tex3MatrixIdx:
+							newVtx.TexCoords[3].z = value / 3.0f;
+							break;
+						case EGXAttribute::Tex4MatrixIdx:
+							newVtx.TexCoords[4].z = value / 3.0f;
+							break;
+						case EGXAttribute::Tex5MatrixIdx:
+							newVtx.TexCoords[5].z = value / 3.0f;
+							break;
+						case EGXAttribute::Tex6MatrixIdx:
+							newVtx.TexCoords[6].z = value / 3.0f;
+							break;
+						case EGXAttribute::Tex7MatrixIdx:
+							newVtx.TexCoords[7].z = value / 3.0f;
+							break;
+
+						/* Typical vertex attributes */
 						case EGXAttribute::Position:
-						case EGXAttribute::Normal:
-						case EGXAttribute::Color0:
-						case EGXAttribute::Color1:
-						case EGXAttribute::TexCoord0:
-						case EGXAttribute::TexCoord1:
-						case EGXAttribute::TexCoord2:
-						case EGXAttribute::TexCoord3:
-						case EGXAttribute::TexCoord4:
-						case EGXAttribute::TexCoord5:
-						case EGXAttribute::TexCoord6:
-						case EGXAttribute::TexCoord7:
-							newVtx.SetIndex(attribute.Attribute, value);
+						{
+							glm::vec4 pos = attributes->GetPositions()[value];
+							newVtx.Position.x = pos.x;
+							newVtx.Position.y = pos.y;
+							newVtx.Position.z = pos.z;
 							break;
+						}
+						case EGXAttribute::Normal:
+							newVtx.Normal = attributes->GetNormals()[value];
+							break;
+						case EGXAttribute::Color0:
+							newVtx.Colors[0] = attributes->GetColors(0)[value];
+							break;
+						case EGXAttribute::Color1:
+							newVtx.Colors[1] = attributes->GetColors(1)[value];
+							break;
+						case EGXAttribute::TexCoord0:
+						{
+							glm::vec3 texCoord = attributes->GetTexCoords(0)[value];
+							newVtx.TexCoords[0].x = texCoord.x;
+							newVtx.TexCoords[0].y = texCoord.y;
+							break;
+						}
+						case EGXAttribute::TexCoord1:
+						{
+							glm::vec3 texCoord = attributes->GetTexCoords(1)[value];
+							newVtx.TexCoords[1].x = texCoord.x;
+							newVtx.TexCoords[1].y = texCoord.y;
+							break;
+						}
+						case EGXAttribute::TexCoord2:
+						{
+							glm::vec3 texCoord = attributes->GetTexCoords(2)[value];
+							newVtx.TexCoords[2].x = texCoord.x;
+							newVtx.TexCoords[2].y = texCoord.y;
+							break;
+						}
+						case EGXAttribute::TexCoord3:
+						{
+							glm::vec3 texCoord = attributes->GetTexCoords(3)[value];
+							newVtx.TexCoords[3].x = texCoord.x;
+							newVtx.TexCoords[3].y = texCoord.y;
+							break;
+						}
+						case EGXAttribute::TexCoord4:
+						{
+							glm::vec3 texCoord = attributes->GetTexCoords(4)[value];
+							newVtx.TexCoords[4].x = texCoord.x;
+							newVtx.TexCoords[4].y = texCoord.y;
+							break;
+						}
+						case EGXAttribute::TexCoord5:
+						{
+							glm::vec3 texCoord = attributes->GetTexCoords(5)[value];
+							newVtx.TexCoords[5].x = texCoord.x;
+							newVtx.TexCoords[5].y = texCoord.y;
+							break;
+						}
+						case EGXAttribute::TexCoord6:
+						{
+							glm::vec3 texCoord = attributes->GetTexCoords(6)[value];
+							newVtx.TexCoords[6].x = texCoord.x;
+							newVtx.TexCoords[6].y = texCoord.y;
+							break;
+						}
+						case EGXAttribute::TexCoord7:
+						{
+							glm::vec3 texCoord = attributes->GetTexCoords(7)[value];
+							newVtx.TexCoords[7].x = texCoord.x;
+							newVtx.TexCoords[7].y = texCoord.y;
+							break;
+						}
 					}
 				}
 
-				if (initData.MatrixType == 0)
-					newVtx.SetIndex(EGXAttribute::PositionMatrixIdx, GetUseMatrixValue(stream, initData, packetIndex));
+				if (initData.MatrixType == 0) {
+					newVtx.Position.w = GetUseMatrixValue(stream, initData, packetIndex);
+				}
 
 				primitiveVerts.push_back(newVtx);
 			}
 
+			//newPrimitive->TriangluatePrimitive();
 			shapePrimitives.push_back(newPrimitive);
 		}
 	}

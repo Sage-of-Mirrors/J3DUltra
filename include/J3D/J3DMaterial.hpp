@@ -88,5 +88,5 @@ public:
 	int32_t GetShaderProgram() const { return mShaderProgram; }
 	bool GenerateShaders();
 
-	void Render(std::vector<uint32_t>& textureHandles);
+	void Render(std::vector<std::shared_ptr<struct J3DTexture>>& textures);
 };

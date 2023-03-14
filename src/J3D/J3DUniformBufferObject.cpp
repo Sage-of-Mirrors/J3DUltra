@@ -9,7 +9,7 @@ namespace J3DUniformBufferObject {
 	namespace {
 		constexpr uint32_t LIGHTS_MAX = 8;
 		constexpr uint32_t COLOR_MAX = 4;
-		constexpr uint32_t ENVELOPE_MAT_MAX = 256;
+		constexpr uint32_t ENVELOPE_MAT_MAX = 512;
 		constexpr uint32_t TEX_MAT_MAX = 10;
 		constexpr char* UBO_NAME = "uSharedData";
 

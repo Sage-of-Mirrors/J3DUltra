@@ -39,7 +39,7 @@ namespace J3DUtility {
     }
 
     template<typename E>
-    constexpr auto EnumToIntegral(E e) -> typename std::underlying_type<E>::type
+    auto EnumToIntegral(E e) -> typename std::underlying_type<E>::type
     {
         return static_cast<typename std::underlying_type<E>::type>(e);
     }

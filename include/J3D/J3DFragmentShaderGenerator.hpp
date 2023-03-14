@@ -10,6 +10,7 @@ class J3DMaterial;
 struct J3DTevOrderInfo;
 struct J3DTevStageInfo;
 struct J3DAlphaCompare;
+struct J3DFog;
 
 class J3DFragmentShaderGenerator {
 	static std::string GenerateIOVariables(J3DMaterial* material);
@@ -24,6 +25,7 @@ class J3DFragmentShaderGenerator {
 	static std::string GenerateColorCombiner(std::shared_ptr<J3DTevStageInfo> stage);
 	static std::string GenerateAlphaCombiner(std::shared_ptr<J3DTevStageInfo> stage);
 	static std::string GenerateAlphaCompare(J3DAlphaCompare& alphaCompare);
+	static std::string GenerateFog(J3DFog& fog);
 public:
 	static bool GenerateFragmentShader(J3DMaterial* material, uint32_t& shaderHandle);
 };

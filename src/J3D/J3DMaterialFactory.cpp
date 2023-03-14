@@ -18,6 +18,10 @@ std::shared_ptr<J3DMaterial> J3DMaterialFactory::Create(bStream::CStream* stream
 	std::shared_ptr<J3DMaterial> newMaterial = std::make_shared<J3DMaterial>();
 	newMaterial->Name = mNameTable.GetName(index);
 
+	if (newMaterial->Name == "_nuki_1") {
+
+	}
+
 	// Material init data can be "instanced", meaning that multiple materials use the same init data to load from file.
 	// We can know which init data to use by looking up the proper index from the instance table.
 	uint16_t instanceIndex = mInstanceTable[index];
@@ -67,7 +71,7 @@ std::shared_ptr<J3DMaterial> J3DMaterialFactory::Create(bStream::CStream* stream
 	}
 
 	uint8_t chanControlNum = stream->peekUInt8(mBlock->ColorChannelCountTableOffset + initData.ColorChannelCount * sizeof(uint8_t));
-	for (int i = 0; i < chanControlNum; i++) {
+	for (int i = 0; i < chanControlNum * 2; i++) {
 		newMaterial->LightBlock.mColorChannels.push_back(std::make_shared<J3DColorChannel>(ReadMaterialComponent<J3DColorChannel>(stream, mBlock->ColorChannelTableOffset, initData.ColorChannel[i])));
 	}
 

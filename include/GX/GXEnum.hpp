@@ -473,6 +473,12 @@ enum class EGXFilterMode : uint32_t {
 	LinearMipmapLinear,       // Trilinear Filtering
 };
 
+enum class EGXMaxAnisotropy : uint8_t {
+	One,
+	Two,
+	Four
+};
+
 enum class EGXIndirectTexScale : uint8_t {
 	IndDivide_1,
 	IndDivide_2,

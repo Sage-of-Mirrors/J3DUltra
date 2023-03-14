@@ -101,6 +101,8 @@ struct J3DColorChannel : public J3DMaterialComponentBase {
 	EGXAttenuationFunction AttenuationFunction;
 	EGXColorSource AmbientSource;
 
+	J3DColorChannel();
+
 	virtual void Serialize(bStream::CStream* stream) override;
 	virtual void Deserialize(bStream::CStream* stream);
 	virtual size_t GetElementSize() override { return 8; }

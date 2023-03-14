@@ -12,34 +12,34 @@ const std::string TGXTevRegister[]{
 
 // The vec3 inputs for a TEV stage's color combiner.
 const std::string TGXCombineColorInput[]{
-	"TevPrev.rgb",
-	"TevPrev.aaa",
-	"Reg0.rgb",
-	"Reg0.aaa",
-	"Reg1.rgb",
-	"Reg1.aaa",
-	"Reg2.rgb",
-	"Reg2.aaa",
-	"TexTemp.rgb",
-	"TexTemp.aaa",
-	"RasTemp.rgb",
-	"RasTemp.aaa",
-	"ivec3(255, 255, 255)",
-	"ivec3(128, 128, 128)",
-	"KonstTemp.rgb",
-	"ivec3(0, 0, 0)"
+	"TevPrev.rgba",
+	"TevPrev.aaaa",
+	"Reg0.rgba",
+	"Reg0.aaaa",
+	"Reg1.rgba",
+	"Reg1.aaaa",
+	"Reg2.rgba",
+	"Reg2.aaaa",
+	"TexTemp.rgba",
+	"TexTemp.aaaa",
+	"RasTemp.rgba",
+	"RasTemp.aaaa",
+	"ivec4(255, 255, 255, 0)",
+	"ivec4(128, 128, 128, 0)",
+	"KonstTemp.rgba",
+	"ivec4(0, 0, 0, 0)"
 };
 
 // The floating-point inputs for a TEV stage's alpha combiner.
 const std::string TGXCombineAlphaInput[]{
-	"TevPrev.a",
-	"Reg0.a",
-	"Reg1.a",
-	"Reg2.a",
-	"TexTemp.a",
-	"RasTemp.a",
-	"KonstTemp.a",
-	"0"
+	"TevPrev",
+	"Reg0",
+	"Reg1",
+	"Reg2",
+	"TexTemp",
+	"RasTemp",
+	"KonstTemp",
+	"ivec4(0, 0, 0, 0)"
 };
 
 // The bias values that can be used during the evaluation of a TEV stage.

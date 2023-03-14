@@ -6,6 +6,7 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
 class J3DModelLoader;
 class J3DMaterial;
@@ -44,5 +45,5 @@ public:
 
 	glm::mat4 GetTransformMatrix();
 
-	void RenderRecursive(std::vector<uint32_t>& textureHandles);
+	void RenderRecursive(std::vector<std::shared_ptr<struct J3DTexture>>& textures);
 };

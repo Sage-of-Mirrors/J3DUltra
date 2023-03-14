@@ -91,11 +91,11 @@ std::string J3DFragmentShaderGenerator::GenerateUtilityFunctions() {
 	stream << "}\n\n";
 
 	// Component-wise mix() for ivec3.
-	stream << "ivec3 mix(ivec3 a, ivec3 b, ivec3 c) {\n";
+	stream << "ivec4 mix(ivec4 a, ivec4 b, ivec4 c) {\n";
 	stream << "\tint red = mix(a.r, b.r, c.r);\n";
 	stream << "\tint grn = mix(a.g, b.g, c.g);\n";
 	stream << "\tint blu = mix(a.b, b.b, c.b);\n\n";
-	stream << "\treturn ivec3(red, grn, blu);\n";
+	stream << "\treturn ivec4(red, grn, blu, 0);\n";
 	stream << "}\n\n";
 
 	// Convert the given float to an int in the range 0..255.
@@ -123,23 +123,27 @@ std::string J3DFragmentShaderGenerator::GenerateUtilityFunctions() {
 	stream << "}\n\n";
 
 	// Combine the G and R values of the given vector into a single number. Used during color calculation.
-	stream << "int CombineGR(ivec3 a) {\n";
+	stream << "int CombineGR(ivec4 a) {\n";
 	stream << "\treturn a.g << 8 | a.r;\n";
 	stream << "}\n\n";
 
 	// Combine the B, G, and R values of the given vector into a single number. Used during color calculation.
-	stream << "int CombineBGR(ivec3 a) {\n";
+	stream << "int CombineBGR(ivec4 a) {\n";
 	stream << "\treturn a.b << 16 | a.g << 8 | a.r;\n";
 	stream << "}\n\n";
 
 	// Compare the given vectors component-wise using greater-than. Used during color calculation.
-	stream << "bool ComponentWiseGreater(ivec3 a, ivec3 b) {\n";
+	stream << "bool ComponentWiseGreater(ivec4 a, ivec4 b) {\n";
 	stream << "\treturn a.r > b.r && a.g > b.g && a.b > b.b;\n";
 	stream << "}\n\n";
 
 	// Compare the given vectors component-wise using equals. Used during color calculation.
-	stream << "bool ComponentWiseEquals(ivec3 a, ivec3 b) {\n";
+	stream << "bool ComponentWiseEquals(ivec4 a, ivec4 b) {\n";
 	stream << "\treturn a.r == b.r && a.g == b.g && a.b == b.b;\n";
+	stream << "}\n\n";
+
+	stream << "float saturate(float v) {\n";
+	stream << "\treturn clamp(v, 0.0, 1.0);";
 	stream << "}\n\n";
 
 	return stream.str();
@@ -157,6 +161,10 @@ std::string J3DFragmentShaderGenerator::GenerateMainFunction(J3DMaterial* materi
 
 	for (int i = 0; i < material->TEVStageGenMax; i++) {
 		stream << GenerateTEVStage(material, i);
+	}
+
+	if (material->PEBlock.mFog.Type != EGXFogType::None) {
+		stream << GenerateFog(material->PEBlock.mFog);
 	}
 
 	stream << "\n\tTevPrev = TevPrev & 0xFF;\n";
@@ -260,10 +268,10 @@ std::string J3DFragmentShaderGenerator::GenerateColorCombiner(std::shared_ptr<J3
 	std::stringstream stream;
 
 	// TEV color inputs
-	stream << "\t\tivec3 Tev_C_A = " << TGXCombineColorInput[etoi(stage->ColorInput[0])] << ";\n";
-	stream << "\t\tivec3 Tev_C_B = " << TGXCombineColorInput[etoi(stage->ColorInput[1])] << ";\n";
-	stream << "\t\tivec3 Tev_C_C = " << TGXCombineColorInput[etoi(stage->ColorInput[2])] << ";\n";
-	stream << "\t\tivec3 Tev_C_D = " << TGXCombineColorInput[etoi(stage->ColorInput[3])] << ";\n";
+	stream << "\t\tivec4 Tev_C_A = " << TGXCombineColorInput[etoi(stage->ColorInput[0])] << ";\n";
+	stream << "\t\tivec4 Tev_C_B = " << TGXCombineColorInput[etoi(stage->ColorInput[1])] << ";\n";
+	stream << "\t\tivec4 Tev_C_C = " << TGXCombineColorInput[etoi(stage->ColorInput[2])] << ";\n";
+	stream << "\t\tivec4 Tev_C_D = " << TGXCombineColorInput[etoi(stage->ColorInput[3])] << ";\n";
 
 	stream << "\t\t" << TGXTevRegister[etoi(stage->ColorOutputRegister)] << ".rgb = ";
 	
@@ -277,36 +285,39 @@ std::string J3DFragmentShaderGenerator::GenerateColorCombiner(std::shared_ptr<J3
 			tevCalcStream << "(Tev_C_D - mix(Tev_C_A, Tev_C_B, Tev_C_C)" << TGXTevBias[etoi(stage->ColorBias)] << ")" << TGXTevScale[etoi(stage->ColorScale)];
 			break;
 		case EGXTevOp::Comp_R8_GT:
-			tevCalcStream << "Tev_C_D + (Tev_C_A.r > Tev_C_B.r ? Tev_C_C : ivec3(0, 0, 0))";
+			tevCalcStream << "Tev_C_D + (Tev_C_A.r > Tev_C_B.r ? Tev_C_C : ivec4(0, 0, 0, 0))";
 			break;
 		case EGXTevOp::Comp_R8_EQ:
-			tevCalcStream << "Tev_C_D + (Tev_C_A.r == Tev_C_B.r ? Tev_C_C : ivec3(0, 0, 0))";
+			tevCalcStream << "Tev_C_D + (Tev_C_A.r == Tev_C_B.r ? Tev_C_C : ivec4(0, 0, 0, 0))";
 			break;
 		case EGXTevOp::Comp_GR16_GT:
-			tevCalcStream << "Tev_C_D + (CombineGR(Tev_C_A) > CombineGR(Tev_C_B) ? Tev_C_C : ivec3(0, 0, 0))";
+			tevCalcStream << "Tev_C_D + (CombineGR(Tev_C_A) > CombineGR(Tev_C_B) ? Tev_C_C : ivec4(0, 0, 0, 0))";
 			break;
 		case EGXTevOp::Comp_GR16_EQ:
-			tevCalcStream << "Tev_C_D + (CombineGR(Tev_C_A) == CombineGR(Tev_C_B) ? Tev_C_C : ivec3(0, 0, 0))";
+			tevCalcStream << "Tev_C_D + (CombineGR(Tev_C_A) == CombineGR(Tev_C_B) ? Tev_C_C : ivec4(0, 0, 0, 0))";
 			break;
 		case EGXTevOp::Comp_BGR24_GT:
-			tevCalcStream << "Tev_C_D + (CombineBGR(Tev_C_A) > CombineBGR(Tev_C_B) ? Tev_C_C : ivec3(0, 0, 0))";
+			tevCalcStream << "Tev_C_D + (CombineBGR(Tev_C_A) > CombineBGR(Tev_C_B) ? Tev_C_C : ivec4(0, 0, 0, 0))";
 			break;
 		case EGXTevOp::Comp_BGR24_EQ:
-			tevCalcStream << "Tev_C_D + (CombineBGR(Tev_C_A) == CombineBGR(Tev_C_B) ? Tev_C_C : ivec3(0, 0, 0))";
+			tevCalcStream << "Tev_C_D + (CombineBGR(Tev_C_A) == CombineBGR(Tev_C_B) ? Tev_C_C : ivec4(0, 0, 0, 0))";
 			break;
 		case EGXTevOp::Comp_RGB8_GT:
-			tevCalcStream << "Tev_C_D + (ComponentWiseGreater(Tev_C_A, Tev_C_B) ? Tev_C_C : ivec3(0, 0, 0))";
+			tevCalcStream << "Tev_C_D + (ComponentWiseGreater(Tev_C_A, Tev_C_B) ? Tev_C_C : ivec4(0, 0, 0, 0))";
 			break;
 		case EGXTevOp::Comp_RGB8_EQ:
-			tevCalcStream << "Tev_C_D + (ComponentWiseEquals(Tev_C_A, Tev_C_B) ? Tev_C_C : ivec3(0, 0, 0))";
+			tevCalcStream << "Tev_C_D + (ComponentWiseEquals(Tev_C_A, Tev_C_B) ? Tev_C_C : ivec4(0, 0, 0, 0))";
+			break;
+		default:
+			tevCalcStream << "ivec4(0, 0, 0, 0)";
 			break;
 	}
 
 	if (stage->ColorClamp) {
-		stream << "clamp(" << tevCalcStream.str() << ", 0, 255);\n";
+		stream << "clamp(" << tevCalcStream.str() << ", 0, 255).rgb;\n";
 	}
 	else
-		stream << "clamp(" << tevCalcStream.str() << ", -1024, 1023);\n";
+		stream << "clamp(" << tevCalcStream.str() << ", -1024, 1023).rgb;\n";
 
 	return stream.str();
 }
@@ -315,10 +326,10 @@ std::string J3DFragmentShaderGenerator::GenerateAlphaCombiner(std::shared_ptr<J3
 	std::stringstream stream;
 
 	// TEV color inputs
-	stream << "\t\tint Tev_A_A = " << TGXCombineAlphaInput[etoi(stage->AlphaInput[0])] << ";\n";
-	stream << "\t\tint Tev_A_B = " << TGXCombineAlphaInput[etoi(stage->AlphaInput[1])] << ";\n";
-	stream << "\t\tint Tev_A_C = " << TGXCombineAlphaInput[etoi(stage->AlphaInput[2])] << ";\n";
-	stream << "\t\tint Tev_A_D = " << TGXCombineAlphaInput[etoi(stage->AlphaInput[3])] << ";\n";
+	stream << "\t\tivec4 Tev_A_A = " << TGXCombineAlphaInput[etoi(stage->AlphaInput[0])] << ";\n";
+	stream << "\t\tivec4 Tev_A_B = " << TGXCombineAlphaInput[etoi(stage->AlphaInput[1])] << ";\n";
+	stream << "\t\tivec4 Tev_A_C = " << TGXCombineAlphaInput[etoi(stage->AlphaInput[2])] << ";\n";
+	stream << "\t\tivec4 Tev_A_D = " << TGXCombineAlphaInput[etoi(stage->AlphaInput[3])] << ";\n";
 
 	stream << "\t\t" << TGXTevRegister[etoi(stage->AlphaOutputRegister)] << ".a = ";
 
@@ -326,16 +337,37 @@ std::string J3DFragmentShaderGenerator::GenerateAlphaCombiner(std::shared_ptr<J3
 
 	switch (stage->AlphaOperation) {
 		case EGXTevOp::Add:
-			tevCalcStream << "(Tev_A_D + mix(Tev_A_A, Tev_A_B, Tev_A_C)" << TGXTevBias[etoi(stage->AlphaBias)] << ")" << TGXTevScale[etoi(stage->AlphaScale)];
+			tevCalcStream << "(Tev_A_D.a + mix(Tev_A_A.a, Tev_A_B.a, Tev_A_C.a)" << TGXTevBias[etoi(stage->AlphaBias)] << ")" << TGXTevScale[etoi(stage->AlphaScale)];
 			break;
 		case EGXTevOp::Sub:
-			tevCalcStream << "(Tev_A_D - mix(Tev_A_A, Tev_A_B, Tev_A_C)" << TGXTevBias[etoi(stage->AlphaBias)] << ")" << TGXTevScale[etoi(stage->AlphaScale)];
+			tevCalcStream << "(Tev_A_D.a - mix(Tev_A_A.a, Tev_A_B.a, Tev_A_C.a)" << TGXTevBias[etoi(stage->AlphaBias)] << ")" << TGXTevScale[etoi(stage->AlphaScale)];
+			break;
+		case EGXTevOp::Comp_R8_GT:
+			tevCalcStream << "Tev_A_D.a + (Tev_A_A.r > Tev_A_B.r ? Tev_A_C.a : 0)";
+			break;
+		case EGXTevOp::Comp_R8_EQ:
+			tevCalcStream << "Tev_A_D.a + (Tev_A_A.r == Tev_A_B.r ? Tev_A_C.a : 0)";
+			break;
+		case EGXTevOp::Comp_GR16_GT:
+			tevCalcStream << "Tev_A_D.a + (CombineGR(Tev_A_A) > CombineGR(Tev_A_B) ? Tev_A_C.a : 0)";
+			break;
+		case EGXTevOp::Comp_GR16_EQ:
+			tevCalcStream << "Tev_A_D.a + (CombineGR(Tev_A_A) == CombineGR(Tev_A_B) ? Tev_A_C.a : 0)";
+			break;
+		case EGXTevOp::Comp_BGR24_GT:
+			tevCalcStream << "Tev_A_D.a + (CombineBGR(Tev_A_A) > CombineBGR(Tev_A_B) ? Tev_A_C.a : 0)";
+			break;
+		case EGXTevOp::Comp_BGR24_EQ:
+			tevCalcStream << "Tev_A_D.a + (CombineBGR(Tev_A_A) == CombineBGR(Tev_A_B) ? Tev_A_C.a : 0)";
 			break;
 		case EGXTevOp::Comp_A8_GT:
-			tevCalcStream << "Tev_A_D + (Tev_A_A > Tev_A_B ? Tev_A_C : 0)";
+			tevCalcStream << "Tev_A_D.a + (Tev_A_A.a > Tev_A_B.a ? Tev_A_C.a : 0)";
 			break;
 		case EGXTevOp::Comp_A8_EQ:
-			tevCalcStream << "Tev_A_D + (Tev_A_A == Tev_A_B ? Tev_A_C : 0)";
+			tevCalcStream << "Tev_A_D.a + (Tev_A_A.a == Tev_A_B.a ? Tev_A_C.a : 0)";
+			break;
+		default:
+			tevCalcStream << "0";
 			break;
 	}
 
@@ -426,6 +458,45 @@ std::string J3DFragmentShaderGenerator::GenerateAlphaCompare(J3DAlphaCompare& al
 	stream << ")) {\n";
 	stream << "\t\tdiscard;\n";
 	stream << "\t}\n";
+
+	return stream.str();
+}
+
+std::string J3DFragmentShaderGenerator::GenerateFog(J3DFog& fog) {
+	std::stringstream stream;
+
+	stream << "\tfloat fogA = " << (fog.FarZ - fog.NearZ) / (fog.EndZ - fog.StartZ) << ";\n";
+	stream << "\tfloat fogB = 0;\n";
+	stream << "\tfloat fogC = " << (fog.StartZ - fog.NearZ) / (fog.EndZ - fog.StartZ) << ";\n\n";
+
+	stream << "\tfloat FogBase = fogA * gl_FragCoord.z;\n";
+	stream << "\tfloat FogZ = saturate(FogBase - fogC);\n";
+	stream << "\tfloat Fog = ";
+
+	switch (fog.Type) {
+		case EGXFogType::Linear:
+			stream << "FogZ";
+			break;
+		case EGXFogType::Exponential:
+			stream << "1.0 - exp2(-8.0 * FogZ)";
+			break;
+		case EGXFogType::Exponential_2:
+			stream << "1.0 - exp2(-8.0 * FogZ * FogZ)";
+			break;
+		case EGXFogType::Reverse_Exponential:
+			stream << "1.0 - exp2(-8.0 * (1.0 - FogZ))";
+			break;
+		case EGXFogType::Reverse_Exponential_2:
+			stream << "1.0 - exp2(-8.0 * (1.0 - FogZ) * (1.0 - FogZ))";
+			break;
+		case EGXFogType::None:
+		default:
+			stream << "0";
+			break;
+	}
+
+	stream << ";\n\n";
+	stream << "\tTevPrev = mix(TevPrev.rgba, ivec4(" << fog.Color.r << ", " << fog.Color.g << ", " << fog.Color.b << ", 0), ivec4(FloatToS10(Fog), FloatToS10(Fog), FloatToS10(Fog), FloatToS10(Fog)));\n\n";
 
 	return stream.str();
 }

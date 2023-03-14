@@ -1,4 +1,5 @@
 #include "J3D/J3DMaterial.hpp"
+#include "J3D/J3DTexture.hpp"
 #include "J3D/J3DVertexShaderGenerator.hpp"
 #include "J3D/J3DFragmentShaderGenerator.hpp"
 #include "J3D/J3DUniformBufferObject.hpp"
@@ -120,10 +121,10 @@ int GXBlendModeControlToGLFactor(EGXBlendModeControl Control)
 	}
 }
 
-void J3DMaterial::Render(std::vector<uint32_t>& textureHandles) {
+void J3DMaterial::Render(std::vector<std::shared_ptr<J3DTexture>>& textures) {
 	glUseProgram(mShaderProgram);
 	for (int i = 0; i < TevBlock->mTextureIndices.size(); i++)
-		glBindTextureUnit(i, textureHandles[TevBlock->mTextureIndices[i]]);
+		glBindTextureUnit(i, textures[TevBlock->mTextureIndices[i]]->TexHandle);
 
 	if (PEBlock.mBlendMode.Type != EGXBlendMode::None)
 	{
@@ -211,7 +212,7 @@ void J3DMaterial::Render(std::vector<uint32_t>& textureHandles) {
 		uint32_t offset, count;
 		mShape->GetVertexOffsetAndCount(offset, count);
 
-		glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_SHORT, (const void*)(offset * sizeof(uint16_t)));
+		glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, (const void*)(offset * sizeof(uint32_t)));
 	}
 
 	glUseProgram(0);

@@ -142,6 +142,11 @@ bool J3DFog::operator!=(const J3DFog& other) const {
 }
 
 /* == J3DColorChannel == */
+J3DColorChannel::J3DColorChannel() : LightingEnabled(false), MaterialSource(EGXColorSource::Register), LightMask(0),
+	DiffuseFunction(EGXDiffuseFunction::None), AttenuationFunction(EGXAttenuationFunction::None), AmbientSource(EGXColorSource::Register) {
+
+}
+
 void J3DColorChannel::Serialize(bStream::CStream* stream) {
 	stream->writeUInt8(LightingEnabled);
 	stream->writeUInt8((uint8_t)MaterialSource);

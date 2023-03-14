@@ -118,6 +118,9 @@ std::string J3DVertexShaderGenerator::GenerateAttributes(const std::vector<EGXAt
 			case EGXAttribute::TexCoord7:
 				stream << "vec3 aTex" << etoi(a) - etoi(EGXAttribute::TexCoord0) << ";\n";
 				break;
+			default:
+				stream << "int aUnk;\n";
+				break;
 		}
 	}
 
@@ -326,13 +329,13 @@ std::string J3DVertexShaderGenerator::GenerateColorChannel(std::shared_ptr<J3DCo
 		compDestination = ".rgb";
 		break;
 	case EGXColorChannelId::Alpha0:
+		colorDestination = "oColor0";
+		compDestination = ".a";
+		break;
+	case EGXColorChannelId::Color1:
 		colorDestination = "oColor1";
 		compDestination = ".rgb";
 		channelIndex = 1;
-		break;
-	case EGXColorChannelId::Color1:
-		colorDestination = "oColor0";
-		compDestination = ".a";
 		break;
 	case EGXColorChannelId::Alpha1:
 		colorDestination = "oColor1";
@@ -345,7 +348,7 @@ std::string J3DVertexShaderGenerator::GenerateColorChannel(std::shared_ptr<J3DCo
 	std::string ambientSource = colorChannel->AmbientSource == EGXColorSource::Vertex ? "aCol" + std::to_string(channelIndex) : "uAmbientReg[" + std::to_string(channelIndex) + "]";
 
 	if (colorChannel->LightingEnabled == false) {
-		stream << "\t\t" << colorDestination << " = " << materialSource << ";\n";
+		stream << "\t\t" << colorDestination << compDestination << " = " << materialSource << compDestination << ";\n";
 		stream << "\t}\n\n";
 		return stream.str();
 	}
@@ -386,7 +389,7 @@ std::string J3DVertexShaderGenerator::GenerateMainFunction(const J3DMaterial* ma
 	for (int i = 0; i < material->LightBlock.mColorChannels.size(); i++) {
 		stream << GenerateColorChannel(material->LightBlock.mColorChannels[i], i);
 
-		if (magic_enum::enum_value<EGXColorChannelId>(i) == EGXColorChannelId::Color1)
+		if (magic_enum::enum_value<EGXColorChannelId>(i) == EGXColorChannelId::Alpha0)
 			wroteAlpha0 = true;
 		if (magic_enum::enum_value<EGXColorChannelId>(i) == EGXColorChannelId::Alpha1)
 			wroteAlpha1 = true;

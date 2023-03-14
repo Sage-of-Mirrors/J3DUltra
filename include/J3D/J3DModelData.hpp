@@ -5,6 +5,7 @@
 #include "J3DShape.hpp"
 #include "J3DMaterial.hpp"
 #include "J3DBlock.hpp"
+#include "J3DTexture.hpp"
 
 #include <GXVertexData.hpp>
 #include <GXGeometryData.hpp>
@@ -56,7 +57,7 @@ class J3DModelData : public std::enable_shared_from_this<J3DModelData> {
 	std::vector<std::shared_ptr<J3DMaterial>> mMaterials;
 
 	// TEX1 data, textures
-	std::vector<uint32_t> mTextureHandles;
+	std::vector<std::shared_ptr<J3DTexture>> mTextures;
 
 	// Calculated envelopes for the model's rest pose
 	std::vector<glm::mat4> mRestPose;
@@ -65,6 +66,7 @@ class J3DModelData : public std::enable_shared_from_this<J3DModelData> {
 
 	void CalculateRestPose();
 	
+	void CreateVBO();
 	bool InitializeGL();
 	void Render(float deltaTime);
 
@@ -75,5 +77,6 @@ public:
 	std::shared_ptr<J3DModelInstance> GetInstance();
 	std::vector<glm::mat4> GetRestPose() const;
 	std::vector<std::shared_ptr<J3DMaterial>> GetMaterials() const;
+	std::vector<std::shared_ptr<J3DTexture>> GetTextures() const;
 	const std::vector<J3DEnvelope>& GetJointEnvelopes() const { return mJointEnvelopes; }
 };
