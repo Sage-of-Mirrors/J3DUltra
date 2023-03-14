@@ -61,9 +61,10 @@ void J3DModelInstance::SetScale(const glm::vec3 scale) {
 }
 
 void J3DModelInstance::Render(float deltaTime) {
-    
     J3DUniformBufferObject::SetEnvelopeMatrices(mEnvelopeMatrices.data(), mEnvelopeMatrices.size());
-    J3DUniformBufferObject::SetModelMatrix(&mTransform.ToMat4());
+    
+    glm::mat4 transformMat4 = mTransform.ToMat4();
+    J3DUniformBufferObject::SetModelMatrix(&transformMat4);
 
     mModelData->Render(deltaTime);
 }
