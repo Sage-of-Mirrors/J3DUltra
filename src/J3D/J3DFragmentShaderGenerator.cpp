@@ -162,10 +162,11 @@ std::string J3DFragmentShaderGenerator::GenerateMainFunction(J3DMaterial* materi
 	for (int i = 0; i < material->TEVStageGenMax; i++) {
 		stream << GenerateTEVStage(material, i);
 	}
-
-	if (material->PEBlock.mFog.Type != EGXFogType::None) {
-		stream << GenerateFog(material->PEBlock.mFog);
-	}
+	
+	//if (material->PEBlock.mFog.Type != EGXFogType::None) {
+	 	//stream << std::endl;
+		//stream << GenerateFog(material->PEBlock.mFog);
+	//}
 
 	stream << "\n\tTevPrev = TevPrev & 0xFF;\n";
 
@@ -465,11 +466,11 @@ std::string J3DFragmentShaderGenerator::GenerateAlphaCompare(J3DAlphaCompare& al
 std::string J3DFragmentShaderGenerator::GenerateFog(J3DFog& fog) {
 	std::stringstream stream;
 
-	stream << "\tfloat fogA = " << (fog.FarZ - fog.NearZ) / (fog.EndZ - fog.StartZ) << ";\n";
-	stream << "\tfloat fogB = 0;\n";
-	stream << "\tfloat fogC = " << (fog.StartZ - fog.NearZ) / (fog.EndZ - fog.StartZ) << ";\n\n";
+	stream << "\tfloat fogA = " << (1000000.f * 1.0f) / ((1000000.f - 1.0f) * (fog.EndZ - fog.StartZ)) << ";\n";
+	stream << "\tfloat fogB = " << 1000000.f / (1000000.f - 1.0f) << ";\n";
+	stream << "\tfloat fogC = " << fog.StartZ / (fog.EndZ - fog.StartZ) << ";\n\n";
 
-	stream << "\tfloat FogBase = fogA * gl_FragCoord.z;\n";
+	stream << "\tfloat FogBase = fogA  / (fogB - gl_FragCoord.z);\n";
 	stream << "\tfloat FogZ = saturate(FogBase - fogC);\n";
 	stream << "\tfloat Fog = ";
 
@@ -496,7 +497,7 @@ std::string J3DFragmentShaderGenerator::GenerateFog(J3DFog& fog) {
 	}
 
 	stream << ";\n\n";
-	stream << "\tTevPrev = mix(TevPrev.rgba, ivec4(" << fog.Color.r << ", " << fog.Color.g << ", " << fog.Color.b << ", 0), ivec4(FloatToS10(Fog), FloatToS10(Fog), FloatToS10(Fog), FloatToS10(Fog)));\n\n";
+	stream << "\tTevPrev = mix(TevPrev.rgba, ivec4(" << fog.Color.r << ", " << fog.Color.g << ", " << fog.Color.b << ", " << fog.Color.a << "), ivec4(FloatToS10(Fog), FloatToS10(Fog), FloatToS10(Fog), FloatToS10(Fog))); \n";
 
 	return stream.str();
 }

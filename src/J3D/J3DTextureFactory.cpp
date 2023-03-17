@@ -346,7 +346,7 @@ void J3DTextureFactory::DecodeRGBA32(bStream::CStream* stream, uint16_t width, u
 					uint32_t destIndex = (width * ((blockY * 4) + pixelY) + (blockX * 4) + pixelX) * 4;
 
 					imageData[destIndex + 3] = stream->readUInt8();
-					imageData[destIndex + 2] = stream->readUInt8();
+					imageData[destIndex] = stream->readUInt8();
 				}
 			}
 
@@ -360,7 +360,7 @@ void J3DTextureFactory::DecodeRGBA32(bStream::CStream* stream, uint16_t width, u
 					uint32_t destIndex = (width * ((blockY * 4) + pixelY) + (blockX * 4) + pixelX) * 4;
 
 					imageData[destIndex + 1] = stream->readUInt8();
-					imageData[destIndex] = stream->readUInt8();
+					imageData[destIndex + 2] = stream->readUInt8();
 				}
 			}
 		}
