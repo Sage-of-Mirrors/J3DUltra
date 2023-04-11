@@ -68,9 +68,9 @@ class J3DModelData : public std::enable_shared_from_this<J3DModelData> {
 	
 	void CreateVBO();
 	bool InitializeGL();
-	void Render(float deltaTime);
 
 public:
+	void Render(float deltaTime);
 	J3DModelData() {}
 	virtual ~J3DModelData() {}
 
