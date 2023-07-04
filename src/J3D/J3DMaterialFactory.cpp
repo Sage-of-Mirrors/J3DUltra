@@ -1,7 +1,6 @@
 #include "J3D/J3DMaterialFactory.hpp"
 #include "J3D/J3DBlock.hpp"
 #include "J3D/J3DMaterial.hpp"
-#include <bstream.h>
 
 J3DMaterialFactory::J3DMaterialFactory(J3DMaterialBlock* srcBlock, bStream::CStream* stream) {
 	mBlock = srcBlock;

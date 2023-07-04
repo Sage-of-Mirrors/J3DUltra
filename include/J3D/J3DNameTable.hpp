@@ -2,8 +2,8 @@
 
 #include <string>
 #include <vector>
-
-namespace bStream { class CStream; }
+#include <cstdint>
+#include <bstream.h>
 
 class J3DNameTable {
 	std::vector<std::string> mNames;
