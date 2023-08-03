@@ -92,8 +92,12 @@ std::string J3DVertexShaderGenerator::GenerateAttributes(const std::vector<EGXAt
 	stream << "// Input attributes\n";
 
 	for (auto a : shapeAttributes) {
-		if (a == EGXAttribute::PositionMatrixIdx)
+		if (a == EGXAttribute::PositionMatrixIdx || a == EGXAttribute::Tex0MatrixIdx || a == EGXAttribute::Tex1MatrixIdx
+			|| a == EGXAttribute::Tex2MatrixIdx || a == EGXAttribute::Tex3MatrixIdx || a == EGXAttribute::Tex4MatrixIdx
+			|| a == EGXAttribute::Tex5MatrixIdx || a == EGXAttribute::Tex6MatrixIdx || a == EGXAttribute::Tex7MatrixIdx)
+		{
 			continue;
+		}
 
 		stream << "layout (location = " << (uint32_t)a << ") in ";
 
@@ -119,7 +123,7 @@ std::string J3DVertexShaderGenerator::GenerateAttributes(const std::vector<EGXAt
 				stream << "vec3 aTex" << etoi(a) - etoi(EGXAttribute::TexCoord0) << ";\n";
 				break;
 			default:
-				stream << "int aUnk;\n";
+				//stream << "int aUnk;\n";
 				break;
 		}
 	}

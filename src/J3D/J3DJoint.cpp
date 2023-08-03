@@ -15,11 +15,11 @@ glm::mat4 J3DJoint::GetTransformMatrix() {
 }
 
 void J3DJoint::RenderRecursive(std::vector<std::shared_ptr<struct J3DTexture>>& textures) {
-	for (auto a : mMaterials) {
-		a->Render(textures);
-	}
+	//for (auto a : mMaterials) {
+	//	//a->Render(textures);
+	//}
 
-	for (auto c : mChildren) {
-		static_cast<J3DJoint*>(c)->RenderRecursive(textures);
-	}
+	//for (auto c : mChildren) {
+	//	static_cast<J3DJoint*>(c)->RenderRecursive(textures);
+	//}
 }

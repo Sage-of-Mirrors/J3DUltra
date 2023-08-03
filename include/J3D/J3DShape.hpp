@@ -76,15 +76,17 @@ class J3DShape {
 	uint32_t mIBOStart;
 	uint32_t mIBOCount;
 
+	glm::vec3 mCenter;
+
 public:
-	J3DShape() : mIBOStart(0), mIBOCount(0) {}
+	J3DShape() : mIBOStart(0), mIBOCount(0), mCenter() {}
 	~J3DShape() {}
 
 	void EnableAttributes(std::vector<J3DVCDData>& gxAttributes);
 	const std::vector<EGLAttribute>& GetEnabledAttributes() const { return mEnabledAttributes; }
 	bool HasEnabledAttribute(const EGLAttribute attribute) const;
 
-	void ConcatenatePacketsToIBO(std::vector<J3DVertexGX>* ibo);
+	void ConcatenatePacketsToIBO(std::vector<J3DVertexGX>& ibo);
 
 	void RenderShape();
 

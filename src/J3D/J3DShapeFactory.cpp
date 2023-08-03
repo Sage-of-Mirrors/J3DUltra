@@ -217,6 +217,7 @@ GXShape* J3DShapeFactory::Create(bStream::CStream* stream, uint32_t index, const
 		}
 	}
 
+	gxShape->CalculateCenterOfMass();
 	return gxShape;
 }
 

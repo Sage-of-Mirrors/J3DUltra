@@ -1,6 +1,7 @@
 #pragma once
 
 #include "J3D/J3DTransform.hpp"
+#include "J3D/J3DRenderPacket.hpp"
 
 #include <glm/glm.hpp>
 #include <memory>
@@ -36,6 +37,8 @@ public:
     void SetTranslation(const glm::vec3 trans);
     void SetRotation(const glm::vec3 rot);
     void SetScale(const glm::vec3 scale);
+
+    void GatherRenderPackets(std::vector<J3DRenderPacket>& packetList, glm::vec3 cameraPosition);
 
     void Render(float deltaTime);
 };

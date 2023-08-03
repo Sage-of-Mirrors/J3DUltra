@@ -124,7 +124,9 @@ int GXBlendModeControlToGLFactor(EGXBlendModeControl Control)
 void J3DMaterial::Render(std::vector<std::shared_ptr<J3DTexture>>& textures) {
 	glUseProgram(mShaderProgram);
 	for (int i = 0; i < TevBlock->mTextureIndices.size(); i++)
+	{
 		glBindTextureUnit(i, textures[TevBlock->mTextureIndices[i]]->TexHandle);
+	}
 
 	if (PEBlock.mBlendMode.Type != EGXBlendMode::None)
 	{
@@ -160,6 +162,9 @@ void J3DMaterial::Render(std::vector<std::shared_ptr<J3DTexture>>& textures) {
 				break;
 			case (EGXCullMode::Back):
 				glCullFace(GL_FRONT);
+				break;
+			case (EGXCullMode::None):
+				glCullFace(GL_NONE);
 				break;
 		}
 	}
@@ -228,5 +233,5 @@ void J3DMaterial::Render(std::vector<std::shared_ptr<J3DTexture>>& textures) {
 
 	glDisable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
-	glDepthMask(GL_TRUE);
+	glDepthMask(GL_FALSE);
 }

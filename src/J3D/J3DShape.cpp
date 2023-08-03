@@ -60,17 +60,16 @@ bool J3DShape::HasEnabledAttribute(const EGLAttribute attribute) const {
 	return false;
 }
 
-void J3DShape::ConcatenatePacketsToIBO(std::vector<J3DVertexGX>* ibo) {
-	if (ibo == nullptr)
-		return;
-
-	mIBOStart = ibo->size();
+void J3DShape::ConcatenatePacketsToIBO(std::vector<J3DVertexGX>& ibo) {
+	mIBOStart = ibo.size();
 
 	for (auto a : mPackets) {
 		mIBOCount += a.mVertices.size();
 
-		for (auto t : a.mVertices)
-			ibo->push_back(t);
+		for (const auto& t : a.mVertices)
+		{
+			ibo.push_back(t);
+		}
 	}
 }
 

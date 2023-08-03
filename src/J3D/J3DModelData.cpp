@@ -244,3 +244,16 @@ void J3DModelData::Render(float deltaTime) {
     mRootJoint->RenderRecursive(mTextures);
     glBindVertexArray(0);
 }
+
+void J3DModelData::BindVAO()
+{
+    if (!mGLInitialized)
+        mGLInitialized = InitializeGL();
+
+    glBindVertexArray(mVAO);
+}
+
+void J3DModelData::UnbindVAO()
+{
+    glBindVertexArray(0);
+}

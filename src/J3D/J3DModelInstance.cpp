@@ -60,6 +60,26 @@ void J3DModelInstance::SetScale(const glm::vec3 scale) {
     mTransform.Scale = scale;
 }
 
+void J3DModelInstance::GatherRenderPackets(std::vector<J3DRenderPacket>& packetList, glm::vec3 cameraPosition) {
+    glm::mat4 transformMat4 = mTransform.ToMat4();
+
+    for (std::shared_ptr<J3DMaterial> mat : mModelData->GetMaterials())
+    {
+        const glm::vec3& center = mat->GetShape()->GetCenterOfMass();
+        glm::vec4 transformedCenter = transformMat4 * glm::vec4(center.x, center.y, center.z, 1.0f);
+
+        float distToCamera = glm::distance(cameraPosition, glm::vec3(transformedCenter.x, transformedCenter.y, transformedCenter.z));
+        uint32_t sortKey = static_cast<uint32_t>(distToCamera) & 0xFFFFFF;
+
+        if (mat->PEMode == EPixelEngineMode::Opaque || mat->PEMode == EPixelEngineMode::AlphaTest)
+        {
+            sortKey |= 0x01000000;
+        }
+
+        packetList.push_back({ sortKey, transformMat4, mEnvelopeMatrices, mat, mModelData });
+    }
+}
+
 void J3DModelInstance::Render(float deltaTime) {
     J3DUniformBufferObject::SetEnvelopeMatrices(mEnvelopeMatrices.data(), mEnvelopeMatrices.size());
     
