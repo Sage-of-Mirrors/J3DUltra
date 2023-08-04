@@ -233,5 +233,5 @@ void J3DMaterial::Render(std::vector<std::shared_ptr<J3DTexture>>& textures) {
 
 	glDisable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
-	glDepthMask(GL_FALSE);
+	glDepthMask(GL_TRUE);
 }
