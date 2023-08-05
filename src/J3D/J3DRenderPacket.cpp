@@ -19,7 +19,9 @@ void J3DRenderPacket::Render(float deltaTime)
     J3DUniformBufferObject::SetModelMatrix(&ModelMatrix);
     J3DUniformBufferObject::SetEnvelopeMatrices(EnvelopeMatrices.data(), EnvelopeMatrices.size());
 
+    std::vector<std::shared_ptr<J3DTexture>> textures = dataLocked->GetTextures();
+
     dataLocked->BindVAO();
-    materialLocked->Render(dataLocked->GetTextures());
+    materialLocked->Render(textures);
     dataLocked->UnbindVAO();
 }

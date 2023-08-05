@@ -17,10 +17,6 @@ std::shared_ptr<J3DMaterial> J3DMaterialFactory::Create(bStream::CStream* stream
 	std::shared_ptr<J3DMaterial> newMaterial = std::make_shared<J3DMaterial>();
 	newMaterial->Name = mNameTable.GetName(index);
 
-	if (newMaterial->Name == "_nuki_1") {
-
-	}
-
 	// Material init data can be "instanced", meaning that multiple materials use the same init data to load from file.
 	// We can know which init data to use by looking up the proper index from the instance table.
 	uint16_t instanceIndex = mInstanceTable[index];
@@ -152,40 +148,43 @@ std::shared_ptr<J3DMaterial> J3DMaterialFactory::Create(bStream::CStream* stream
 		}
 	}
 
-	// Indirect block
-	stream->seek(mBlock->IndirectInitDataTableOffset + index * 0x138);
-	newMaterial->IndirectBlock = std::make_shared<J3DIndirectBlock>();
+	// Indirect block. Don't try to load it if it doesn't exist; we can tell if it exists by comparing its offset
+	// to the preceeding data's offset, which is the name table.
+	if (mBlock->NameTableOffset != mBlock->IndirectInitDataTableOffset) {
+		stream->seek(mBlock->IndirectInitDataTableOffset + index * 0x138);
+		newMaterial->IndirectBlock = std::make_shared<J3DIndirectBlock>();
 
-	newMaterial->IndirectBlock->mEnabled = stream->readUInt8();
-	newMaterial->IndirectBlock->mNumStages = stream->readUInt8();
-	stream->skip(2);
+		newMaterial->IndirectBlock->mEnabled = stream->readUInt8();
+		newMaterial->IndirectBlock->mNumStages = stream->readUInt8();
+		stream->skip(2);
 
-	for (int i = 0; i < 4; i++) {
-		std::shared_ptr<J3DIndirectTexOrderInfo> texOrder = std::make_shared<J3DIndirectTexOrderInfo>();
-		texOrder->Deserialize(stream);
+		for (int i = 0; i < 4; i++) {
+			std::shared_ptr<J3DIndirectTexOrderInfo> texOrder = std::make_shared<J3DIndirectTexOrderInfo>();
+			texOrder->Deserialize(stream);
 
-		newMaterial->IndirectBlock->mIndirectTexOrders.push_back(texOrder);
-	}
+			newMaterial->IndirectBlock->mIndirectTexOrders.push_back(texOrder);
+		}
 
-	for (int i = 0; i < 3; i++) {
-		std::shared_ptr<J3DIndirectTexMatrixInfo> texMatrix = std::make_shared<J3DIndirectTexMatrixInfo>();
-		texMatrix->Deserialize(stream);
+		for (int i = 0; i < 3; i++) {
+			std::shared_ptr<J3DIndirectTexMatrixInfo> texMatrix = std::make_shared<J3DIndirectTexMatrixInfo>();
+			texMatrix->Deserialize(stream);
 
-		newMaterial->IndirectBlock->mIndirectTexMatrices.push_back(texMatrix);
-	}
+			newMaterial->IndirectBlock->mIndirectTexMatrices.push_back(texMatrix);
+		}
 
-	for (int i = 0; i < 4; i++) {
-		std::shared_ptr<J3DIndirectTexScaleInfo> texScale = std::make_shared<J3DIndirectTexScaleInfo>();
-		texScale->Deserialize(stream);
+		for (int i = 0; i < 4; i++) {
+			std::shared_ptr<J3DIndirectTexScaleInfo> texScale = std::make_shared<J3DIndirectTexScaleInfo>();
+			texScale->Deserialize(stream);
 
-		newMaterial->IndirectBlock->mIndirectTexCoordScales.push_back(texScale);
-	}
+			newMaterial->IndirectBlock->mIndirectTexCoordScales.push_back(texScale);
+		}
 
-	for (int i = 0; i < 16; i++) {
-		std::shared_ptr<J3DIndirectTevStageInfo> tevStage = std::make_shared<J3DIndirectTevStageInfo>();
-		tevStage->Deserialize(stream);
+		for (int i = 0; i < 16; i++) {
+			std::shared_ptr<J3DIndirectTevStageInfo> tevStage = std::make_shared<J3DIndirectTevStageInfo>();
+			tevStage->Deserialize(stream);
 
-		newMaterial->IndirectBlock->mIndirectTevStages.push_back(tevStage);
+			newMaterial->IndirectBlock->mIndirectTevStages.push_back(tevStage);
+		}
 	}
 
 	return newMaterial;
