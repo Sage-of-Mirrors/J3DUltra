@@ -1,15 +1,12 @@
 [submodule "lib/bStream"]
 	path = lib/bStream
-	url = git@github.com:Astral-C/bStream.git
+	url = https://github.com/Astral-C/bStream
 [submodule "lib/glm"]
 	path = lib/glm
-	url = git@github.com:g-truc/glm.git
+	url = https://github.com/g-truc/glm
 [submodule "magic_enum"]
-	path = magic_enum
+	path = lib/magic_enum
 	url = https://github.com/Neargye/magic_enum
 [submodule "lib/libflipper"]
 	path = lib/libflipper
-	url = git@github.com:Sage-of-Mirrors/libflipper.git
-[submodule "lib/magic_enum"]
-	path = lib/magic_enum
-	url = git@github.com:Neargye/magic_enum.git
+	url = https://github.com/Sage-of-Mirrors/libflipper
