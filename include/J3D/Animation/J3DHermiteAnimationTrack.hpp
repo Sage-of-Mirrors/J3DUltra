@@ -1,9 +1,18 @@
 #pragma once
 
+#include "J3D/Animation/J3DAnimationKey.hpp"
+
 #include <vector>
 
+namespace bStream {
+    class CStream;
+}
+
 namespace J3DAnimation {
-    struct J3DAnimationKey;
+    enum class ETangentMode {
+        Symmetric,
+        Piecewise
+    };
 
     class J3DHermiteAnimationTrack {
         std::vector<J3DAnimationKey> mKeys;
@@ -13,6 +22,8 @@ namespace J3DAnimation {
     public:
         J3DHermiteAnimationTrack();
         ~J3DHermiteAnimationTrack();
+
+        void Deserialize(bStream::CStream& stream, uint32_t valueTableOffset, float valueDivisor = 1.0f);
 
         float GetValue(float time);
     };

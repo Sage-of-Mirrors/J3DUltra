@@ -456,3 +456,54 @@ bool J3DTextureBlock::Deserialize(bStream::CStream* stream) {
 
     return true;
 }
+
+bool J3DRegisterColorKeyBlock::Deserialize(bStream::CStream* stream) {
+    size_t currentStreamPosition = stream->tell();
+
+    if (!J3DBlock::Deserialize(stream)) {
+        return false;
+    }
+
+    try {
+        LoopMode = stream->readUInt8();
+        stream->skip(1);
+
+        Length = stream->readUInt16();
+        RegisterTrackCount = stream->readUInt16();
+        KonstTrackCount = stream->readUInt16();
+
+        RegisterRedCount = stream->readUInt16();
+        RegisterGreenCount = stream->readUInt16();
+        RegisterBlueCount = stream->readUInt16();
+        RegisterAlphaCount = stream->readUInt16();
+
+        KonstRedCount = stream->readUInt16();
+        KonstGreenCount = stream->readUInt16();
+        KonstBlueCount = stream->readUInt16();
+        KonstAlphaCount = stream->readUInt16();
+
+        RegisterTrackTableOffset = stream->readUInt32() + BlockOffset;
+        KonstTrackTableOffset = stream->readUInt32() + BlockOffset;
+
+        RegisterMaterialInstanceTableOffset = stream->readUInt32() + BlockOffset;
+        KonstMaterialInstanceTableOffset = stream->readUInt32() + BlockOffset;
+
+        RegisterMaterialNameTableOffset = stream->readUInt32() + BlockOffset;
+        KonstMaterialNameTableOffset = stream->readUInt32() + BlockOffset;
+
+        RegisterRedTableOffset = stream->readUInt32() + BlockOffset;
+        RegisterGreenTableOffset = stream->readUInt32() + BlockOffset;
+        RegisterBlueTableOffset = stream->readUInt32() + BlockOffset;
+        RegisterAlphaTableOffset = stream->readUInt32() + BlockOffset;
+
+        KonstRedTableOffset = stream->readUInt32() + BlockOffset;
+        KonstGreenTableOffset = stream->readUInt32() + BlockOffset;
+        KonstBlueTableOffset = stream->readUInt32() + BlockOffset;
+        KonstAlphaTableOffset = stream->readUInt32() + BlockOffset;
+    }
+    catch (...) {
+        return false;
+    }
+
+    return true;
+}

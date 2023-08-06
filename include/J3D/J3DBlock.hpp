@@ -198,3 +198,42 @@ struct J3DTextureBlock : public J3DBlock {
 
 	virtual bool Deserialize(bStream::CStream* stream) override;
 };
+
+struct J3DRegisterColorKeyBlock : public J3DBlock {
+	uint8_t LoopMode;
+
+	uint16_t Length;
+	uint16_t RegisterTrackCount;
+	uint16_t KonstTrackCount;
+
+	uint16_t RegisterRedCount;
+	uint16_t RegisterGreenCount;
+	uint16_t RegisterBlueCount;
+	uint16_t RegisterAlphaCount;
+
+	uint16_t KonstRedCount;
+	uint16_t KonstGreenCount;
+	uint16_t KonstBlueCount;
+	uint16_t KonstAlphaCount;
+
+	uint32_t RegisterTrackTableOffset;
+	uint32_t KonstTrackTableOffset;
+
+	uint32_t RegisterMaterialInstanceTableOffset;
+	uint32_t KonstMaterialInstanceTableOffset;
+
+	uint32_t RegisterMaterialNameTableOffset;
+	uint32_t KonstMaterialNameTableOffset;
+
+	uint32_t RegisterRedTableOffset;
+	uint32_t RegisterGreenTableOffset;
+	uint32_t RegisterBlueTableOffset;
+	uint32_t RegisterAlphaTableOffset;
+
+	uint32_t KonstRedTableOffset;
+	uint32_t KonstGreenTableOffset;
+	uint32_t KonstBlueTableOffset;
+	uint32_t KonstAlphaTableOffset;
+
+	virtual bool Deserialize(bStream::CStream* stream) override;
+};
