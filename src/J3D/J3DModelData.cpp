@@ -4,7 +4,7 @@
 #include "J3D/J3DUniformBufferObject.hpp"
 #include "J3D/J3DModelInstance.hpp"
 
-#include <glad/glad.h>
+#include <glad/gl.h>
 
 void J3DModelData::MakeHierarchy(J3DJoint* const root, uint32_t& index) {
     J3DJoint* last = root;

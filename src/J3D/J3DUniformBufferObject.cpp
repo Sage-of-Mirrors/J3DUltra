@@ -2,7 +2,7 @@
 #include "J3D/J3DMaterial.hpp"
 #include "J3D/J3DLight.hpp"
 
-#include <glad/glad.h>
+#include <glad/gl.h>
 #include <cstdint>
 
 namespace J3DUniformBufferObject {

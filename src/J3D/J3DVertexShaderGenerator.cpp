@@ -7,7 +7,7 @@
 
 #include "GXGeometryData.hpp"
 #include <magic_enum.hpp>
-#include <glad/glad.h>
+#include <glad/gl.h>
 #include <sstream>
 
 // For debugging

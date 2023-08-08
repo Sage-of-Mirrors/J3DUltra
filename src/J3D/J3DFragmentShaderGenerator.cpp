@@ -7,7 +7,7 @@
 #include "J3D/J3DTEVTokens.hpp"
 
 #include <magic_enum.hpp>
-#include <glad/glad.h>
+#include <glad/gl.h>
 #include <string>
 #include <iostream>
 #include <fstream>

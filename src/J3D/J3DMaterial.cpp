@@ -7,7 +7,7 @@
 #include <GXGeometryData.hpp>
 #include <iostream>
 #include <vector>
-#include <glad/glad.h>
+#include <glad/gl.h>
 
 J3DMaterial::J3DMaterial() : mShaderProgram(-1), AreRegisterColorsAnimating(false) {
 	TevBlock = std::make_shared<J3DTevBlock>();
