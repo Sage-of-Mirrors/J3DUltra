@@ -3,7 +3,7 @@
 
 #include <GXGeometryEnums.hpp>
 #include <bstream.h>
-#include <glad/glad.h>
+#include <glad/gl.h>
 
 void J3DShape::EnableAttributes(std::vector<J3DVCDData>& gxAttributes) {
 	for (auto attr : gxAttributes) {

@@ -4,7 +4,7 @@
 #include "J3D/J3DUniformBufferObject.hpp"
 #include "J3D/J3DModelInstance.hpp"
 
-#include <glad/glad.h>
+#include <glad/gl.h>
 
 void J3DModelData::MakeHierarchy(J3DJoint* const root, uint32_t& index) {
     J3DJoint* last = root;
@@ -107,115 +107,121 @@ bool J3DModelData::InitializeGL() {
     const auto& indices = mGeometry.GetModelIndices();
 
     // Create VBO
-    glCreateBuffers(1, &mVBO);
-    glNamedBufferStorage(mVBO, verts.size() * sizeof(ModernVertex), verts.data(), GL_MAP_WRITE_BIT | GL_DYNAMIC_STORAGE_BIT);
+    glGenBuffers(1, &mVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, mVBO);
+    glBufferData(GL_ARRAY_BUFFER, verts.size() * sizeof(ModernVertex), verts.data(), GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     // Create IBO
-    glCreateBuffers(1, &mIBO);
-    glNamedBufferStorage(mIBO, indices.size() * sizeof(uint32_t), indices.data(), GL_MAP_WRITE_BIT | GL_DYNAMIC_STORAGE_BIT);
+    glGenBuffers(1, &mIBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint32_t), indices.data(), GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
     // Create VAO
-    glCreateVertexArrays(1, &mVAO);
+    glGenVertexArrays(1, &mVAO);
     if (mVAO == UINT32_MAX)
         return false;
+    glBindVertexArray(mVAO);
 
     // Set VBO as the data source for the VAO
-    glVertexArrayVertexBuffer(mVAO, 0, mVBO, 0, sizeof(ModernVertex));
+    glBindBuffer(GL_ARRAY_BUFFER, mVBO);
     // Set IBO as the index source for the VAO
-    glVertexArrayElementBuffer(mVAO, mIBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIBO);
 
     // Configure position data on VAO
-    if (mVertexData.HasPositions()) {
+    if (mVertexData.HasPositions()) 
+    {
         uint32_t posEnumVal = J3DUtility::EnumToIntegral(EGXAttribute::Position);
-        glEnableVertexArrayAttrib(mVAO, posEnumVal);
+        glEnableVertexAttribArray(posEnumVal);
 
-        glVertexArrayAttribBinding(mVAO, posEnumVal, 0);
-        glVertexArrayAttribFormat(mVAO, posEnumVal, glm::vec4::length(), GL_FLOAT, GL_FALSE, offsetof(ModernVertex, Position));
+        glVertexAttribPointer(posEnumVal, glm::vec4::length(), GL_FLOAT, GL_FALSE, sizeof(ModernVertex), (void*)offsetof(ModernVertex, Position));
     }
 
     // Configure normal data on VAO
-    if (mVertexData.HasNormals()) {
+    if (mVertexData.HasNormals()) 
+    {
         uint32_t nrmEnumVal = J3DUtility::EnumToIntegral(EGXAttribute::Normal);
-        glEnableVertexArrayAttrib(mVAO, nrmEnumVal);
+        glEnableVertexAttribArray(nrmEnumVal);
 
-        glVertexArrayAttribBinding(mVAO, nrmEnumVal, 0);
-        glVertexArrayAttribFormat(mVAO, nrmEnumVal, glm::vec3::length(), GL_FLOAT, GL_FALSE, offsetof(ModernVertex, Normal));
+        glVertexAttribPointer(nrmEnumVal, glm::vec3::length(), GL_FLOAT, GL_FALSE, sizeof(ModernVertex), (void*)offsetof(ModernVertex, Normal));
     }
 
     // Configure vertex color data on VAO
-    if (mVertexData.HasColors(0)) {
+    if (mVertexData.HasColors(0)) 
+    {
         uint32_t colEnumVal = J3DUtility::EnumToIntegral(EGXAttribute::Color0);
-        glEnableVertexArrayAttrib(mVAO, colEnumVal);
+        glEnableVertexAttribArray(colEnumVal);
 
-        glVertexArrayAttribBinding(mVAO, colEnumVal, 0);
-        glVertexArrayAttribFormat(mVAO, colEnumVal, glm::vec4::length(), GL_FLOAT, GL_FALSE, offsetof(ModernVertex, Colors[0]));
+        glVertexAttribPointer(colEnumVal, glm::vec4::length(), GL_FLOAT, GL_FALSE, sizeof(ModernVertex), (void*)offsetof(ModernVertex, Colors[0]));
     }
-    if (mVertexData.HasColors(1)) {
+    if (mVertexData.HasColors(1)) 
+    {
         uint32_t colEnumVal = J3DUtility::EnumToIntegral(EGXAttribute::Color1);
-        glEnableVertexArrayAttrib(mVAO, colEnumVal);
+        glEnableVertexAttribArray(colEnumVal);
 
-        glVertexArrayAttribBinding(mVAO, colEnumVal, 0);
-        glVertexArrayAttribFormat(mVAO, colEnumVal, glm::vec4::length(), GL_FLOAT, GL_FALSE, offsetof(ModernVertex, Colors[1]));
+        glVertexAttribPointer(colEnumVal, glm::vec4::length(), GL_FLOAT, GL_FALSE, sizeof(ModernVertex), (void*)offsetof(ModernVertex, Colors[1]));
     }
 
     // Configure tex coord data on VAO
-    if (mVertexData.HasTexCoords(0)) {
+    if (mVertexData.HasTexCoords(0)) 
+    {
         uint32_t texEnumVal = J3DUtility::EnumToIntegral(EGXAttribute::TexCoord0);
-        glEnableVertexArrayAttrib(mVAO, texEnumVal);
+        glEnableVertexAttribArray(texEnumVal);
 
-        glVertexArrayAttribBinding(mVAO, texEnumVal, 0);
-        glVertexArrayAttribFormat(mVAO, texEnumVal, glm::vec3::length(), GL_FLOAT, GL_FALSE, offsetof(ModernVertex, TexCoords[0]));
+        glVertexAttribPointer(texEnumVal, glm::vec3::length(), GL_FLOAT, GL_FALSE, sizeof(ModernVertex), (void*)offsetof(ModernVertex, TexCoords[0]));
     }
-    if (mVertexData.HasTexCoords(1)) {
+    if (mVertexData.HasTexCoords(1)) 
+    {
         uint32_t texEnumVal = J3DUtility::EnumToIntegral(EGXAttribute::TexCoord1);
-        glEnableVertexArrayAttrib(mVAO, texEnumVal);
+        glEnableVertexAttribArray(texEnumVal);
 
-        glVertexArrayAttribBinding(mVAO, texEnumVal, 0);
-        glVertexArrayAttribFormat(mVAO, texEnumVal, glm::vec3::length(), GL_FLOAT, GL_FALSE, offsetof(ModernVertex, TexCoords[1]));
+        glVertexAttribPointer(texEnumVal, glm::vec3::length(), GL_FLOAT, GL_FALSE, sizeof(ModernVertex), (void*)offsetof(ModernVertex, TexCoords[1]));
     }
-    if (mVertexData.HasTexCoords(2)) {
+    if (mVertexData.HasTexCoords(2)) 
+    {
         uint32_t texEnumVal = J3DUtility::EnumToIntegral(EGXAttribute::TexCoord2);
-        glEnableVertexArrayAttrib(mVAO, texEnumVal);
+        glEnableVertexAttribArray(texEnumVal);
 
-        glVertexArrayAttribBinding(mVAO, texEnumVal, 0);
-        glVertexArrayAttribFormat(mVAO, texEnumVal, glm::vec3::length(), GL_FLOAT, GL_FALSE, offsetof(ModernVertex, TexCoords[2]));
+        glVertexAttribPointer(texEnumVal, glm::vec3::length(), GL_FLOAT, GL_FALSE, sizeof(ModernVertex), (void*)offsetof(ModernVertex, TexCoords[2]));
     }
-    if (mVertexData.HasTexCoords(3)) {
+    if (mVertexData.HasTexCoords(3)) 
+    {
         uint32_t texEnumVal = J3DUtility::EnumToIntegral(EGXAttribute::TexCoord3);
-        glEnableVertexArrayAttrib(mVAO, texEnumVal);
+        glEnableVertexAttribArray(texEnumVal);
 
-        glVertexArrayAttribBinding(mVAO, texEnumVal, 0);
-        glVertexArrayAttribFormat(mVAO, texEnumVal, glm::vec3::length(), GL_FLOAT, GL_FALSE, offsetof(ModernVertex, TexCoords[3]));
+        glVertexAttribPointer(texEnumVal, glm::vec3::length(), GL_FLOAT, GL_FALSE, sizeof(ModernVertex), (void*)offsetof(ModernVertex, TexCoords[3]));
     }
-    if (mVertexData.HasTexCoords(4)) {
+    if (mVertexData.HasTexCoords(4)) 
+    {
         uint32_t texEnumVal = J3DUtility::EnumToIntegral(EGXAttribute::TexCoord4);
-        glEnableVertexArrayAttrib(mVAO, texEnumVal);
+        glEnableVertexAttribArray(texEnumVal);
 
-        glVertexArrayAttribBinding(mVAO, texEnumVal, 0);
-        glVertexArrayAttribFormat(mVAO, texEnumVal, glm::vec3::length(), GL_FLOAT, GL_FALSE, offsetof(ModernVertex, TexCoords[4]));
+        glVertexAttribPointer(texEnumVal, glm::vec3::length(), GL_FLOAT, GL_FALSE, sizeof(ModernVertex), (void*)offsetof(ModernVertex, TexCoords[4]));
     }
-    if (mVertexData.HasTexCoords(5)) {
+    if (mVertexData.HasTexCoords(5)) 
+    {
         uint32_t texEnumVal = J3DUtility::EnumToIntegral(EGXAttribute::TexCoord5);
-        glEnableVertexArrayAttrib(mVAO, texEnumVal);
+        glEnableVertexAttribArray(texEnumVal);
 
-        glVertexArrayAttribBinding(mVAO, texEnumVal, 0);
-        glVertexArrayAttribFormat(mVAO, texEnumVal, glm::vec3::length(), GL_FLOAT, GL_FALSE, offsetof(ModernVertex, TexCoords[5]));
+        glVertexAttribPointer(texEnumVal, glm::vec3::length(), GL_FLOAT, GL_FALSE, sizeof(ModernVertex), (void*)offsetof(ModernVertex, TexCoords[5]));
     }
-    if (mVertexData.HasTexCoords(6)) {
+    if (mVertexData.HasTexCoords(6)) 
+    {
         uint32_t texEnumVal = J3DUtility::EnumToIntegral(EGXAttribute::TexCoord6);
-        glEnableVertexArrayAttrib(mVAO, texEnumVal);
+        glEnableVertexAttribArray(texEnumVal);
 
-        glVertexArrayAttribBinding(mVAO, texEnumVal, 0);
-        glVertexArrayAttribFormat(mVAO, texEnumVal, glm::vec3::length(), GL_FLOAT, GL_FALSE, offsetof(ModernVertex, TexCoords[6]));
+        glVertexAttribPointer(texEnumVal, glm::vec3::length(), GL_FLOAT, GL_FALSE, sizeof(ModernVertex), (void*)offsetof(ModernVertex, TexCoords[6]));
     }
-    if (mVertexData.HasTexCoords(7)) {
+    if (mVertexData.HasTexCoords(7)) 
+    {
         uint32_t texEnumVal = J3DUtility::EnumToIntegral(EGXAttribute::TexCoord7);
-        glEnableVertexArrayAttrib(mVAO, texEnumVal);
+        glEnableVertexAttribArray(texEnumVal);
 
-        glVertexArrayAttribBinding(mVAO, texEnumVal, 0);
-        glVertexArrayAttribFormat(mVAO, texEnumVal, glm::vec3::length(), GL_FLOAT, GL_FALSE, offsetof(ModernVertex, TexCoords[7]));
+        glVertexAttribPointer(texEnumVal, glm::vec3::length(), GL_FLOAT, GL_FALSE, sizeof(ModernVertex), (void*)offsetof(ModernVertex, TexCoords[7]));
     }
 
+    glBindVertexArray(0);
     return true;
 }
 

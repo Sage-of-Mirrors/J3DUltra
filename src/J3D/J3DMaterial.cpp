@@ -7,7 +7,7 @@
 #include <GXGeometryData.hpp>
 #include <iostream>
 #include <vector>
-#include <glad/glad.h>
+#include <glad/gl.h>
 
 J3DMaterial::J3DMaterial() : mShaderProgram(-1), AreRegisterColorsAnimating(false) {
 	TevBlock = std::make_shared<J3DTevBlock>();
@@ -69,23 +69,25 @@ bool J3DMaterial::GenerateShaders() {
 		return false;
 	}
 
+	glUseProgram(mShaderProgram);
+
 	for (int i = 0; i < 8; i++) {
 		std::string name = "Texture[" + std::to_string(i) + "]";
 		uint32_t uniformID = glGetUniformLocation(mShaderProgram, name.c_str());
 
-		glProgramUniform1i(mShaderProgram, uniformID, i);
+		glUniform1i(uniformID, i);
 	}
 
 	glm::vec4 test(0, 0, 0, 1.0);
 
 	uint32_t uniformID = glGetUniformLocation(mShaderProgram, "uMaterialReg[0]");
-	glProgramUniform4fv(mShaderProgram, uniformID, 1, &LightBlock.mMatteColor[0][0]);
+	glUniform4fv(uniformID, 1, &LightBlock.mMatteColor[0][0]);
 	uniformID = glGetUniformLocation(mShaderProgram, "uMaterialReg[1]");
-	glProgramUniform4fv(mShaderProgram, uniformID, 1, &LightBlock.mMatteColor[1][0]);
+	glUniform4fv(uniformID, 1, &LightBlock.mMatteColor[1][0]);
 	uniformID = glGetUniformLocation(mShaderProgram, "uAmbientReg[0]");
-	glProgramUniform4fv(mShaderProgram, uniformID, 1, &LightBlock.mAmbientColor[0][0]);
+	glUniform4fv(uniformID, 1, &LightBlock.mAmbientColor[0][0]);
 	uniformID = glGetUniformLocation(mShaderProgram, "uAmbientReg[1]");
-	glProgramUniform4fv(mShaderProgram, uniformID, 1, &LightBlock.mAmbientColor[1][0]);
+	glUniform4fv(uniformID, 1, &LightBlock.mAmbientColor[1][0]);
 
 	// Program linked successfully, detach and delete the shaders because they're not needed now
 	glDetachShader(mShaderProgram, vertShader);
@@ -93,6 +95,7 @@ bool J3DMaterial::GenerateShaders() {
 	glDeleteShader(vertShader);
 	glDeleteShader(fragShader);
 
+	glUseProgram(0);
 	return true;
 }
 
@@ -125,7 +128,8 @@ void J3DMaterial::Render(std::vector<std::shared_ptr<J3DTexture>>& textures) {
 	glUseProgram(mShaderProgram);
 	for (int i = 0; i < TevBlock->mTextureIndices.size(); i++)
 	{
-		glBindTextureUnit(i, textures[TevBlock->mTextureIndices[i]]->TexHandle);
+		glActiveTexture(GL_TEXTURE0 + i);
+		glBindTexture(GL_TEXTURE_2D, textures[TevBlock->mTextureIndices[i]]->TexHandle);
 	}
 
 	if (PEBlock.mBlendMode.Type != EGXBlendMode::None)
@@ -228,7 +232,10 @@ void J3DMaterial::Render(std::vector<std::shared_ptr<J3DTexture>>& textures) {
 
 	glUseProgram(0);
 	for (int i = 0; i < 8; i++)
-		glBindTextureUnit(i, 0);
+	{
+		glActiveTexture(GL_TEXTURE0 + i);
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
 
 	glDisable(GL_BLEND);
 	glBlendEquation(GL_FUNC_ADD);

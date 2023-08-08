@@ -16,7 +16,7 @@ std::string J3DShaderGeneratorCommon::GenerateStructs() {
 		"};\n\n";
 
 	stream << "// This UBO contains data that doesn't change between vertices or materials.\n";
-	stream << "layout (std140, binding=0) uniform uSharedData {\n"
+	stream << "layout (std140) uniform uSharedData {\n"
 		"\tmat4 Proj;\n"
 		"\tmat4 View;\n"
 		"\tmat4 Model;\n\n"

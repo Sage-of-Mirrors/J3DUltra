@@ -1,7 +1,7 @@
 #include "J3D/J3DTextureFactory.hpp"
 #include "J3D/J3DBlock.hpp"
 
-#include "glad/glad.h"
+#include <glad/gl.h>
 #include "bstream.h"
 
 #include <cmath>
@@ -27,18 +27,29 @@ std::shared_ptr<J3DTexture> J3DTextureFactory::Create(bStream::CStream* stream, 
 
 	// Generate GL data
 	texture->TexHandle = UINT32_MAX;
-	glCreateTextures(GL_TEXTURE_2D, 1, &texture->TexHandle);
+	glGenTextures(1, &texture->TexHandle);
+	glBindTexture(GL_TEXTURE_2D, texture->TexHandle);
 
-	glTextureParameteri(texture->TexHandle, GL_TEXTURE_WRAP_S, GXWrapToGLWrap(texture->WrapS));
-	glTextureParameteri(texture->TexHandle, GL_TEXTURE_WRAP_T, GXWrapToGLWrap(texture->WrapT));
-	glTextureParameteri(texture->TexHandle, GL_TEXTURE_MIN_FILTER, GXFilterToGLFilter(texture->MinFilter));
-	glTextureParameteri(texture->TexHandle, GL_TEXTURE_MAG_FILTER, GXFilterToGLFilter(texture->MagFilter));
-	glTextureParameterf(texture->TexHandle, GL_TEXTURE_MIN_LOD, static_cast<float>(texture->MinLOD) * ONE_EIGHTH);
-	glTextureParameterf(texture->TexHandle, GL_TEXTURE_MAX_LOD, static_cast<float>(texture->MaxLOD) * ONE_EIGHTH);
-	glTextureParameterf(texture->TexHandle, GL_TEXTURE_LOD_BIAS, static_cast<float>(texture->LODBias) * ONE_HUNDREDTH);
-	glTextureParameterf(texture->TexHandle, GL_TEXTURE_MAX_ANISOTROPY, GXAnisoToGLAniso(texture->MaxAnisotropy));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GXWrapToGLWrap(texture->WrapS));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GXWrapToGLWrap(texture->WrapT));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GXFilterToGLFilter(texture->MinFilter));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GXFilterToGLFilter(texture->MagFilter));
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_LOD, static_cast<float>(texture->MinLOD) * ONE_EIGHTH);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_LOD, static_cast<float>(texture->MaxLOD) * ONE_EIGHTH);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, static_cast<float>(texture->LODBias) * ONE_HUNDREDTH);
+	// TODO: use GL_EXT_texture_filter_anisotropic
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, GXAnisoToGLAniso(texture->MaxAnisotropy));
 
-	glTextureStorage2D(texture->TexHandle, texture->MipmapCount, GL_RGBA8, texture->Width, texture->Height);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, texture->MipmapCount - 1);
+
+	for (int level = 0; level < texture->MipmapCount; level++) {
+			GLsizei width = texture->Width >> level;
+			GLsizei height = texture->Height >> level;
+
+			// Allocate space for the mipmap level (without actually providing any data)
+			glTexImage2D(GL_TEXTURE_2D, level, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+	}
 
 	// Load image data
 	stream->seek(dataOffset + texture->TextureOffset);
@@ -82,9 +93,9 @@ std::shared_ptr<J3DTexture> J3DTextureFactory::Create(bStream::CStream* stream, 
 		}
 
 		texture->ImageData.push_back(imgData);
-		glTextureSubImage2D(texture->TexHandle, i, 0, 0, mipWidth, mipHeight, GL_RGBA, GL_UNSIGNED_BYTE, imgData);
+		glTexSubImage2D(GL_TEXTURE_2D, i, 0, 0, mipWidth, mipHeight, GL_RGBA, GL_UNSIGNED_BYTE, imgData);
 	}
-
+	glBindTexture(GL_TEXTURE_2D, 0);
 	return texture;
 }
 
