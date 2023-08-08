@@ -18,6 +18,9 @@ class J3DModelInstance {
     std::vector<glm::mat4> mEnvelopeMatrices;
     J3DTransformInfo mTransform;
 
+    // Transform applied to the model-space transform stored in mTransform.
+    glm::mat4 mReferenceFrame;
+
     // Recalculates joint transforms based on a load animation - BCK for keyframes at discrete time units, BCA for values at every frame.
     void CalculateJointMatrices(float deltaTime);
     // Recalculates texture transforms based on a loaded BTK animation.
@@ -45,6 +48,7 @@ public:
     void SetScale(const glm::vec3 scale);
 
     void SetTransform(const glm::mat4 transform);
+    void SetReferenceFrame(const glm::mat4 frame);
 
     void GatherRenderPackets(std::vector<J3DRenderPacket>& packetList, glm::vec3 cameraPosition);
 

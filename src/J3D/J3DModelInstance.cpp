@@ -14,6 +14,7 @@ J3DModelInstance::J3DModelInstance(std::shared_ptr<J3DModelData> modelData) {
 
     mModelData = modelData;
     mEnvelopeMatrices = mModelData->GetRestPose();
+    mReferenceFrame = glm::identity<glm::mat4>();
 }
 
 J3DModelInstance::~J3DModelInstance() {
@@ -109,6 +110,10 @@ void J3DModelInstance::SetRotation(const glm::vec3 rot) {
                           glm::angleAxis(eulerRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
 }
 
+void J3DModelInstance::SetScale(const glm::vec3 scale) {
+    mTransform.Scale = scale;
+}
+
 void J3DModelInstance::SetTransform(const glm::mat4 transform) {
     glm::vec3 translation, scale, skew;
     glm::vec4 perspective;
@@ -121,12 +126,12 @@ void J3DModelInstance::SetTransform(const glm::mat4 transform) {
     mTransform.Rotation = rotation;
 }
 
-void J3DModelInstance::SetScale(const glm::vec3 scale) {
-    mTransform.Scale = scale;
+void J3DModelInstance::SetReferenceFrame(const glm::mat4 frame) {
+    mReferenceFrame = frame;
 }
 
 void J3DModelInstance::GatherRenderPackets(std::vector<J3DRenderPacket>& packetList, glm::vec3 cameraPosition) {
-    glm::mat4 transformMat4 = mTransform.ToMat4();
+    glm::mat4 transformMat4 = mReferenceFrame * mTransform.ToMat4();
 
     for (std::shared_ptr<J3DMaterial> mat : mModelData->GetMaterials())
     {
