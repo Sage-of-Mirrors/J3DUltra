@@ -55,5 +55,6 @@ public:
     void UpdateAnimations(float deltaTime);
     void Render(float deltaTime);
 
+    std::shared_ptr<J3DAnimation::J3DColorAnimationInstance> GetRegisterColorAnimation() const { return mRegisterColorAnimation; }
     void SetRegisterColorAnimation(std::shared_ptr<J3DAnimation::J3DColorAnimationInstance> anim) { mRegisterColorAnimation = anim; }
 };
