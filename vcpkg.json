@@ -1,0 +1,8 @@
+{
+    "name" : "J3DUltra",
+    "version-string" : "j3dultra-win",
+    "dependencies": [
+        "zlib",
+        "libpng"
+    ]
+}
