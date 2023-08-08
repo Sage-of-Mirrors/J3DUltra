@@ -31,9 +31,9 @@ namespace J3DUniformBufferObject {
 }
 
 void J3DUniformBufferObject::CreateUBO() {
-	glCreateBuffers(1, &mUBO);
-
-	glNamedBufferStorage(mUBO, sizeof(J3DUniformBufferObject), nullptr, GL_DYNAMIC_STORAGE_BIT);
+	glGenBuffers(1, &mUBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, mUBO);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(J3DUniformBufferObject), nullptr, GL_DYNAMIC_DRAW);
 	glBindBufferRange(GL_UNIFORM_BUFFER, 0, mUBO, 0, sizeof(J3DUniformBufferObject));
 }
 
@@ -61,49 +61,63 @@ void J3DUniformBufferObject::SetProjAndViewMatrices(const glm::mat4* proj, const
 	if (mUBO == 0)
 		return;
 
-	glNamedBufferSubData(mUBO, offsetof(J3DUniformBufferObject, ProjectionMatrix), sizeof(glm::mat4), proj);
-	glNamedBufferSubData(mUBO, offsetof(J3DUniformBufferObject, ViewMatrix), sizeof(glm::mat4), view);
+	glBindBuffer(GL_UNIFORM_BUFFER, mUBO);
+	glBufferSubData(GL_UNIFORM_BUFFER, offsetof(J3DUniformBufferObject, ProjectionMatrix), sizeof(glm::mat4), proj);
+	glBufferSubData(GL_UNIFORM_BUFFER, offsetof(J3DUniformBufferObject, ViewMatrix), sizeof(glm::mat4), view);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void J3DUniformBufferObject::SetModelMatrix(const glm::mat4* model) {
 	if (mUBO == 0)
 		return;
 
-	glNamedBufferSubData(mUBO, offsetof(J3DUniformBufferObject, ModelMatrix), sizeof(glm::mat4), model);
+	glBindBuffer(GL_UNIFORM_BUFFER, mUBO);
+	glBufferSubData(GL_UNIFORM_BUFFER, offsetof(J3DUniformBufferObject, ModelMatrix), sizeof(glm::mat4), model);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void J3DUniformBufferObject::SetTevColors(const glm::vec4* colors) {
 	if (mUBO == 0)
 		return;
 
-	glNamedBufferSubData(mUBO, offsetof(J3DUniformBufferObject, TevColor), sizeof(glm::vec4) * COLOR_MAX, colors);
+	glBindBuffer(GL_UNIFORM_BUFFER, mUBO);
+	glBufferSubData(GL_UNIFORM_BUFFER, offsetof(J3DUniformBufferObject, TevColor), sizeof(glm::vec4) * COLOR_MAX, colors);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void J3DUniformBufferObject::SetKonstColors(const glm::vec4* colors) {
 	if (mUBO == 0)
 		return;
 
-	glNamedBufferSubData(mUBO, offsetof(J3DUniformBufferObject, KonstColor), sizeof(glm::vec4) * COLOR_MAX, colors);
+	glBindBuffer(GL_UNIFORM_BUFFER, mUBO);
+	glBufferSubData(GL_UNIFORM_BUFFER, offsetof(J3DUniformBufferObject, KonstColor), sizeof(glm::vec4) * COLOR_MAX, colors);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void J3DUniformBufferObject::SetLights(const J3DLight* lights) {
 	if (mUBO == 0)
 		return;
 
-	glNamedBufferSubData(mUBO, offsetof(J3DUniformBufferObject, Lights), sizeof(J3DLight) * LIGHTS_MAX, lights);
+	glBindBuffer(GL_UNIFORM_BUFFER, mUBO);
+	glBufferSubData(GL_UNIFORM_BUFFER, offsetof(J3DUniformBufferObject, Lights), sizeof(J3DLight) * LIGHTS_MAX, lights);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void J3DUniformBufferObject::SetEnvelopeMatrices(const glm::mat4* envelopes, const uint32_t count) {
 	if (mUBO == 0 || count <= 0 || count > ENVELOPE_MAT_MAX)
 		return;
 
+	glBindBuffer(GL_UNIFORM_BUFFER, mUBO);
 	uint32_t t = offsetof(J3DUniformBufferObject, Envelopes);
-	glNamedBufferSubData(mUBO, offsetof(J3DUniformBufferObject, Envelopes), sizeof(glm::mat4) * count, envelopes);
+	glBufferSubData(GL_UNIFORM_BUFFER, offsetof(J3DUniformBufferObject, Envelopes), sizeof(glm::mat4) * count, envelopes);	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void J3DUniformBufferObject::SetTexMatrices(const glm::mat4* envelopes) {
 	if (mUBO == 0)
 		return;
 
-	glNamedBufferSubData(mUBO, offsetof(J3DUniformBufferObject, TexMatrices), sizeof(glm::mat4) * TEX_MAT_MAX, envelopes);
+	glBindBuffer(GL_UNIFORM_BUFFER, mUBO);
+	glBufferSubData(GL_UNIFORM_BUFFER, offsetof(J3DUniformBufferObject, TexMatrices), sizeof(glm::mat4) * TEX_MAT_MAX, envelopes);	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }

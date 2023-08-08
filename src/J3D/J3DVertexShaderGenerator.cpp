@@ -88,7 +88,7 @@ bool J3DVertexShaderGenerator::GenerateVertexShader(const J3DMaterial* material,
 
 std::string J3DVertexShaderGenerator::GenerateAttributes(const std::vector<EGXAttribute>& shapeAttributes) {
 	std::stringstream stream;
-	stream << "#version 460\n\n";
+	stream << "#version 330\n\n";
 	stream << "// Input attributes\n";
 
 	for (auto a : shapeAttributes) {

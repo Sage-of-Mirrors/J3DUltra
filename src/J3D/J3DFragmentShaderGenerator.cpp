@@ -59,7 +59,7 @@ bool J3DFragmentShaderGenerator::GenerateFragmentShader(J3DMaterial* material, u
 std::string J3DFragmentShaderGenerator::GenerateIOVariables(J3DMaterial* material) {
 	std::stringstream stream;
 
-	stream << "#version 460\n\n";
+	stream << "#version 330\n\n";
 	stream << "// Vertex shader outputs\n";
 	stream << "in vec4 oColor0;\n";
 	stream << "in vec4 oColor1;\n\n";
