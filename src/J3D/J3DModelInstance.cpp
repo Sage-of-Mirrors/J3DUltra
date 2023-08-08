@@ -6,6 +6,7 @@
 
 #include <stdexcept>
 #include <iostream>
+#include <glm/gtx/matrix_decompose.hpp>
 
 J3DModelInstance::J3DModelInstance(std::shared_ptr<J3DModelData> modelData) {
     if (modelData == nullptr)
@@ -106,6 +107,18 @@ void J3DModelInstance::SetRotation(const glm::vec3 rot) {
     mTransform.Rotation = glm::angleAxis(eulerRotation.z, glm::vec3(0.0f, 0.0f, 1.0f)) *
                           glm::angleAxis(eulerRotation.y, glm::vec3(0.0f, 1.0f, 0.0f)) *
                           glm::angleAxis(eulerRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+}
+
+void J3DModelInstance::SetTransform(const glm::mat4 transform) {
+    glm::vec3 translation, scale, skew;
+    glm::vec4 perspective;
+    glm::quat rotation;
+
+    glm::decompose(transform, scale, rotation, translation, skew, perspective);
+
+    mTransform.Translation = translation;
+    mTransform.Scale = scale;
+    mTransform.Rotation = rotation;
 }
 
 void J3DModelInstance::SetScale(const glm::vec3 scale) {

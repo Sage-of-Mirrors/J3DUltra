@@ -44,6 +44,8 @@ public:
     void SetRotation(const glm::vec3 rot);
     void SetScale(const glm::vec3 scale);
 
+    void SetTransform(const glm::mat4 transform);
+
     void GatherRenderPackets(std::vector<J3DRenderPacket>& packetList, glm::vec3 cameraPosition);
 
     void UpdateAnimations(float deltaTime);
