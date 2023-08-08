@@ -7,6 +7,10 @@
 #include <memory>
 #include <vector>
 
+namespace J3DAnimation {
+    class J3DColorAnimationInstance;
+}
+
 class J3DModelData;
 
 class J3DModelInstance {
@@ -30,6 +34,8 @@ class J3DModelInstance {
     // Updates shape visibility based on a loaded BVA animation.
     void UpdateShapeVisibility(float deltaTime);
 
+    std::shared_ptr<J3DAnimation::J3DColorAnimationInstance> mRegisterColorAnimation;
+
 public:
     J3DModelInstance(std::shared_ptr<J3DModelData> modelData);
     virtual ~J3DModelInstance();
@@ -40,5 +46,8 @@ public:
 
     void GatherRenderPackets(std::vector<J3DRenderPacket>& packetList, glm::vec3 cameraPosition);
 
+    void UpdateAnimations(float deltaTime);
     void Render(float deltaTime);
+
+    void SetRegisterColorAnimation(std::shared_ptr<J3DAnimation::J3DColorAnimationInstance> anim) { mRegisterColorAnimation = anim; }
 };

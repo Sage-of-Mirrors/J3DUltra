@@ -232,6 +232,17 @@ std::vector<std::shared_ptr<J3DMaterial>> J3DModelData::GetMaterials() const {
     return mMaterials;
 }
 
+std::weak_ptr<J3DMaterial> J3DModelData::GetMaterial(std::string name) {
+    auto t = std::find_if(mMaterials.begin(), mMaterials.end(),
+        [&name](const std::shared_ptr<J3DMaterial>& a) 
+        {
+            return a->Name == name;
+        }
+    );
+
+    return *t;
+}
+
 std::vector<std::shared_ptr<J3DTexture>> J3DModelData::GetTextures() const {
     return mTextures;
 }

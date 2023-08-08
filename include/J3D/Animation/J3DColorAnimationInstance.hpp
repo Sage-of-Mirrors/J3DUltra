@@ -19,10 +19,14 @@ namespace J3DAnimation {
         std::vector<J3DColorAnimationData> RegisterEntries;
         std::vector<J3DColorAnimationData> KonstEntries;
 
+        void ReadColorTrack(bStream::CStream& stream, J3DHermiteAnimationTrack& track, uint32_t valueTableOffset);
+
     public:
         J3DColorAnimationInstance();
 
         virtual void Deserialize(bStream::CStream& stream) override;
-        virtual void ApplyAnimation(std::shared_ptr<J3DModelInstance> model) override;
+
+        const std::vector<J3DColorAnimationData>& GetRegisterEntries() const { return RegisterEntries; }
+        const std::vector<J3DColorAnimationData>& GetKonstEntries() const { return KonstEntries; }
     };
 }

@@ -82,6 +82,10 @@ public:
 
 	int TEVStageGenMax;
 
+	bool AreRegisterColorsAnimating;
+	glm::vec4 AnimationRegisterColors[4];
+	glm::vec4 AnimationKonstColors[4];
+
 	const GXShape* GetShape() const { return mShape; }
 	void SetShape(const GXShape* shape) { mShape = shape; }
 

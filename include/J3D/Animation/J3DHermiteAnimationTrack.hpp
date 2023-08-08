@@ -17,14 +17,13 @@ namespace J3DAnimation {
     class J3DHermiteAnimationTrack {
         std::vector<J3DAnimationKey> mKeys;
 
-        float InterpolateValue(float time, const J3DAnimationKey* a, const J3DAnimationKey* b);
+        float InterpolateValue(float time, const J3DAnimationKey* a, const J3DAnimationKey* b) const;
 
     public:
         J3DHermiteAnimationTrack();
         ~J3DHermiteAnimationTrack();
 
-        void Deserialize(bStream::CStream& stream, uint32_t valueTableOffset, float valueDivisor = 1.0f);
-
-        float GetValue(float time);
+        void AddKey(J3DAnimationKey key);
+        float GetValue(float time) const;
     };
 }

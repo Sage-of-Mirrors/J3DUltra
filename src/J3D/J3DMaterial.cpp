@@ -9,7 +9,7 @@
 #include <vector>
 #include <glad/glad.h>
 
-J3DMaterial::J3DMaterial() : mShaderProgram(-1) {
+J3DMaterial::J3DMaterial() : mShaderProgram(-1), AreRegisterColorsAnimating(false) {
 	TevBlock = std::make_shared<J3DTevBlock>();
 }
 
@@ -204,8 +204,14 @@ void J3DMaterial::Render(std::vector<std::shared_ptr<J3DTexture>>& textures) {
 		glDepthMask(PEBlock.mZMode.UpdateEnable ? GL_TRUE : GL_FALSE);
 	}
 
-	J3DUniformBufferObject::SetTevColors(TevBlock->mTevColors);
-	J3DUniformBufferObject::SetKonstColors(TevBlock->mTevKonstColors);
+	if (AreRegisterColorsAnimating) {
+		J3DUniformBufferObject::SetTevColors(AnimationRegisterColors);
+		J3DUniformBufferObject::SetKonstColors(AnimationKonstColors);
+	}
+	else {
+		J3DUniformBufferObject::SetTevColors(TevBlock->mTevColors);
+		J3DUniformBufferObject::SetKonstColors(TevBlock->mTevKonstColors);
+	}
 
 	glm::mat4 t[10];
 	for (int i = 0; i < 10; i++)

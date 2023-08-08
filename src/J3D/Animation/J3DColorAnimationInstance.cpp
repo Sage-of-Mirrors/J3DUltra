@@ -9,6 +9,48 @@ J3DAnimation::J3DColorAnimationInstance::J3DColorAnimationInstance() {
 
 }
 
+void J3DAnimation::J3DColorAnimationInstance::ReadColorTrack(bStream::CStream& stream, J3DHermiteAnimationTrack& track, uint32_t valueTableOffset) {
+    uint16_t keyCount = stream.readUInt16();
+    uint16_t firstKeyIndex = stream.readUInt16();
+    ETangentMode tangentMode = static_cast<ETangentMode>(stream.readUInt16());
+
+    size_t currentStreamPos = stream.tell();
+    stream.seek(valueTableOffset + firstKeyIndex * sizeof(uint16_t));
+
+    if (keyCount == 1) {
+        J3DAnimationKey newKey;
+        newKey.Value = static_cast<float>(stream.readInt16());
+
+        track.AddKey(newKey);
+    }
+    else {
+        for (uint16_t i = 0; i < keyCount; i++) {
+            J3DAnimationKey newKey;
+
+            switch (tangentMode) {
+                case ETangentMode::Symmetric:
+                    newKey.Time = static_cast<float>(stream.readInt16());
+                    newKey.Value = static_cast<float>(stream.readInt16());
+                    newKey.InTangent = static_cast<float>(stream.readInt16()) / 65535.0f;
+                    newKey.OutTangent = newKey.InTangent;
+                    break;
+                case ETangentMode::Piecewise:
+                    newKey.Time = static_cast<float>(stream.readInt16());
+                    newKey.Value = static_cast<float>(stream.readInt16());
+                    newKey.InTangent = static_cast<float>(stream.readInt16()) / 65535.0f;
+                    newKey.OutTangent = static_cast<float>(stream.readInt16()) / 65535.0f;
+                    break;
+                default:
+                    break;
+            }
+
+            track.AddKey(newKey);
+        }
+    }
+
+    stream.seek(currentStreamPos);
+}
+
 void J3DAnimation::J3DColorAnimationInstance::Deserialize(bStream::CStream& stream) {
     size_t currentStreamPos = stream.tell();
 
@@ -35,10 +77,10 @@ void J3DAnimation::J3DColorAnimationInstance::Deserialize(bStream::CStream& stre
         J3DColorAnimationData animData;
         animData.MaterialName = regMaterialNames.GetName(i);
 
-        animData.RedTrack.Deserialize(stream, colorKeyBlock.RegisterRedTableOffset, 255.0f);
-        animData.GreenTrack.Deserialize(stream, colorKeyBlock.RegisterGreenTableOffset, 255.0f);
-        animData.BlueTrack.Deserialize(stream, colorKeyBlock.RegisterBlueTableOffset, 255.0f);
-        animData.AlphaTrack.Deserialize(stream, colorKeyBlock.RegisterAlphaTableOffset, 255.0f);
+        ReadColorTrack(stream, animData.RedTrack, colorKeyBlock.RegisterRedTableOffset);
+        ReadColorTrack(stream, animData.GreenTrack, colorKeyBlock.RegisterGreenTableOffset);
+        ReadColorTrack(stream, animData.BlueTrack, colorKeyBlock.RegisterBlueTableOffset);
+        ReadColorTrack(stream, animData.AlphaTrack, colorKeyBlock.RegisterAlphaTableOffset);
 
         animData.ColorIndex = stream.readUInt8();
         stream.skip(3);
@@ -52,10 +94,10 @@ void J3DAnimation::J3DColorAnimationInstance::Deserialize(bStream::CStream& stre
         J3DColorAnimationData animData;
         animData.MaterialName = konstMaterialNames.GetName(i);
 
-        animData.RedTrack.Deserialize(stream, colorKeyBlock.KonstRedTableOffset, 255.0f);
-        animData.GreenTrack.Deserialize(stream, colorKeyBlock.KonstGreenTableOffset, 255.0f);
-        animData.BlueTrack.Deserialize(stream, colorKeyBlock.KonstBlueTableOffset, 255.0f);
-        animData.AlphaTrack.Deserialize(stream, colorKeyBlock.KonstAlphaTableOffset, 255.0f);
+        ReadColorTrack(stream, animData.RedTrack, colorKeyBlock.KonstRedTableOffset);
+        ReadColorTrack(stream, animData.GreenTrack, colorKeyBlock.KonstGreenTableOffset);
+        ReadColorTrack(stream, animData.BlueTrack, colorKeyBlock.KonstBlueTableOffset);
+        ReadColorTrack(stream, animData.AlphaTrack, colorKeyBlock.KonstAlphaTableOffset);
 
         animData.ColorIndex = stream.readUInt8();
         stream.skip(3);
@@ -64,8 +106,4 @@ void J3DAnimation::J3DColorAnimationInstance::Deserialize(bStream::CStream& stre
     }
 
     stream.seek(currentStreamPos + colorKeyBlock.BlockSize);
-}
-
-void J3DAnimation::J3DColorAnimationInstance::ApplyAnimation(std::shared_ptr<J3DModelInstance> model) {
-
 }

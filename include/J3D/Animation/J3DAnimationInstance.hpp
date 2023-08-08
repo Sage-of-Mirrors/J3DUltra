@@ -25,7 +25,7 @@ namespace J3DAnimation {
         ELoopMode mLoopMode;
         uint16_t mLength;
 
-        uint16_t mCurrentFrame;
+        float mCurrentFrame;
         bool mIsPaused;
 
     public:
@@ -33,9 +33,12 @@ namespace J3DAnimation {
         virtual ~J3DAnimationInstance() { }
 
         virtual void Deserialize(bStream::CStream& stream) = 0;
-        virtual void ApplyAnimation(std::shared_ptr<J3DModelInstance> model) = 0;
 
-        uint16_t GetFrame() { return mCurrentFrame; }
-        void SetFrame(uint16_t frame, bool pause = false) { mCurrentFrame = frame; mIsPaused = pause; }
+        float GetFrame() const;
+        void SetFrame(uint16_t frame, bool pause = false);
+
+        void SetPaused(bool paused);
+        
+        void Tick(float deltaTime);
     };
 }

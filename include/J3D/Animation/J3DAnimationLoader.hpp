@@ -9,6 +9,7 @@ namespace bStream {
 
 namespace J3DAnimation {
     class J3DAnimationInstance;
+    class J3DColorAnimationInstance;
 
     class J3DAnimationLoader {
     protected:

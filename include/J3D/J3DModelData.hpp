@@ -77,6 +77,7 @@ public:
 	std::shared_ptr<J3DModelInstance> GetInstance();
 	std::vector<glm::mat4> GetRestPose() const;
 	std::vector<std::shared_ptr<J3DMaterial>> GetMaterials() const;
+	std::weak_ptr<J3DMaterial> GetMaterial(std::string name);
 	std::vector<std::shared_ptr<J3DTexture>> GetTextures() const;
 	const std::vector<J3DEnvelope>& GetJointEnvelopes() const { return mJointEnvelopes; }
 
