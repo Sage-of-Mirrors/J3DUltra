@@ -5,6 +5,7 @@
 #include "J3D/J3DMaterial.hpp"
 
 #include <memory>
+#include <algorithm>
 
 J3DAnimation::J3DColorAnimationInstance::J3DColorAnimationInstance() {
 
