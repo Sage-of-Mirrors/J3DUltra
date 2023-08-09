@@ -121,7 +121,7 @@ int GXBlendModeControlToGLFactor(EGXBlendModeControl Control)
 	}
 }
 
-void J3DMaterial::Render(std::vector<std::shared_ptr<J3DTexture>>& textures) {
+void J3DMaterial::Render(const std::vector<std::shared_ptr<J3DTexture>>& textures) {
 	glUseProgram(mShaderProgram);
 	for (int i = 0; i < TevBlock->mTextureIndices.size(); i++)
 	{

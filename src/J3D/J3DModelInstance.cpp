@@ -37,62 +37,25 @@ void J3DModelInstance::UpdateMaterialColors(float deltaTime) {
     // TODO: implement BPK
 }
 
-void J3DModelInstance::UpdateTEVRegisterColors(float deltaTime) {
+void J3DModelInstance::UpdateTEVRegisterColors(float deltaTime, std::shared_ptr<J3DMaterial> material) {
     if (mRegisterColorAnimation == nullptr) {
         return;
     }
 
-    float frameTime = mRegisterColorAnimation->GetFrame();
-
-    for (auto& r : mRegisterColorAnimation->GetRegisterEntries()) {
-        std::weak_ptr<J3DMaterial> mat = mModelData->GetMaterial(r.MaterialName);
-        if (mat.expired()) {
-            continue;
-        }
-
-        std::shared_ptr<J3DMaterial> matLocked = mat.lock();
-        matLocked->AreRegisterColorsAnimating = true;
-
-        // Reset colors to default state before animating
-        for (int i = 0; i < 4; i++) {
-            matLocked->AnimationRegisterColors[i] = matLocked->TevBlock->mTevColors[i];
-        }
-
-        matLocked->AnimationRegisterColors[r.ColorIndex].r = r.RedTrack.GetValue(frameTime);
-        matLocked->AnimationRegisterColors[r.ColorIndex].g = r.GreenTrack.GetValue(frameTime);
-        matLocked->AnimationRegisterColors[r.ColorIndex].b = r.BlueTrack.GetValue(frameTime);
-        matLocked->AnimationRegisterColors[r.ColorIndex].a = r.AlphaTrack.GetValue(frameTime);
-    }
-
-    for (auto& r : mRegisterColorAnimation->GetKonstEntries()) {
-        std::weak_ptr<J3DMaterial> mat = mModelData->GetMaterial(r.MaterialName);
-        if (mat.expired()) {
-            continue;
-        }
-
-        std::shared_ptr<J3DMaterial> matLocked = mat.lock();
-        matLocked->AreRegisterColorsAnimating = true;
-
-        // Reset colors to default state before animating
-        for (int i = 0; i < 4; i++) {
-            matLocked->AnimationKonstColors[i] = matLocked->TevBlock->mTevKonstColors[i];
-        }
-
-        matLocked->AnimationKonstColors[r.ColorIndex].r = r.RedTrack.GetValue(frameTime);
-        matLocked->AnimationKonstColors[r.ColorIndex].g = r.GreenTrack.GetValue(frameTime);
-        matLocked->AnimationKonstColors[r.ColorIndex].b = r.BlueTrack.GetValue(frameTime);
-        matLocked->AnimationKonstColors[r.ColorIndex].a = r.AlphaTrack.GetValue(frameTime);
-    }
-
-    mRegisterColorAnimation->Tick(deltaTime);
+    mRegisterColorAnimation->ApplyAnimation(material);
 }
 
 void J3DModelInstance::UpdateShapeVisibility(float deltaTime) {
     // TODO: implement BVA
 }
 
-void J3DModelInstance::UpdateAnimations(float deltaTime) {
-    UpdateTEVRegisterColors(deltaTime);
+void J3DModelInstance::Update(float deltaTime, std::shared_ptr<J3DMaterial> material) {
+    UpdateTEVRegisterColors(deltaTime, material);
+
+    J3DUniformBufferObject::SetEnvelopeMatrices(mEnvelopeMatrices.data(), mEnvelopeMatrices.size());
+
+    glm::mat4 transformMat4 = mReferenceFrame * mTransform.ToMat4();
+    J3DUniformBufferObject::SetModelMatrix(&transformMat4);
 }
 
 void J3DModelInstance::SetTranslation(const glm::vec3 trans) {
@@ -146,15 +109,23 @@ void J3DModelInstance::GatherRenderPackets(std::vector<J3DRenderPacket>& packetL
             sortKey |= 0x01000000;
         }
 
-        packetList.push_back({ sortKey, transformMat4, mEnvelopeMatrices, mat, mModelData });
+        packetList.push_back({ sortKey, mat, this });
     }
 }
 
-void J3DModelInstance::Render(float deltaTime) {
-    J3DUniformBufferObject::SetEnvelopeMatrices(mEnvelopeMatrices.data(), mEnvelopeMatrices.size());
-    
-    glm::mat4 transformMat4 = mTransform.ToMat4();
-    J3DUniformBufferObject::SetModelMatrix(&transformMat4);
+void J3DModelInstance::UpdateAnimations(float deltaTime) {
+    if (mRegisterColorAnimation != nullptr) {
+        mRegisterColorAnimation->Tick(deltaTime);
+    }
+}
 
-    mModelData->Render(deltaTime);
+void J3DModelInstance::Render(float deltaTime, std::shared_ptr<J3DMaterial> material) {
+    Update(deltaTime, material);
+
+    mModelData->BindVAO();
+
+    auto& textures = mModelData->GetTextures();
+    material->Render(textures);
+
+    mModelData->UnbindVAO();
 }

@@ -243,7 +243,7 @@ std::weak_ptr<J3DMaterial> J3DModelData::GetMaterial(std::string name) {
     return *t;
 }
 
-std::vector<std::shared_ptr<J3DTexture>> J3DModelData::GetTextures() const {
+const std::vector<std::shared_ptr<J3DTexture>>& J3DModelData::GetTextures() const {
     return mTextures;
 }
 

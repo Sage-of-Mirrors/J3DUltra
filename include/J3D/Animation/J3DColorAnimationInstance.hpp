@@ -7,6 +7,8 @@
 
 #include <vector>
 
+class J3DMaterial;
+
 namespace J3DAnimation {
     struct J3DColorAnimationData {
         std::string MaterialName;
@@ -28,5 +30,7 @@ namespace J3DAnimation {
 
         const std::vector<J3DColorAnimationData>& GetRegisterEntries() const { return RegisterEntries; }
         const std::vector<J3DColorAnimationData>& GetKonstEntries() const { return KonstEntries; }
+
+        void ApplyAnimation(std::shared_ptr<J3DMaterial> material);
     };
 }

@@ -12,6 +12,7 @@ namespace J3DAnimation {
 }
 
 class J3DModelData;
+class J3DMaterial;
 
 class J3DModelInstance {
     std::shared_ptr<J3DModelData> mModelData;
@@ -32,10 +33,12 @@ class J3DModelInstance {
     // Updates material colors based on a loaded BPK animation.
     void UpdateMaterialColors(float deltaTime);
     // Updates TEV register colors based on a loaded BRK animation.
-    void UpdateTEVRegisterColors(float deltaTime);
+    void UpdateTEVRegisterColors(float deltaTime, std::shared_ptr<J3DMaterial> material);
 
     // Updates shape visibility based on a loaded BVA animation.
     void UpdateShapeVisibility(float deltaTime);
+
+    void Update(float deltaTime, std::shared_ptr<J3DMaterial> material);
 
     std::shared_ptr<J3DAnimation::J3DColorAnimationInstance> mRegisterColorAnimation;
 
@@ -53,7 +56,7 @@ public:
     void GatherRenderPackets(std::vector<J3DRenderPacket>& packetList, glm::vec3 cameraPosition);
 
     void UpdateAnimations(float deltaTime);
-    void Render(float deltaTime);
+    void Render(float deltaTime, std::shared_ptr<J3DMaterial> material);
 
     std::shared_ptr<J3DAnimation::J3DColorAnimationInstance> GetRegisterColorAnimation() const { return mRegisterColorAnimation; }
     void SetRegisterColorAnimation(std::shared_ptr<J3DAnimation::J3DColorAnimationInstance> anim) { mRegisterColorAnimation = anim; }

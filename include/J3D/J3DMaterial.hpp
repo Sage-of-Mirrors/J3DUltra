@@ -92,5 +92,5 @@ public:
 	int32_t GetShaderProgram() const { return mShaderProgram; }
 	bool GenerateShaders();
 
-	void Render(std::vector<std::shared_ptr<struct J3DTexture>>& textures);
+	void Render(const std::vector<std::shared_ptr<struct J3DTexture>>& textures);
 };

@@ -8,10 +8,9 @@
 
 struct J3DRenderPacket {
     uint64_t SortKey;
-    glm::mat4 ModelMatrix;
-    std::vector<glm::mat4> EnvelopeMatrices;
-    std::weak_ptr<class J3DMaterial> Material;
-    std::weak_ptr<class J3DModelData> Data;
+
+    std::shared_ptr<class J3DMaterial> Material;
+    class J3DModelInstance* Instance;
 
     void Render(float deltaTime);
 };
