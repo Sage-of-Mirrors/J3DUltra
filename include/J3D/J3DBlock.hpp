@@ -237,3 +237,17 @@ struct J3DRegisterColorKeyBlock : public J3DBlock {
 
 	virtual bool Deserialize(bStream::CStream* stream) override;
 };
+
+struct J3DTexIndexKeyBlock : public J3DBlock {
+	uint8_t LoopMode;
+
+	uint16_t Length;
+	uint16_t TrackCount;
+
+	uint32_t TrackTableOffset;
+	uint32_t IndexTableOffset;
+	uint32_t MaterialInstanceTableOffset;
+	uint32_t MaterialNameTableOffset;
+
+	virtual bool Deserialize(bStream::CStream* stream) override;
+};

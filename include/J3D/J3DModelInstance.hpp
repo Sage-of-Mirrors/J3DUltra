@@ -9,6 +9,7 @@
 
 namespace J3DAnimation {
     class J3DColorAnimationInstance;
+    class J3DTexIndexAnimationInstance;
 }
 
 class J3DModelData;
@@ -28,7 +29,7 @@ class J3DModelInstance {
     void CalculateTextureMatrices(float deltaTime);
 
     // Updates material textures based on a loaded BTP animation.
-    void UpdateMaterialTextures(float deltaTime);
+    void UpdateMaterialTextures(float deltaTime, std::shared_ptr<J3DMaterial> material);
 
     // Updates material colors based on a loaded BPK animation.
     void UpdateMaterialColors(float deltaTime);
@@ -41,6 +42,7 @@ class J3DModelInstance {
     void Update(float deltaTime, std::shared_ptr<J3DMaterial> material);
 
     std::shared_ptr<J3DAnimation::J3DColorAnimationInstance> mRegisterColorAnimation;
+    std::shared_ptr<J3DAnimation::J3DTexIndexAnimationInstance> mTexIndexAnimation;
 
 public:
     J3DModelInstance(std::shared_ptr<J3DModelData> modelData);
@@ -60,4 +62,7 @@ public:
 
     std::shared_ptr<J3DAnimation::J3DColorAnimationInstance> GetRegisterColorAnimation() const { return mRegisterColorAnimation; }
     void SetRegisterColorAnimation(std::shared_ptr<J3DAnimation::J3DColorAnimationInstance> anim) { mRegisterColorAnimation = anim; }
+
+    std::shared_ptr<J3DAnimation::J3DTexIndexAnimationInstance> GetTexIndexAnimation() const { return mTexIndexAnimation; }
+    void SetTexIndexAnimation(std::shared_ptr<J3DAnimation::J3DTexIndexAnimationInstance> anim) { mTexIndexAnimation = anim; }
 };

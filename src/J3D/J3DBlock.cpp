@@ -507,3 +507,30 @@ bool J3DRegisterColorKeyBlock::Deserialize(bStream::CStream* stream) {
 
     return true;
 }
+
+bool J3DTexIndexKeyBlock::Deserialize(bStream::CStream* stream) {
+    size_t currentStreamPosition = stream->tell();
+
+    if (!J3DBlock::Deserialize(stream)) {
+        return false;
+    }
+
+    try {
+        LoopMode = stream->readUInt8();
+        stream->skip(1);
+
+        Length = stream->readUInt16();
+        TrackCount = stream->readUInt16();
+        uint16_t unk1 = stream->readUInt16();
+
+        TrackTableOffset = stream->readUInt32() + BlockOffset;
+        IndexTableOffset = stream->readUInt32() + BlockOffset;
+        MaterialInstanceTableOffset = stream->readUInt32() + BlockOffset;
+        MaterialNameTableOffset = stream->readUInt32() + BlockOffset;
+    }
+    catch (...) {
+        return false;
+    }
+
+    return true;
+}

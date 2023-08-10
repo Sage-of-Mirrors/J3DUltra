@@ -3,6 +3,7 @@
 #include "J3D/J3DUniformBufferObject.hpp"
 
 #include "J3D/Animation/J3DColorAnimationInstance.hpp"
+#include "J3D/Animation/J3DTexIndexAnimationInstance.hpp"
 
 #include <stdexcept>
 #include <iostream>
@@ -29,8 +30,12 @@ void J3DModelInstance::CalculateTextureMatrices(float deltaTime) {
     // TODO: implement BTK
 }
 
-void J3DModelInstance::UpdateMaterialTextures(float deltaTime) {
-    // TODO: implement BTP
+void J3DModelInstance::UpdateMaterialTextures(float deltaTime, std::shared_ptr<J3DMaterial> material) {
+    if (mTexIndexAnimation == nullptr) {
+        return;
+    }
+
+    mTexIndexAnimation->ApplyAnimation(material);
 }
 
 void J3DModelInstance::UpdateMaterialColors(float deltaTime) {
@@ -51,6 +56,7 @@ void J3DModelInstance::UpdateShapeVisibility(float deltaTime) {
 
 void J3DModelInstance::Update(float deltaTime, std::shared_ptr<J3DMaterial> material) {
     UpdateTEVRegisterColors(deltaTime, material);
+    UpdateMaterialTextures(deltaTime, material);
 
     J3DUniformBufferObject::SetEnvelopeMatrices(mEnvelopeMatrices.data(), mEnvelopeMatrices.size());
 
@@ -116,6 +122,10 @@ void J3DModelInstance::GatherRenderPackets(std::vector<J3DRenderPacket>& packetL
 void J3DModelInstance::UpdateAnimations(float deltaTime) {
     if (mRegisterColorAnimation != nullptr) {
         mRegisterColorAnimation->Tick(deltaTime);
+    }
+
+    if (mTexIndexAnimation != nullptr) {
+        mTexIndexAnimation->Tick(deltaTime);
     }
 }
 

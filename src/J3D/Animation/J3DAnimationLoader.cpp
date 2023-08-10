@@ -3,6 +3,7 @@
 #include "J3D/Animation/J3DHermiteAnimationTrack.hpp"
 
 #include "J3D/Animation/J3DColorAnimationInstance.hpp"
+#include "J3D/Animation/J3DTexIndexAnimationInstance.hpp"
 
 #include "J3D/J3DBlock.hpp"
 #include "J3D/J3DData.hpp"
@@ -42,10 +43,12 @@ std::shared_ptr<J3DAnimation::J3DAnimationInstance> J3DAnimation::J3DAnimationLo
         case EJ3DBlockType::TRK1:
             mAnimInstance = std::make_shared<J3DColorAnimationInstance>();
             break;
-        // BTK
-        case EJ3DBlockType::TTK1:
         // BTP
         case EJ3DBlockType::TPT1:
+            mAnimInstance = std::make_shared<J3DTexIndexAnimationInstance>();
+            break;
+        // BTK
+        case EJ3DBlockType::TTK1:
         // BCK
         case EJ3DBlockType::ANK1:
         // BPK

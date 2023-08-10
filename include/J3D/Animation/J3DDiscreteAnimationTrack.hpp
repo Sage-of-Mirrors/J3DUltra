@@ -12,6 +12,7 @@ namespace J3DAnimation {
         J3DDiscreteAnimationTrack();
         ~J3DDiscreteAnimationTrack();
 
+        void AddKey(J3DAnimationKey key);
         float GetValue(float time) const;
     };
 }

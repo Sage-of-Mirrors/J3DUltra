@@ -9,7 +9,7 @@
 #include <vector>
 #include <glad/glad.h>
 
-J3DMaterial::J3DMaterial() : mShaderProgram(-1), AreRegisterColorsAnimating(false) {
+J3DMaterial::J3DMaterial() : mShaderProgram(-1), AreRegisterColorsAnimating(false), AreTexIndicesAnimating(false){
 	TevBlock = std::make_shared<J3DTevBlock>();
 }
 
@@ -125,7 +125,12 @@ void J3DMaterial::Render(const std::vector<std::shared_ptr<J3DTexture>>& texture
 	glUseProgram(mShaderProgram);
 	for (int i = 0; i < TevBlock->mTextureIndices.size(); i++)
 	{
-		glBindTextureUnit(i, textures[TevBlock->mTextureIndices[i]]->TexHandle);
+		uint16_t texIndex = TevBlock->mTextureIndices[i];
+		if (AreTexIndicesAnimating) {
+			texIndex = AnimationTexIndices[i];
+		}
+
+		glBindTextureUnit(i, textures[texIndex]->TexHandle);
 	}
 
 	if (PEBlock.mBlendMode.Type != EGXBlendMode::None)
