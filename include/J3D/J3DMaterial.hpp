@@ -23,7 +23,7 @@ struct J3DPixelEngineBlock {
 
 struct J3DLightBlock {
 	EGXCullMode mCullMode;
-	glm::vec4 mMatteColor[2];
+	glm::vec4 mMaterialColor[2];
 	glm::vec4 mAmbientColor[2];
 
 	std::vector<std::shared_ptr<J3DColorChannel>> mColorChannels;

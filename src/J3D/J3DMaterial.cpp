@@ -79,9 +79,9 @@ bool J3DMaterial::GenerateShaders() {
 	glm::vec4 test(0, 0, 0, 1.0);
 
 	uint32_t uniformID = glGetUniformLocation(mShaderProgram, "uMaterialReg[0]");
-	glProgramUniform4fv(mShaderProgram, uniformID, 1, &LightBlock.mMatteColor[0][0]);
+	glProgramUniform4fv(mShaderProgram, uniformID, 1, &LightBlock.mMaterialColor[0][0]);
 	uniformID = glGetUniformLocation(mShaderProgram, "uMaterialReg[1]");
-	glProgramUniform4fv(mShaderProgram, uniformID, 1, &LightBlock.mMatteColor[1][0]);
+	glProgramUniform4fv(mShaderProgram, uniformID, 1, &LightBlock.mMaterialColor[1][0]);
 	uniformID = glGetUniformLocation(mShaderProgram, "uAmbientReg[0]");
 	glProgramUniform4fv(mShaderProgram, uniformID, 1, &LightBlock.mAmbientColor[0][0]);
 	uniformID = glGetUniformLocation(mShaderProgram, "uAmbientReg[1]");

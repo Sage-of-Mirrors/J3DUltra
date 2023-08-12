@@ -1,11 +1,11 @@
-#include "J3D/J3DMaterialFactory.hpp"
+#include "J3D/J3DMaterialFactoryV2.hpp"
 #include "J3D/J3DBlock.hpp"
 #include "J3D/J3DMaterial.hpp"
 
-J3DMaterialFactory::J3DMaterialFactory(J3DMaterialBlock* srcBlock, bStream::CStream* stream) {
+J3DMaterialFactoryV2::J3DMaterialFactoryV2(J3DMaterialBlockV2* srcBlock, bStream::CStream* stream) {
 	mBlock = srcBlock;
 
-	stream->seek(mBlock->IndexTableOffset);
+	stream->seek(mBlock->InstanceTableOffset);
 	for (int i = 0; i < mBlock->Count; i++)
 		mInstanceTable.push_back(stream->readUInt16());
 
@@ -13,7 +13,7 @@ J3DMaterialFactory::J3DMaterialFactory(J3DMaterialBlock* srcBlock, bStream::CStr
 	mNameTable.Deserialize(stream);
 }
 
-std::shared_ptr<J3DMaterial> J3DMaterialFactory::Create(bStream::CStream* stream, uint32_t index) {
+std::shared_ptr<J3DMaterial> J3DMaterialFactoryV2::Create(bStream::CStream* stream, uint32_t index) {
 	std::shared_ptr<J3DMaterial> newMaterial = std::make_shared<J3DMaterial>();
 	newMaterial->Name = mNameTable.GetName(index);
 
@@ -21,9 +21,9 @@ std::shared_ptr<J3DMaterial> J3DMaterialFactory::Create(bStream::CStream* stream
 	// We can know which init data to use by looking up the proper index from the instance table.
 	uint16_t instanceIndex = mInstanceTable[index];
 
-	stream->seek(mBlock->InitDataTableOffset + (instanceIndex * sizeof(J3DMaterialInitData)));
+	stream->seek(mBlock->InitDataTableOffset + (instanceIndex * sizeof(J3DMaterialInitDataV2)));
 
-	J3DMaterialInitData initData;
+	J3DMaterialInitDataV2 initData;
 	initData.Deserialize(stream);
 
 	newMaterial->PEMode = (EPixelEngineMode)(initData.PEMode & 0x07);
@@ -32,7 +32,11 @@ std::shared_ptr<J3DMaterial> J3DMaterialFactory::Create(bStream::CStream* stream
 	newMaterial->PEBlock.mZMode = ReadMaterialComponent<J3DZMode>(stream, mBlock->ZModeTableOffset, initData.ZMode);
 	newMaterial->PEBlock.mAlphaCompare = ReadMaterialComponent<J3DAlphaCompare>(stream, mBlock->AlphaCompareTableOffset, initData.AlphaCompare);
 	newMaterial->PEBlock.mBlendMode = ReadMaterialComponent<J3DBlendMode>(stream, mBlock->BlendInfoTableOffset, initData.BlendMode);
-	newMaterial->PEBlock.mFog = ReadMaterialComponent<J3DFog>(stream, mBlock->FogTableOffset, initData.Fog);
+
+	if (initData.Fog != UINT16_MAX) {
+		newMaterial->PEBlock.mFog = ReadMaterialComponent<J3DFog>(stream, mBlock->FogTableOffset, initData.Fog);
+	}
+	
 	newMaterial->PEBlock.mZCompLoc = stream->peekUInt8(mBlock->ZCompLocTableOffset + initData.ZCompLoc * sizeof(uint8_t));
 	newMaterial->PEBlock.mDither = stream->peekUInt8(mBlock->DitherTableOffset + initData.Dither * sizeof(uint8_t));
 
@@ -41,28 +45,19 @@ std::shared_ptr<J3DMaterial> J3DMaterialFactory::Create(bStream::CStream* stream
 	
 	for (int i = 0; i < 2; i++) {
 		if (initData.MaterialColor[i] != UINT16_MAX) {
-			newMaterial->LightBlock.mMatteColor[i].r = stream->peekUInt8(mBlock->MaterialColorTableOffset + initData.MaterialColor[i] * sizeof(glm::uint32_t));
-			newMaterial->LightBlock.mMatteColor[i].g = stream->peekUInt8(mBlock->MaterialColorTableOffset + initData.MaterialColor[i] * sizeof(glm::uint32_t) + 1);
-			newMaterial->LightBlock.mMatteColor[i].b = stream->peekUInt8(mBlock->MaterialColorTableOffset + initData.MaterialColor[i] * sizeof(glm::uint32_t) + 2);
-			newMaterial->LightBlock.mMatteColor[i].a = stream->peekUInt8(mBlock->MaterialColorTableOffset + initData.MaterialColor[i] * sizeof(glm::uint32_t) + 3);
+			newMaterial->LightBlock.mMaterialColor[i].r = stream->peekUInt8(mBlock->MaterialColorTableOffset + initData.MaterialColor[i] * sizeof(glm::uint32_t));
+			newMaterial->LightBlock.mMaterialColor[i].g = stream->peekUInt8(mBlock->MaterialColorTableOffset + initData.MaterialColor[i] * sizeof(glm::uint32_t) + 1);
+			newMaterial->LightBlock.mMaterialColor[i].b = stream->peekUInt8(mBlock->MaterialColorTableOffset + initData.MaterialColor[i] * sizeof(glm::uint32_t) + 2);
+			newMaterial->LightBlock.mMaterialColor[i].a = stream->peekUInt8(mBlock->MaterialColorTableOffset + initData.MaterialColor[i] * sizeof(glm::uint32_t) + 3);
 
-			newMaterial->LightBlock.mMatteColor[i].r = newMaterial->LightBlock.mMatteColor[i].r / 255.0f;
-			newMaterial->LightBlock.mMatteColor[i].g = newMaterial->LightBlock.mMatteColor[i].g / 255.0f;
-			newMaterial->LightBlock.mMatteColor[i].b = newMaterial->LightBlock.mMatteColor[i].b / 255.0f;
-			newMaterial->LightBlock.mMatteColor[i].a = newMaterial->LightBlock.mMatteColor[i].a / 255.0f;
+			newMaterial->LightBlock.mMaterialColor[i].r = newMaterial->LightBlock.mMaterialColor[i].r / 255.0f;
+			newMaterial->LightBlock.mMaterialColor[i].g = newMaterial->LightBlock.mMaterialColor[i].g / 255.0f;
+			newMaterial->LightBlock.mMaterialColor[i].b = newMaterial->LightBlock.mMaterialColor[i].b / 255.0f;
+			newMaterial->LightBlock.mMaterialColor[i].a = newMaterial->LightBlock.mMaterialColor[i].a / 255.0f;
 		}
 
-		if (initData.AmbientColor[i] != UINT16_MAX) {
-			newMaterial->LightBlock.mAmbientColor[i].r = stream->peekUInt8(mBlock->AmbientColorTableOffset + initData.AmbientColor[i] * sizeof(glm::uint32_t));
-			newMaterial->LightBlock.mAmbientColor[i].g = stream->peekUInt8(mBlock->AmbientColorTableOffset + initData.AmbientColor[i] * sizeof(glm::uint32_t) + 1);
-			newMaterial->LightBlock.mAmbientColor[i].b = stream->peekUInt8(mBlock->AmbientColorTableOffset + initData.AmbientColor[i] * sizeof(glm::uint32_t) + 2);
-			newMaterial->LightBlock.mAmbientColor[i].a = stream->peekUInt8(mBlock->AmbientColorTableOffset + initData.AmbientColor[i] * sizeof(glm::uint32_t) + 3);
-
-			newMaterial->LightBlock.mAmbientColor[i].r = newMaterial->LightBlock.mAmbientColor[i].r / 255.0f;
-			newMaterial->LightBlock.mAmbientColor[i].g = newMaterial->LightBlock.mAmbientColor[i].g / 255.0f;
-			newMaterial->LightBlock.mAmbientColor[i].b = newMaterial->LightBlock.mAmbientColor[i].b / 255.0f;
-			newMaterial->LightBlock.mAmbientColor[i].a = newMaterial->LightBlock.mAmbientColor[i].a / 255.0f;
-		}
+		newMaterial->LightBlock.mAmbientColor[0] = glm::one<glm::vec4>();
+		newMaterial->LightBlock.mAmbientColor[1] = glm::one<glm::vec4>();
 	}
 
 	uint8_t chanControlNum = stream->peekUInt8(mBlock->ColorChannelCountTableOffset + initData.ColorChannelCount * sizeof(uint8_t));
@@ -148,104 +143,61 @@ std::shared_ptr<J3DMaterial> J3DMaterialFactory::Create(bStream::CStream* stream
 		}
 	}
 
-	// Indirect block. Don't try to load it if it doesn't exist; we can tell if it exists by comparing its offset
-	// to the preceeding data's offset, which is the name table.
-	if (mBlock->NameTableOffset != mBlock->IndirectInitDataTableOffset) {
-		stream->seek(mBlock->IndirectInitDataTableOffset + index * 0x138);
-		newMaterial->IndirectBlock = std::make_shared<J3DIndirectBlock>();
-
-		newMaterial->IndirectBlock->mEnabled = stream->readUInt8();
-		newMaterial->IndirectBlock->mNumStages = stream->readUInt8();
-		stream->skip(2);
-
-		for (int i = 0; i < 4; i++) {
-			std::shared_ptr<J3DIndirectTexOrderInfo> texOrder = std::make_shared<J3DIndirectTexOrderInfo>();
-			texOrder->Deserialize(stream);
-
-			newMaterial->IndirectBlock->mIndirectTexOrders.push_back(texOrder);
-		}
-
-		for (int i = 0; i < 3; i++) {
-			std::shared_ptr<J3DIndirectTexMatrixInfo> texMatrix = std::make_shared<J3DIndirectTexMatrixInfo>();
-			texMatrix->Deserialize(stream);
-
-			newMaterial->IndirectBlock->mIndirectTexMatrices.push_back(texMatrix);
-		}
-
-		for (int i = 0; i < 4; i++) {
-			std::shared_ptr<J3DIndirectTexScaleInfo> texScale = std::make_shared<J3DIndirectTexScaleInfo>();
-			texScale->Deserialize(stream);
-
-			newMaterial->IndirectBlock->mIndirectTexCoordScales.push_back(texScale);
-		}
-
-		for (int i = 0; i < 16; i++) {
-			std::shared_ptr<J3DIndirectTevStageInfo> tevStage = std::make_shared<J3DIndirectTevStageInfo>();
-			tevStage->Deserialize(stream);
-
-			newMaterial->IndirectBlock->mIndirectTevStages.push_back(tevStage);
-		}
-	}
-
 	return newMaterial;
 }
 
-void J3DMaterialInitData::Deserialize(bStream::CStream* stream) {
-	PEMode = stream->readUInt8();
-	CullMode = stream->readUInt8();
-	ColorChannelCount = stream->readUInt8();
-	TexGenCount = stream->readUInt8();
-	TEVStageCount = stream->readUInt8();
-	ZCompLoc = stream->readUInt8();
-	ZMode = stream->readUInt8();
-	Dither = stream->readUInt8();
+void J3DMaterialInitDataV2::Deserialize(bStream::CStream* stream) {
+	PEMode = stream->readUInt8();            // 0x0000
+	CullMode = stream->readUInt8();          // 0x0001
+	ColorChannelCount = stream->readUInt8(); // 0x0002
+	TexGenCount = stream->readUInt8();       // 0x0003
+	TEVStageCount = stream->readUInt8();     // 0x0004
+	ZCompLoc = stream->readUInt8();          // 0x0005
+	ZMode = stream->readUInt8();             // 0x0006
+	Dither = stream->readUInt8();            // 0x0007
 
-	MaterialColor[0] = stream->readUInt16();
-	MaterialColor[1] = stream->readUInt16();
+	MaterialColor[0] = stream->readUInt16(); // 0x0008
+	MaterialColor[1] = stream->readUInt16(); // 0x000A
 
 	for (int i = 0; i < 4; i++)
-		ColorChannel[i] = stream->readUInt16();
-
-	AmbientColor[0] = stream->readUInt16();
-	AmbientColor[1] = stream->readUInt16();
+		ColorChannel[i] = stream->readUInt16(); // 0x000C to 0x0012
 
 	for (int i = 0; i < 8; i++)
-		Light[i] = stream->readUInt16();
-
+		TexCoord[i] = stream->readUInt16();     // 0x0014 to 0x0022
 	for (int i = 0; i < 8; i++)
-		TexCoord[i] = stream->readUInt16();
-	for (int i = 0; i < 8; i++)
-		TexCoord2[i] = stream->readUInt16();
+		TexCoord2[i] = stream->readUInt16();    // 0x0024 to 0x0032
 
 	for (int i = 0; i < 10; i++)
-		TexMatrix[i] = stream->readUInt16();
+		TexMatrix[i] = stream->readUInt16();    // 0x0034 to 0x0046
 	for (int i = 0; i < 20; i++)
-		PostTexMatrix[i] = stream->readUInt16();
+		PostTexMatrix[i] = stream->readUInt16(); // 0x0048 to 0x006E
 
 	for (int i = 0; i < 8; i++)
-		TextureIndex[i] = stream->readUInt16();
+		TextureIndex[i] = stream->readUInt16(); // 0x0070 to 0x007E
 
 	for (int i = 0; i < 4; i++)
-		TEVKonstColor[i] = stream->readUInt16();
+		TEVKonstColor[i] = stream->readUInt16(); // 0x0080 to 0x0086
+
+	size_t s = stream->tell();
 
 	for (int i = 0; i < 16; i++)
-		TEVKonstColorSelect[i] = stream->readUInt8();
+		TEVKonstColorSelect[i] = stream->readUInt8(); // 0x0088 to 0x0097
 	for (int i = 0; i < 16; i++)
-		TEVKonstAlphaSelect[i] = stream->readUInt8();
+		TEVKonstAlphaSelect[i] = stream->readUInt8(); // 0x0098 to 0x00A7
 
 	for (int i = 0; i < 16; i++)
-		TEVOrder[i] = stream->readUInt16();
+		TEVOrder[i] = stream->readUInt16(); // 0x00A8 to 0x00C7
 	for (int i = 0; i < 4; i++)
-		TEVColor[i] = stream->readUInt16();
+		TEVColor[i] = stream->readUInt16(); // 0x00C8 to 0x00CF
 	for (int i = 0; i < 16; i++)
-		TEVStage[i] = stream->readUInt16();
+		TEVStage[i] = stream->readUInt16(); // 0x00D0 to 0x00EF
 	for (int i = 0; i < 16; i++)
-		TEVSwapMode[i] = stream->readUInt16();
+		TEVSwapMode[i] = stream->readUInt16(); // 0x00F0 to 0x010F
 	for (int i = 0; i < 16; i++)
-		TEVSwapModeTable[i] = stream->readUInt16();
+		TEVSwapModeTable[i] = stream->readUInt16(); // 0x0110 to 0x012F
 
-	Fog = stream->readUInt16();
-	AlphaCompare = stream->readUInt16();
-	BlendMode = stream->readUInt16();
-	NBTScale = stream->readUInt16();
+	Fog = stream->readUInt16();          // 0x0130
+	AlphaCompare = stream->readUInt16(); // 0x0132
+	BlendMode = stream->readUInt16();    // 0x0134
+	NBTScale = stream->readUInt16();     // 0x0138
 }

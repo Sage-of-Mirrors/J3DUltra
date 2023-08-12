@@ -28,6 +28,7 @@ protected:
 	void ReadDrawBlock(bStream::CStream* stream, uint32_t flags);
 	void ReadJointBlock(bStream::CStream* stream, uint32_t flags);
 	void ReadShapeBlock(bStream::CStream* stream, uint32_t flags);
-	void ReadMaterialBlock(bStream::CStream* stream, uint32_t flags);
+	void ReadMaterialBlockV2(bStream::CStream* stream, uint32_t flags);
+	void ReadMaterialBlockV3(bStream::CStream* stream, uint32_t flags);
 	void ReadTextureBlock(bStream::CStream* stream, uint32_t flags);
 };

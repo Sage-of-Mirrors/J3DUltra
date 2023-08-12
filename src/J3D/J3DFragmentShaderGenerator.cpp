@@ -242,6 +242,11 @@ std::string J3DFragmentShaderGenerator::GenerateRasterColor(std::shared_ptr<J3DT
 std::string J3DFragmentShaderGenerator::GenerateKonstColor(EGXKonstColorSel colorSel, EGXKonstAlphaSel alphaSel) {
 	std::stringstream stream;
 
+	if (colorSel == EGXKonstColorSel::KCSel_Null || alphaSel == EGXKonstAlphaSel::KASel_Null) {
+		stream << "\t\t// No valid konst color selections, so no konst color.\n\n";
+		return stream.str();
+	}
+
 	// Konst color
 	stream << "\t\t// Konst color source: " << magic_enum::enum_name(colorSel) << ", alpha source: " << magic_enum::enum_name(alphaSel) << "\n";
 

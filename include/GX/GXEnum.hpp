@@ -392,7 +392,9 @@ enum class EGXKonstColorSel : uint8_t {
 	KCSel_K0_A = 0x1C,  // K0[AAA] Register
 	KCSel_K1_A = 0x1D,  // K1[AAA] Register
 	KCSel_K2_A = 0x1E,  // K2[AAA] Register
-	KCSel_K3_A = 0x1F   // K3[AAA] Register
+	KCSel_K3_A = 0x1F,  // K3[AAA] Register
+
+	KCSel_Null = 0xFF
 };
 
 enum class EGXKonstAlphaSel : uint8_t {
@@ -419,7 +421,9 @@ enum class EGXKonstAlphaSel : uint8_t {
 	KASel_K0_A = 0x1C,  // K0[A] Register
 	KASel_K1_A = 0x1D,  // K1[A] Register
 	KASel_K2_A = 0x1E,  // K2[A] Register
-	KASel_K3_A = 0x1F   // K3[A] Register
+	KASel_K3_A = 0x1F,  // K3[A] Register
+
+	KASel_Null = 0xFF
 };
 
 enum class EGXSwapMode : uint8_t {

@@ -9,9 +9,9 @@
 
 namespace bStream { class CStream; }
 class J3DMaterial;
-struct J3DMaterialBlock;
+struct J3DMaterialBlockV2;
 
-struct J3DMaterialInitData {
+struct J3DMaterialInitDataV2 {
 	uint8_t PEMode;
 	uint8_t CullMode;
 	uint8_t ColorChannelCount;
@@ -23,8 +23,6 @@ struct J3DMaterialInitData {
 
 	uint16_t MaterialColor[2];
 	uint16_t ColorChannel[4];
-	uint16_t AmbientColor[2];
-	uint16_t Light[8];
 	uint16_t TexCoord[8];
 	uint16_t TexCoord2[8];
 	uint16_t TexMatrix[10];
@@ -49,8 +47,8 @@ struct J3DMaterialInitData {
 	void Deserialize(bStream::CStream* stream);
 };
 
-class J3DMaterialFactory {
-	J3DMaterialBlock* mBlock;
+class J3DMaterialFactoryV2 {
+	J3DMaterialBlockV2* mBlock;
 
 	std::vector<uint16_t> mInstanceTable;
 	J3DNameTable mNameTable;
@@ -72,8 +70,8 @@ class J3DMaterialFactory {
 	}
 
 public:
-	J3DMaterialFactory(J3DMaterialBlock* srcBlock, bStream::CStream* stream);
-	~J3DMaterialFactory() {}
+	J3DMaterialFactoryV2(J3DMaterialBlockV2* srcBlock, bStream::CStream* stream);
+	~J3DMaterialFactoryV2() {}
 
 	std::shared_ptr<J3DMaterial> Create(bStream::CStream* stream, uint32_t index);
 };
