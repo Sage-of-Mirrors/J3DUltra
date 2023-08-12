@@ -2,6 +2,7 @@
 
 #include "J3D/J3DTransform.hpp"
 #include "J3D/J3DRenderPacket.hpp"
+#include "J3D/J3DLight.hpp"
 
 #include <glm/glm.hpp>
 #include <memory>
@@ -22,6 +23,9 @@ class J3DModelInstance {
 
     // Transform applied to the model-space transform stored in mTransform.
     glm::mat4 mReferenceFrame;
+
+    // Lights applied to this model instance
+    J3DLight mLights[8];
 
     // Recalculates joint transforms based on a load animation - BCK for keyframes at discrete time units, BCA for values at every frame.
     void CalculateJointMatrices(float deltaTime);
@@ -59,6 +63,9 @@ public:
 
     void UpdateAnimations(float deltaTime);
     void Render(float deltaTime, std::shared_ptr<J3DMaterial> material);
+
+    J3DLight GetLight(int index) const;
+    void SetLight(const J3DLight& light, int index);
 
     std::shared_ptr<J3DAnimation::J3DColorAnimationInstance> GetRegisterColorAnimation() const { return mRegisterColorAnimation; }
     void SetRegisterColorAnimation(std::shared_ptr<J3DAnimation::J3DColorAnimationInstance> anim) { mRegisterColorAnimation = anim; }

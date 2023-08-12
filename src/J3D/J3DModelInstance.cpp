@@ -59,6 +59,7 @@ void J3DModelInstance::Update(float deltaTime, std::shared_ptr<J3DMaterial> mate
     UpdateMaterialTextures(deltaTime, material);
 
     J3DUniformBufferObject::SetEnvelopeMatrices(mEnvelopeMatrices.data(), mEnvelopeMatrices.size());
+    J3DUniformBufferObject::SetLights(mLights);
 
     glm::mat4 transformMat4 = mReferenceFrame * mTransform.ToMat4();
     J3DUniformBufferObject::SetModelMatrix(&transformMat4);
@@ -93,6 +94,24 @@ void J3DModelInstance::SetTransform(const glm::mat4 transform) {
     mTransform.Translation = translation;
     mTransform.Scale = scale;
     mTransform.Rotation = rotation;
+}
+
+J3DLight J3DModelInstance::GetLight(int index) const {
+    J3DLight light;
+    
+    if (index >= 0 && index < 8) {
+        light = mLights[index];
+    }
+
+    return light;
+}
+
+void J3DModelInstance::SetLight(const J3DLight& light, int index) {
+    if (index < 0 || index >= 8) {
+        return;
+    }
+
+    mLights[index] = light;
 }
 
 void J3DModelInstance::SetReferenceFrame(const glm::mat4 frame) {
