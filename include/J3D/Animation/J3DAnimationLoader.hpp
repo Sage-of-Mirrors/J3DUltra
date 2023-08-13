@@ -24,6 +24,12 @@ namespace J3DAnimation {
             return std::dynamic_pointer_cast<T>(loadedAnimation);
         }
 
+        template<typename T>
+        std::shared_ptr<T> LoadAnimation(bStream::CStream& stream) {
+            std::shared_ptr<J3DAnimationInstance> loadedAnimation = LoadAnimation(stream);
+            return std::dynamic_pointer_cast<T>(loadedAnimation);
+        }
+
         std::shared_ptr<J3DAnimationInstance> LoadAnimation(std::filesystem::path filePath);
         std::shared_ptr<J3DAnimationInstance> LoadAnimation(void* buffer, uint32_t size);
         std::shared_ptr<J3DAnimationInstance> LoadAnimation(bStream::CStream& stream);
