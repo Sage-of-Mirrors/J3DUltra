@@ -458,7 +458,7 @@ std::string J3DVertexShaderGenerator::GenerateMainFunction(const J3DMaterial* ma
 	stream << "void main() {\n";
 
 	stream << "\tvec3 ViewPos = (View * Model * (Envelopes[int(aPos.w)]) * vec4(aPos.xyz, 1.0)).xyz;\n";
-	if (hasNormals) {
+	if (IsAttributeUsed(EGXAttribute::Normal, material)) {
 		stream << "\tvec3 ViewNormal = (View * Model * vec4(mat3(transpose(inverse(Envelopes[int(aPos.w)]))) * aNrm, 0.0)).xyz;\n";
 	}
 
