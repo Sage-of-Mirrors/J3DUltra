@@ -119,14 +119,16 @@ bool J3DVertexShaderGenerator::IsAttributeUsed(EGXAttribute a, const J3DMaterial
 		case EGXAttribute::Color0:
 		case EGXAttribute::Color1:
 		{
-			uint32_t colorIndex = static_cast<uint32_t>(a) - static_cast<uint32_t>(EGXAttribute::Color0);
+			uint32_t colorIndex = (static_cast<uint32_t>(a) - static_cast<uint32_t>(EGXAttribute::Color0)) * 2;
 
-			if (material->LightBlock.mColorChannels.size() < colorIndex) {
+			if (material->LightBlock.mColorChannels.size() < colorIndex || material->LightBlock.mColorChannels.size() < colorIndex + 1) {
 				return false;
 			}
 
-			if (material->LightBlock.mColorChannels[colorIndex]->MaterialSource == EGXColorSource::Vertex ||
-				material->LightBlock.mColorChannels[colorIndex]->AmbientSource == EGXColorSource::Vertex) {
+			if (material->LightBlock.mColorChannels[colorIndex]->MaterialSource == EGXColorSource::Vertex || // Color channel
+				material->LightBlock.mColorChannels[colorIndex]->AmbientSource == EGXColorSource::Vertex ||
+				material->LightBlock.mColorChannels[colorIndex + 1]->MaterialSource == EGXColorSource::Vertex || // Alpha channel
+				material->LightBlock.mColorChannels[colorIndex + 1]->AmbientSource == EGXColorSource::Vertex) {
 				return true;
 			}
 
