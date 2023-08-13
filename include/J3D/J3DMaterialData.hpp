@@ -126,24 +126,44 @@ struct J3DTexCoordInfo : public J3DMaterialComponentBase {
 	bool operator!=(const J3DTexCoordInfo& other) const;
 };
 
-enum class EJ3DTexMatrixProjection : uint8_t {
-	ST,
-	STQ
+enum class EJ3DMatrixCalcType : uint8_t {
+	SOFTIMAGE,
+	MAYA
+};
+
+enum class EJ3DTexEffect : uint8_t {
+	NONE,
+	ENVMAP_BASIC,
+	PROJMAP_BASIC,
+	VIEWPROJMAP_BASIC,
+	EFFECT_4,
+	EFFECT_5,
+	ENVMAP_OLD,
+	ENVMAP,
+	PROJMAP,
+	VIEWPROJMAP,
+	ENVMAP_OLD_EFFECTMTX,
+	ENVMAP_EFFECTMTX
 };
 
 struct J3DTexMatrixInfo : public J3DMaterialComponentBase {
-	EJ3DTexMatrixProjection Projection;
 	EGXTexMatrixType Type;
-	glm::vec3 Origin;
+	EJ3DMatrixCalcType CalcType;
+	EJ3DTexEffect TexEffect;
 
+	glm::vec3 Origin;
 	J3DTextureSRTInfo Transform;
-	glm::mat4 Matrix;
+	glm::mat4 ProjectionMatrix;
+	
+	glm::mat4 CalculatedMatrix;
 
 	J3DTexMatrixInfo();
 
 	virtual void Serialize(bStream::CStream* stream) override;
 	virtual void Deserialize(bStream::CStream* stream);
 	virtual size_t GetElementSize() override { return 100; }
+
+	void CalculateMatrix();
 
 	bool operator==(const J3DTexMatrixInfo& other) const;
 	bool operator!=(const J3DTexMatrixInfo& other) const;

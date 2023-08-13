@@ -202,15 +202,17 @@ bool J3DTexCoordInfo::operator!=(const J3DTexCoordInfo& other) const {
 }
 
 /* == J3DTexMatrixInfo == */
-J3DTexMatrixInfo::J3DTexMatrixInfo() : Projection(EJ3DTexMatrixProjection::STQ), Type(EGXTexMatrixType::Matrix2x4), Origin(glm::vec3(0.5f, 0.5f, 0.5f)), Matrix(glm::identity<glm::mat4>()) {
+J3DTexMatrixInfo::J3DTexMatrixInfo() : Type(EGXTexMatrixType::Matrix2x4), CalcType(EJ3DMatrixCalcType::SOFTIMAGE), TexEffect(EJ3DTexEffect::NONE), Origin(glm::vec3(0.5f, 0.5f, 0.5f)), ProjectionMatrix(glm::identity<glm::mat4>()) {
 	Transform.Scale = glm::vec2(1.0f, 1.0f);
 	Transform.Rotation = 0.0f;
 	Transform.Translation = glm::vec2(0.0f, 0.0f);
 }
 
 void J3DTexMatrixInfo::Serialize(bStream::CStream* stream) {
-	stream->writeUInt8((uint8_t)Projection);
 	stream->writeUInt8((uint8_t)Type);
+
+	uint8_t attributes = ((int)(CalcType) << 7) | ((int)(TexEffect));
+	stream->writeUInt8(attributes);
 	stream->writeUInt16(UINT16_MAX);
 
 	stream->writeFloat(Origin.x);
@@ -221,14 +223,17 @@ void J3DTexMatrixInfo::Serialize(bStream::CStream* stream) {
 
 	for (int x = 0; x < 4; x++) {
 		for (int y = 0; y < 4; y++) {
-			stream->writeFloat(Matrix[x][y]);
+			stream->writeFloat(ProjectionMatrix[x][y]);
 		}
 	}
 }
 
 void J3DTexMatrixInfo::Deserialize(bStream::CStream* stream) {
-	Projection = (EJ3DTexMatrixProjection)stream->readUInt8();
 	Type = (EGXTexMatrixType)stream->readUInt8();
+	uint8_t attributes = stream->readUInt8();
+
+	CalcType = (EJ3DMatrixCalcType)(attributes & 0x80);
+	TexEffect = (EJ3DTexEffect)(attributes & 0x7F);
 	
 	stream->skip(2);
 
@@ -240,13 +245,52 @@ void J3DTexMatrixInfo::Deserialize(bStream::CStream* stream) {
 
 	for (int x = 0; x < 4; x++) {
 		for (int y = 0; y < 4; y++) {
-			Matrix[x][y] = stream->readFloat();
+			ProjectionMatrix[x][y] = stream->readFloat();
 		}
+	}
+
+	CalculateMatrix();
+}
+
+void J3DTexMatrixInfo::CalculateMatrix() {
+	CalculatedMatrix = glm::identity<glm::mat4>();
+
+	if (CalcType == EJ3DMatrixCalcType::SOFTIMAGE) {
+		CalculatedMatrix[0][0] = Transform.Scale.x * glm::cos(Transform.Rotation);
+		CalculatedMatrix[0][1] = Transform.Scale.x * -glm::sin(Transform.Rotation);
+
+		CalculatedMatrix[0][3] = -glm::cos(Transform.Rotation) * Origin.x +
+			glm::sin(Transform.Rotation) * Origin.y +
+			Origin.x + Transform.Translation.x;
+
+		CalculatedMatrix[1][0] = Transform.Scale.y * glm::sin(Transform.Rotation);
+		CalculatedMatrix[1][1] = Transform.Scale.y * glm::cos(Transform.Rotation);
+
+		CalculatedMatrix[1][3] = glm::sin(Transform.Rotation) * Origin.x -
+			glm::cos(Transform.Rotation) * Origin.y +
+			Origin.y + Transform.Translation.y;
+	}
+	else {
+		CalculatedMatrix[0][0] = Transform.Scale.x * glm::cos(Transform.Rotation);
+		CalculatedMatrix[0][1] = Transform.Scale.y * glm::sin(Transform.Rotation);
+
+		CalculatedMatrix[0][2] = (
+			(Transform.Translation.x - 0.5f) * glm::cos(Transform.Rotation) -
+			(Transform.Translation.y - 0.5f + Transform.Scale.y) * glm::sin(Transform.Rotation) + 0.5f
+		);
+
+		CalculatedMatrix[1][0] = Transform.Scale.x * -glm::sin(Transform.Rotation);
+		CalculatedMatrix[1][1] = Transform.Scale.y * glm::cos(Transform.Rotation);
+
+		CalculatedMatrix[1][2] = (
+			-(Transform.Translation.x - 0.5f) * glm::sin(Transform.Rotation) -
+			(Transform.Translation.y - 0.5f + Transform.Scale.y) * glm::cos(Transform.Rotation) + 0.5f
+		);
 	}
 }
 
 bool J3DTexMatrixInfo::operator==(const J3DTexMatrixInfo& other) const {
-	return Projection == other.Projection && Type == other.Type && Origin == other.Origin && Transform == other.Transform;
+	return Type == other.Type && CalcType == other.CalcType && TexEffect == other.TexEffect && Origin == other.Origin && Transform == other.Transform;
 }
 
 bool J3DTexMatrixInfo::operator!=(const J3DTexMatrixInfo& other) const {

@@ -218,11 +218,17 @@ void J3DMaterial::Render(const std::vector<std::shared_ptr<J3DTexture>>& texture
 		J3DUniformBufferObject::SetKonstColors(TevBlock->mTevKonstColors);
 	}
 
-	glm::mat4 t[10];
-	for (int i = 0; i < 10; i++)
-		t[i] = glm::identity<glm::mat4>();
+	glm::mat4 texMatrices[10];
+	for (int i = 0; i < 10; i++) {
+		if (i < TexGenBlock.mTexMatrix.size()) {
+			texMatrices[i] = TexGenBlock.mTexMatrix[i]->CalculatedMatrix;
+		}
+		else {
+			texMatrices[i] = glm::identity<glm::mat4>();
+		}
+	}
 
-	J3DUniformBufferObject::SetTexMatrices(t);
+	J3DUniformBufferObject::SetTexMatrices(texMatrices);
 
 	if (mShape != nullptr) {
 		uint32_t offset, count;
