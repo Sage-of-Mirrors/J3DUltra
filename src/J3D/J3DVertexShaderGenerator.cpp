@@ -259,10 +259,10 @@ std::string J3DVertexShaderGenerator::GenerateLight(std::shared_ptr<J3DColorChan
 	// Generate diffuse function
 	switch (colorChannel->DiffuseFunction) {
 		case EGXDiffuseFunction::Signed:
-			diffuseFunction = "dot(SkinnedNormal, PosLightDir)";
+			diffuseFunction = "dot(ViewNormal, PosLightDir)";
 			break;
 		case EGXDiffuseFunction::Clamp:
-			diffuseFunction = "max(dot(SkinnedNormal, PosLightDir), 0.0)";
+			diffuseFunction = "max(dot(ViewNormal, PosLightDir), 0.0)";
 			break;
 		case EGXDiffuseFunction::None:
 		default:
@@ -275,7 +275,7 @@ std::string J3DVertexShaderGenerator::GenerateLight(std::shared_ptr<J3DColorChan
 	switch (colorChannel->AttenuationFunction) {
 		case EGXAttenuationFunction::Spec:
 		{
-			attn = "(dot(SkinnedNormal, PosLightDir) >= 0.0) ? max(0.0, dot(SkinnedNormal, " + lightName + ".Direction.xyz)) : 0.0";
+			attn = "(dot(ViewNormal, PosLightDir) >= 0.0) ? max(0.0, dot(ViewNormal, (PosLightTransform * " + lightName + ".Direction).xyz)) : 0.0";
 			std::string cosAttn = "ApplyAttenuation(" + lightName + ".AngleAtten.xyz, Attenuation)";
 			std::string distAttn = "ApplyAttenuation(" + lightName + ".DistAtten.xyz, Attenuation)";
 
@@ -284,7 +284,7 @@ std::string J3DVertexShaderGenerator::GenerateLight(std::shared_ptr<J3DColorChan
 		}
 		case EGXAttenuationFunction::Spot:
 		{
-			attn = "max(0.0, dot(PosLightDir, " + lightName + ".Direction.xyz))";
+			attn = "max(0.0, dot(PosLightDir, (PosLightTransform * " + lightName + ".Direction).xyz))";
 			std::string cosAttn = "max(0.0, ApplyAttenuation(" + lightName + ".AngleAtten.xyz, " + attn + "))";
 			std::string distAtten = "dot(" + lightName + ".DistAtten.xyz, vec3(1.0, PosLightDist, PosLightDistSq))";
 
@@ -298,7 +298,8 @@ std::string J3DVertexShaderGenerator::GenerateLight(std::shared_ptr<J3DColorChan
 	}
 
 	stream << "\t\t// Light " << lightIndex << "\n";
-	stream << "\t\tPosLightVec = " << lightName << ".Position.xyz - WorldPos.xyz;\n";
+	stream << "\t\tPosLightTransform = int(" << lightName << ".Position.w) == 1 ? View : mat4(1.0);\n";
+	stream << "\t\tPosLightVec = (PosLightTransform * vec4(" << lightName << ".Position.xyz, 1.0)).xyz - ViewPos;\n";
 	stream << "\t\tPosLightDistSq = dot(PosLightVec, PosLightVec);\n";
 	stream << "\t\tPosLightDist = sqrt(PosLightDistSq);\n";
 	stream << "\t\tPosLightDir = PosLightVec / PosLightDist;\n\n";
@@ -360,6 +361,7 @@ std::string J3DVertexShaderGenerator::GenerateColorChannel(std::shared_ptr<J3DCo
 	stream << "\t\tvec4 Accumulator = " << ambientSource << ";\n\n";
 	stream << "\t\tvec3 PosLightVec, PosLightDir;\n";
 	stream << "\t\tfloat PosLightDistSq, PosLightDist, Attenuation;\n\n";
+	stream << "\t\tmat4 PosLightTransform;\n\n";
 
 	for (int i = 0; i < 8; i++) {
 		if (!(colorChannel->LightMask & (1 << i)))
@@ -383,10 +385,12 @@ std::string J3DVertexShaderGenerator::GenerateMainFunction(const J3DMaterial* ma
 	std::stringstream stream;
 	stream << "void main() {\n";
 
-	if (hasNormals)
-		stream << "\tvec3 SkinnedNormal = mat3(transpose(inverse(Envelopes[int(aPos.w)]))) * aNrm;\n";
-	stream << "\tmat4 MVP = Proj * View * Model;\n";
-	stream << "\tvec4 WorldPos = MVP * (Envelopes[int(aPos.w)]) * vec4(aPos.xyz, 1);\n\n";
+	stream << "\tvec3 ViewPos = (View * Model * (Envelopes[int(aPos.w)]) * vec4(aPos.xyz, 1.0)).xyz;\n";
+	if (hasNormals) {
+		stream << "\tvec3 ViewNormal = (View * Model * vec4(mat3(transpose(inverse(Envelopes[int(aPos.w)]))) * aNrm, 0.0)).xyz;\n";
+	}
+
+	stream << "\n";
 
 	bool wroteAlpha0 = false;
 	bool wroteAlpha1 = false;
@@ -412,7 +416,7 @@ std::string J3DVertexShaderGenerator::GenerateMainFunction(const J3DMaterial* ma
 		stream << GenerateTexGen(material->TexGenBlock.mTexCoordInfo[i], i);
 
 	// End of main function
-	stream << "\n\tgl_Position = WorldPos;\n";
+	stream << "\n\tgl_Position = Proj * vec4(ViewPos, 1.0);\n";
 	stream << "}\n";
 	return stream.str();
 }
