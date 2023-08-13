@@ -9,6 +9,7 @@
 #include <magic_enum.hpp>
 #include <glad/glad.h>
 #include <sstream>
+#include <algorithm>
 
 // For debugging
 #include <iostream>
@@ -23,7 +24,7 @@ bool J3DVertexShaderGenerator::GenerateVertexShader(const J3DMaterial* material,
 	shaderHandle = glCreateShader(GL_VERTEX_SHADER);
 
 	std::stringstream vertexShader;
-	vertexShader << GenerateAttributes(material->GetShape()->GetAttributeTable());
+	vertexShader << GenerateAttributes(material);
 	vertexShader << GenerateOutputs(material);
 	vertexShader << GenerateUniforms();
 
@@ -86,22 +87,92 @@ bool J3DVertexShaderGenerator::GenerateVertexShader(const J3DMaterial* material,
 	return true;
 }
 
-std::string J3DVertexShaderGenerator::GenerateAttributes(const std::vector<EGXAttribute>& shapeAttributes) {
+bool J3DVertexShaderGenerator::IsAttributeUsed(EGXAttribute a, const J3DMaterial* material) {
+	switch (a) {
+		case EGXAttribute::Position:
+		{
+			return true;
+		}
+		case EGXAttribute::Normal:
+		{
+			bool colorChansUseNormal = false;
+
+			for (auto c : material->LightBlock.mColorChannels) {
+				if (!c->LightingEnabled || c->LightMask == 0) {
+					continue;
+				}
+
+				if (c->DiffuseFunction != EGXDiffuseFunction::None || c->AttenuationFunction == EGXAttenuationFunction::Spec) {
+					colorChansUseNormal = true;
+					break;
+				}
+			}
+
+			auto texCoordItr = std::find_if(
+				material->TexGenBlock.mTexCoordInfo.begin(),
+				material->TexGenBlock.mTexCoordInfo.end(),
+				[](const std::shared_ptr<J3DTexCoordInfo>& a) { return a->Source == EGXTexGenSrc::Normal; }
+			);
+
+			return colorChansUseNormal || texCoordItr != material->TexGenBlock.mTexCoordInfo.end();
+		}
+		case EGXAttribute::Color0:
+		case EGXAttribute::Color1:
+		{
+			uint32_t colorIndex = static_cast<uint32_t>(a) - static_cast<uint32_t>(EGXAttribute::Color0);
+
+			if (material->LightBlock.mColorChannels.size() < colorIndex) {
+				return false;
+			}
+
+			if (material->LightBlock.mColorChannels[colorIndex]->MaterialSource == EGXColorSource::Vertex ||
+				material->LightBlock.mColorChannels[colorIndex]->AmbientSource == EGXColorSource::Vertex) {
+				return true;
+			}
+
+			return false;
+		}
+		case EGXAttribute::TexCoord0:
+		case EGXAttribute::TexCoord1:
+		case EGXAttribute::TexCoord2:
+		case EGXAttribute::TexCoord3:
+		case EGXAttribute::TexCoord4:
+		case EGXAttribute::TexCoord5:
+		case EGXAttribute::TexCoord6:
+		case EGXAttribute::TexCoord7:
+		{
+			EGXTexGenSrc curSrc = static_cast<EGXTexGenSrc>(
+				(static_cast<int>(a) - static_cast<int>(EGXAttribute::TexCoord0)) +
+				static_cast<int>(EGXTexGenSrc::Tex0)
+			);
+
+			auto itr = std::find_if(
+				material->TexGenBlock.mTexCoordInfo.begin(),
+				material->TexGenBlock.mTexCoordInfo.end(),
+				[&curSrc](const std::shared_ptr<J3DTexCoordInfo>& a) { return a->Source == curSrc; }
+			);
+
+			return itr != material->TexGenBlock.mTexCoordInfo.end();
+		}
+		default:
+		{
+			return false;
+		}
+	}
+}
+
+std::string J3DVertexShaderGenerator::GenerateAttributes(const J3DMaterial* material) {
 	std::stringstream stream;
 	stream << "#version 460\n\n";
 	stream << "// Input attributes\n";
 
-	for (auto a : shapeAttributes) {
-		if (a == EGXAttribute::PositionMatrixIdx || a == EGXAttribute::Tex0MatrixIdx || a == EGXAttribute::Tex1MatrixIdx
-			|| a == EGXAttribute::Tex2MatrixIdx || a == EGXAttribute::Tex3MatrixIdx || a == EGXAttribute::Tex4MatrixIdx
-			|| a == EGXAttribute::Tex5MatrixIdx || a == EGXAttribute::Tex6MatrixIdx || a == EGXAttribute::Tex7MatrixIdx)
-		{
-			continue;
-		}
+	for (uint32_t i = 0; i < static_cast<uint32_t>(EGXAttribute::Attribute_Max); i++) {
+		EGXAttribute a = static_cast<EGXAttribute>(i);
 
-		stream << "layout (location = " << (uint32_t)a << ") in ";
+		if (IsAttributeUsed(a, material)) {
+			stream << "layout (location = " << static_cast<uint32_t>(a) << ") in ";
 
-		switch (a) {
+			switch (a) {
 			case EGXAttribute::Position:
 				stream << "vec4 aPos;\n";
 				break;
@@ -110,7 +181,7 @@ std::string J3DVertexShaderGenerator::GenerateAttributes(const std::vector<EGXAt
 				break;
 			case EGXAttribute::Color0:
 			case EGXAttribute::Color1:
-				stream << "vec4 aCol" << etoi(a) - etoi(EGXAttribute::Color0)<< ";\n";
+				stream << "vec4 aCol" << etoi(a) - etoi(EGXAttribute::Color0) << ";\n";
 				break;
 			case EGXAttribute::TexCoord0:
 			case EGXAttribute::TexCoord1:
@@ -125,6 +196,7 @@ std::string J3DVertexShaderGenerator::GenerateAttributes(const std::vector<EGXAt
 			default:
 				//stream << "int aUnk;\n";
 				break;
+			}
 		}
 	}
 
