@@ -145,6 +145,8 @@ void J3DAnimation::J3DColorAnimationInstance::ApplyAnimation(std::shared_ptr<J3D
 
     // Found konst anim data! Now apply it.
     if (matFindResult != KonstEntries.end()) {
+        material->AreRegisterColorsAnimating = true;
+
         // Reset colors to default state before animating
         for (int i = 0; i < 4; i++) {
             material->AnimationKonstColors[i] = material->TevBlock->mTevKonstColors[i];
