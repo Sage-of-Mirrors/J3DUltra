@@ -579,3 +579,43 @@ bool J3DTexIndexKeyBlock::Deserialize(bStream::CStream* stream) {
 
     return true;
 }
+
+bool J3DTexMatrixKeyBlock::Deserialize(bStream::CStream* stream) {
+    size_t currentStreamPosition = stream->tell();
+
+    if (!J3DBlock::Deserialize(stream)) {
+        return false;
+    }
+
+    try {
+        LoopMode = stream->readUInt8();
+        RotationFraction = stream->readUInt8();
+
+        Length = stream->readUInt16();
+        TrackCount = stream->readUInt16();
+
+        ScaleTableCount = stream->readUInt16();
+        RotationTableCount = stream->readUInt16();
+        TranslationTableCount = stream->readUInt16();
+
+        TrackTableOffset = stream->readUInt32() + BlockOffset;
+        MaterialInstanceTableOffset = stream->readUInt32() + BlockOffset;
+        MaterialNameTableOffset = stream->readUInt32() + BlockOffset;
+
+        TexGenIndexTableOffset = stream->readUInt32() + BlockOffset;
+        TexMatrixOriginTableOffset = stream->readUInt32() + BlockOffset;
+
+        ScaleTableOffset = stream->readUInt32() + BlockOffset;
+        RotationTableOffset = stream->readUInt32() + BlockOffset;
+        TranslationTableOffset = stream->readUInt32() + BlockOffset;
+
+        stream->readBytesTo(PostTexMatrixData, 0x28);
+
+        MatrixMode = stream->readUInt8();
+    }
+    catch (...) {
+        return false;
+    }
+
+    return true;
+}

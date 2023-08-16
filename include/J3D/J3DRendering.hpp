@@ -13,5 +13,5 @@ namespace J3DRendering {
     using RenderFunctionArgs = const std::vector<std::shared_ptr<J3DModelInstance>>&;
 
     void SetSortFunction(std::function<void(SortFunctionArgs)> sortFunction);
-    void Render(float deltaTime, glm::vec3 cameraPosition, RenderFunctionArgs modelInstances);
+    void Render(float deltaTime, glm::vec3 cameraPosition, glm::mat4& viewMatrix, glm::mat4& projMatrix, RenderFunctionArgs modelInstances);
 }

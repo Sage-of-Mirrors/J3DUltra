@@ -285,3 +285,31 @@ struct J3DTexIndexKeyBlock : public J3DBlock {
 
 	virtual bool Deserialize(bStream::CStream* stream) override;
 };
+
+struct J3DTexMatrixKeyBlock : public J3DBlock {
+	uint8_t LoopMode;
+	uint8_t RotationFraction;
+
+	uint16_t Length;
+	uint16_t TrackCount;
+
+	uint16_t ScaleTableCount;
+	uint16_t RotationTableCount;
+	uint16_t TranslationTableCount;
+
+	uint32_t TrackTableOffset;
+	uint32_t MaterialInstanceTableOffset;
+	uint32_t MaterialNameTableOffset;
+
+	uint32_t TexGenIndexTableOffset;
+	uint32_t TexMatrixOriginTableOffset;
+	
+	uint32_t ScaleTableOffset;
+	uint32_t RotationTableOffset;
+	uint32_t TranslationTableOffset;
+
+	uint8_t PostTexMatrixData[0x28];
+	uint8_t MatrixMode;
+
+	virtual bool Deserialize(bStream::CStream* stream) override;
+};

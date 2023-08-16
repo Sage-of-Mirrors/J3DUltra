@@ -128,6 +128,8 @@ std::shared_ptr<J3DMaterial> J3DMaterialFactoryV2::Create(bStream::CStream* stre
 			newMaterial->TevBlock->mTevColors[i].g = stream->peekInt16(mBlock->TevColorTableOffset + initData.TEVColor[i] * sizeof(glm::i16vec4) + 2);
 			newMaterial->TevBlock->mTevColors[i].b = stream->peekInt16(mBlock->TevColorTableOffset + initData.TEVColor[i] * sizeof(glm::i16vec4) + 4);
 			newMaterial->TevBlock->mTevColors[i].a = stream->peekInt16(mBlock->TevColorTableOffset + initData.TEVColor[i] * sizeof(glm::i16vec4) + 6);
+
+			newMaterial->AnimationRegisterColors[i] = newMaterial->TevBlock->mTevColors[i];
 		}
 
 		if (initData.TEVKonstColor[i] != UINT16_MAX) {
@@ -140,6 +142,8 @@ std::shared_ptr<J3DMaterial> J3DMaterialFactoryV2::Create(bStream::CStream* stre
 			newMaterial->TevBlock->mTevKonstColors[i].g = newMaterial->TevBlock->mTevKonstColors[i].g / 255.0f;
 			newMaterial->TevBlock->mTevKonstColors[i].b = newMaterial->TevBlock->mTevKonstColors[i].b / 255.0f;
 			newMaterial->TevBlock->mTevKonstColors[i].a = newMaterial->TevBlock->mTevKonstColors[i].a / 255.0f;
+
+			newMaterial->AnimationKonstColors[i] = newMaterial->TevBlock->mTevKonstColors[i];
 		}
 	}
 

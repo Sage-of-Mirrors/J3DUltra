@@ -14,7 +14,7 @@ void J3DRendering::SetSortFunction(std::function<void(SortFunctionArgs)> sortFun
     }
 }
 
-void J3DRendering::Render(float deltaTime, glm::vec3 cameraPosition, RenderFunctionArgs modelInstances) {
+void J3DRendering::Render(float deltaTime, glm::vec3 cameraPosition, glm::mat4& viewMatrix, glm::mat4& projMatrix, RenderFunctionArgs modelInstances) {
     std::vector<J3DRenderPacket> packets;
 
     for (std::shared_ptr<J3DModelInstance> instance : modelInstances) {
@@ -24,6 +24,6 @@ void J3DRendering::Render(float deltaTime, glm::vec3 cameraPosition, RenderFunct
     SortFunction(packets);
 
     for (J3DRenderPacket packet : packets) {
-        packet.Render(deltaTime);
+        packet.Render(deltaTime, viewMatrix, projMatrix);
     }
 }

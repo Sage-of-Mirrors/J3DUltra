@@ -3,6 +3,7 @@
 #include "J3D/J3DMaterialData.hpp"
 
 #include <GXGeometryEnums.hpp>
+#include <glm/glm.hpp>
 #include <string>
 #include <vector>
 #include <memory>
@@ -44,8 +45,18 @@ struct J3DTevBlock {
 	std::vector<std::shared_ptr<J3DTevOrderInfo>> mTevOrders;
 	std::vector<std::shared_ptr<J3DTevStageInfo>> mTevStages;
 
-	glm::vec4 mTevColors[4];
-	glm::vec4 mTevKonstColors[4];
+	glm::vec4 mTevColors[4] {
+		glm::one<glm::vec4>(),
+		glm::one<glm::vec4>(),
+		glm::one<glm::vec4>(),
+		glm::one<glm::vec4>()
+	};
+	glm::vec4 mTevKonstColors[4] {
+		glm::one<glm::vec4>(),
+		glm::one<glm::vec4>(),
+		glm::one<glm::vec4>(),
+		glm::one<glm::vec4>()
+	};
 
 	EGXKonstColorSel mKonstColorSelection[16];
 	EGXKonstAlphaSel mKonstAlphaSelection[16];
@@ -66,6 +77,8 @@ struct J3DIndirectBlock {
 class J3DMaterial {
 	int32_t mShaderProgram;
 	const GXShape* mShape;
+
+	glm::mat4 TexMatrices[10]{};
 
 public:
 	J3DMaterial();
@@ -88,6 +101,11 @@ public:
 
 	bool AreTexIndicesAnimating;
 	uint16_t AnimationTexIndices[8]{};
+
+	bool AreTexMatricesAnimating;
+	J3DTexMatrixInfo AnimationTexMatrixInfo[10]{};
+
+	void CalculateTexMatrices(glm::mat4& viewMatrix, glm::mat4 projMatrix);
 
 	const GXShape* GetShape() const { return mShape; }
 	void SetShape(const GXShape* shape) { mShape = shape; }

@@ -124,39 +124,35 @@ void J3DAnimation::J3DColorAnimationInstance::ApplyAnimation(std::shared_ptr<J3D
     if (matFindResult != RegisterEntries.end()) {
         material->AreRegisterColorsAnimating = true;
 
-        for (int i = 0; i < 4; i++) {
-            material->AnimationRegisterColors[i] = material->TevBlock->mTevColors[i];
-        }
-
         J3DAnimation::J3DColorAnimationData regData = *matFindResult;
 
-        material->AnimationRegisterColors[regData.ColorIndex].r = regData.RedTrack.GetValue(frameTime);
-        material->AnimationRegisterColors[regData.ColorIndex].g = regData.GreenTrack.GetValue(frameTime);
-        material->AnimationRegisterColors[regData.ColorIndex].b = regData.BlueTrack.GetValue(frameTime);
-        material->AnimationRegisterColors[regData.ColorIndex].a = regData.AlphaTrack.GetValue(frameTime);
+        material->AnimationRegisterColors[regData.ColorIndex].r = static_cast<uint8_t>(regData.RedTrack.GetValue(frameTime));
+        material->AnimationRegisterColors[regData.ColorIndex].g = static_cast<uint8_t>(regData.GreenTrack.GetValue(frameTime));
+        material->AnimationRegisterColors[regData.ColorIndex].b = static_cast<uint8_t>(regData.BlueTrack.GetValue(frameTime));
+        material->AnimationRegisterColors[regData.ColorIndex].a = static_cast<uint8_t>(regData.AlphaTrack.GetValue(frameTime));
     }
 
     // Try to find konst anim data for the current material.
-    matFindResult = std::find_if(
+    std::vector<J3DAnimation::J3DColorAnimationData>::const_iterator matFindResult2 = std::find_if(
         KonstEntries.begin(),
         KonstEntries.end(),
         [&material](const J3DAnimation::J3DColorAnimationData& v) { return v.MaterialName == material->Name; }
     );
 
     // Found konst anim data! Now apply it.
-    if (matFindResult != KonstEntries.end()) {
+    if (matFindResult2 != KonstEntries.end()) {
         material->AreRegisterColorsAnimating = true;
 
         // Reset colors to default state before animating
-        for (int i = 0; i < 4; i++) {
-            material->AnimationKonstColors[i] = material->TevBlock->mTevKonstColors[i];
-        }
+        //for (int i = 0; i < 4; i++) {
+        //    material->AnimationKonstColors[i] = material->TevBlock->mTevKonstColors[i];
+        //}
 
-        J3DAnimation::J3DColorAnimationData konstData = *matFindResult;
+        J3DAnimation::J3DColorAnimationData konstData = *matFindResult2;
 
-        material->AnimationKonstColors[konstData.ColorIndex].r = konstData.RedTrack.GetValue(frameTime);
-        material->AnimationKonstColors[konstData.ColorIndex].g = konstData.GreenTrack.GetValue(frameTime);
-        material->AnimationKonstColors[konstData.ColorIndex].b = konstData.BlueTrack.GetValue(frameTime);
-        material->AnimationKonstColors[konstData.ColorIndex].a = konstData.AlphaTrack.GetValue(frameTime);
+        material->AnimationKonstColors[konstData.ColorIndex].r = konstData.RedTrack.GetValue(frameTime) / 255.0f;
+        material->AnimationKonstColors[konstData.ColorIndex].g = konstData.GreenTrack.GetValue(frameTime) / 255.0f;
+        material->AnimationKonstColors[konstData.ColorIndex].b = konstData.BlueTrack.GetValue(frameTime) / 255.0f;
+        material->AnimationKonstColors[konstData.ColorIndex].a = konstData.AlphaTrack.GetValue(frameTime) / 255.0f;
     }
 }

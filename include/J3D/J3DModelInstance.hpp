@@ -11,6 +11,7 @@
 namespace J3DAnimation {
     class J3DColorAnimationInstance;
     class J3DTexIndexAnimationInstance;
+    class J3DTexMatrixAnimationInstance;
 }
 
 class J3DModelData;
@@ -30,7 +31,7 @@ class J3DModelInstance {
     // Recalculates joint transforms based on a load animation - BCK for keyframes at discrete time units, BCA for values at every frame.
     void CalculateJointMatrices(float deltaTime);
     // Recalculates texture transforms based on a loaded BTK animation.
-    void CalculateTextureMatrices(float deltaTime);
+    void UpdateMaterialTextureMatrices(float deltaTime, std::shared_ptr<J3DMaterial> material, glm::mat4& viewMatrix, glm::mat4& projMatrix);
 
     // Updates material textures based on a loaded BTP animation.
     void UpdateMaterialTextures(float deltaTime, std::shared_ptr<J3DMaterial> material);
@@ -43,10 +44,11 @@ class J3DModelInstance {
     // Updates shape visibility based on a loaded BVA animation.
     void UpdateShapeVisibility(float deltaTime);
 
-    void Update(float deltaTime, std::shared_ptr<J3DMaterial> material);
+    void Update(float deltaTime, std::shared_ptr<J3DMaterial> material, glm::mat4& viewMatrix, glm::mat4& projMatrix);
 
     std::shared_ptr<J3DAnimation::J3DColorAnimationInstance> mRegisterColorAnimation;
     std::shared_ptr<J3DAnimation::J3DTexIndexAnimationInstance> mTexIndexAnimation;
+    std::shared_ptr<J3DAnimation::J3DTexMatrixAnimationInstance> mTexMatrixAnimation;
 
 public:
     J3DModelInstance(std::shared_ptr<J3DModelData> modelData);
@@ -62,7 +64,7 @@ public:
     void GatherRenderPackets(std::vector<J3DRenderPacket>& packetList, glm::vec3 cameraPosition);
 
     void UpdateAnimations(float deltaTime);
-    void Render(float deltaTime, std::shared_ptr<J3DMaterial> material);
+    void Render(float deltaTime, std::shared_ptr<J3DMaterial> material, glm::mat4& viewMatrix, glm::mat4& projMatrix);
 
     J3DLight GetLight(int index) const;
     void SetLight(const J3DLight& light, int index);
@@ -72,4 +74,7 @@ public:
 
     std::shared_ptr<J3DAnimation::J3DTexIndexAnimationInstance> GetTexIndexAnimation() const { return mTexIndexAnimation; }
     void SetTexIndexAnimation(std::shared_ptr<J3DAnimation::J3DTexIndexAnimationInstance> anim) { mTexIndexAnimation = anim; }
+
+    std::shared_ptr<J3DAnimation::J3DTexMatrixAnimationInstance> GetTexMatrixAnimation() const { return mTexMatrixAnimation; }
+    void SetTexMatrixAnimation(std::shared_ptr<J3DAnimation::J3DTexMatrixAnimationInstance> anim) { mTexMatrixAnimation = anim; }
 };

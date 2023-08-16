@@ -4,6 +4,7 @@
 
 #include "J3D/Animation/J3DColorAnimationInstance.hpp"
 #include "J3D/Animation/J3DTexIndexAnimationInstance.hpp"
+#include "J3D/Animation/J3DTexMatrixAnimationInstance.hpp"
 
 #include "J3D/J3DBlock.hpp"
 #include "J3D/J3DData.hpp"
@@ -49,6 +50,8 @@ std::shared_ptr<J3DAnimation::J3DAnimationInstance> J3DAnimation::J3DAnimationLo
             break;
         // BTK
         case EJ3DBlockType::TTK1:
+            mAnimInstance = std::make_shared<J3DTexMatrixAnimationInstance>();
+            break;
         // BCK
         case EJ3DBlockType::ANK1:
         // BPK

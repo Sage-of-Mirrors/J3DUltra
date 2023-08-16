@@ -23,15 +23,14 @@ void J3DAnimation::J3DAnimationInstance::Tick(float deltaTime) {
      if (GetFrame() >= mLength) {
          switch (mLoopMode) {
          case ELoopMode::Once:
-             mIsPaused = true;
-             break;
+             //SetFrame(mLength, true);
+             //break;
          case ELoopMode::Once_Reset:
-             mCurrentFrame = 0;
-             mIsPaused = true;
-             break;
+             //SetFrame(0, true);
+             //break;
          case ELoopMode::Loop:
          default:
-             mCurrentFrame = 0;
+             SetFrame(0);
              break;
          }
      }

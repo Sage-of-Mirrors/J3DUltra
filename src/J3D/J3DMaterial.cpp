@@ -218,17 +218,7 @@ void J3DMaterial::Render(const std::vector<std::shared_ptr<J3DTexture>>& texture
 		J3DUniformBufferObject::SetKonstColors(TevBlock->mTevKonstColors);
 	}
 
-	glm::mat4 texMatrices[10];
-	for (int i = 0; i < 10; i++) {
-		if (i < TexGenBlock.mTexMatrix.size()) {
-			texMatrices[i] = TexGenBlock.mTexMatrix[i]->CalculatedMatrix;
-		}
-		else {
-			texMatrices[i] = glm::identity<glm::mat4>();
-		}
-	}
-
-	J3DUniformBufferObject::SetTexMatrices(texMatrices);
+	J3DUniformBufferObject::SetTexMatrices(TexMatrices);
 
 	if (mShape != nullptr) {
 		uint32_t offset, count;
@@ -251,4 +241,10 @@ void J3DMaterial::Render(const std::vector<std::shared_ptr<J3DTexture>>& texture
 	glDisable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	glDepthMask(GL_TRUE);
+}
+
+void J3DMaterial::CalculateTexMatrices(glm::mat4& viewMatrix, glm::mat4 projMatrix) {
+	for (int i = 0; i < TexGenBlock.mTexMatrix.size(); i++) {
+		TexMatrices[i] = TexGenBlock.mTexMatrix[i]->CalculatedMatrix;
+	}
 }

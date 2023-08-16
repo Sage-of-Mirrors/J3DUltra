@@ -4,6 +4,7 @@
 
 #include "J3D/Animation/J3DColorAnimationInstance.hpp"
 #include "J3D/Animation/J3DTexIndexAnimationInstance.hpp"
+#include "J3D/Animation/J3DTexMatrixAnimationInstance.hpp"
 
 #include <stdexcept>
 #include <iostream>
@@ -26,8 +27,12 @@ void J3DModelInstance::CalculateJointMatrices(float deltaTime) {
     // TODO: implement BCK/BCA
 }
 
-void J3DModelInstance::CalculateTextureMatrices(float deltaTime) {
-    // TODO: implement BTK
+void J3DModelInstance::UpdateMaterialTextureMatrices(float deltaTime, std::shared_ptr<J3DMaterial> material, glm::mat4& viewMatrix, glm::mat4& projMatrix) {
+    if (mTexMatrixAnimation != nullptr) {
+        mTexMatrixAnimation->ApplyAnimation(material);
+    }
+
+    material->CalculateTexMatrices(viewMatrix, projMatrix);
 }
 
 void J3DModelInstance::UpdateMaterialTextures(float deltaTime, std::shared_ptr<J3DMaterial> material) {
@@ -54,9 +59,10 @@ void J3DModelInstance::UpdateShapeVisibility(float deltaTime) {
     // TODO: implement BVA
 }
 
-void J3DModelInstance::Update(float deltaTime, std::shared_ptr<J3DMaterial> material) {
+void J3DModelInstance::Update(float deltaTime, std::shared_ptr<J3DMaterial> material, glm::mat4& viewMatrix, glm::mat4& projMatrix) {
     UpdateTEVRegisterColors(deltaTime, material);
     UpdateMaterialTextures(deltaTime, material);
+    UpdateMaterialTextureMatrices(deltaTime, material, viewMatrix, projMatrix);
 
     J3DUniformBufferObject::SetEnvelopeMatrices(mEnvelopeMatrices.data(), mEnvelopeMatrices.size());
     J3DUniformBufferObject::SetLights(mLights);
@@ -146,10 +152,14 @@ void J3DModelInstance::UpdateAnimations(float deltaTime) {
     if (mTexIndexAnimation != nullptr) {
         mTexIndexAnimation->Tick(deltaTime);
     }
+
+    if (mTexMatrixAnimation != nullptr) {
+        mTexMatrixAnimation->Tick(deltaTime);
+    }
 }
 
-void J3DModelInstance::Render(float deltaTime, std::shared_ptr<J3DMaterial> material) {
-    Update(deltaTime, material);
+void J3DModelInstance::Render(float deltaTime, std::shared_ptr<J3DMaterial> material, glm::mat4& viewMatrix, glm::mat4& projMatrix) {
+    Update(deltaTime, material, viewMatrix, projMatrix);
 
     mModelData->BindVAO();
 
