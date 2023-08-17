@@ -126,10 +126,10 @@ void J3DAnimation::J3DColorAnimationInstance::ApplyAnimation(std::shared_ptr<J3D
 
         J3DAnimation::J3DColorAnimationData regData = *matFindResult;
 
-        material->AnimationRegisterColors[regData.ColorIndex].r = static_cast<uint8_t>(regData.RedTrack.GetValue(frameTime));
-        material->AnimationRegisterColors[regData.ColorIndex].g = static_cast<uint8_t>(regData.GreenTrack.GetValue(frameTime));
-        material->AnimationRegisterColors[regData.ColorIndex].b = static_cast<uint8_t>(regData.BlueTrack.GetValue(frameTime));
-        material->AnimationRegisterColors[regData.ColorIndex].a = static_cast<uint8_t>(regData.AlphaTrack.GetValue(frameTime));
+        material->AnimationRegisterColors[regData.ColorIndex].r = regData.RedTrack.GetValue(frameTime);
+        material->AnimationRegisterColors[regData.ColorIndex].g = regData.GreenTrack.GetValue(frameTime);
+        material->AnimationRegisterColors[regData.ColorIndex].b = regData.BlueTrack.GetValue(frameTime);
+        material->AnimationRegisterColors[regData.ColorIndex].a = regData.AlphaTrack.GetValue(frameTime);
     }
 
     // Try to find konst anim data for the current material.
