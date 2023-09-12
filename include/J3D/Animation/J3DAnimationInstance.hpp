@@ -27,12 +27,15 @@ namespace J3DAnimation {
 
         float mCurrentFrame;
         bool mIsPaused;
+        bool mIsReversed;
 
     public:
-        J3DAnimationInstance() : mLoopMode(ELoopMode::Once), mLength(0), mCurrentFrame(0), mIsPaused(false) { }
+        J3DAnimationInstance() : mLoopMode(ELoopMode::Once), mLength(0), mCurrentFrame(0), mIsPaused(false), mIsReversed(false) { }
         virtual ~J3DAnimationInstance() { }
 
         virtual void Deserialize(bStream::CStream& stream) = 0;
+
+        uint16_t GetLength() const;
 
         float GetFrame() const;
         void SetFrame(uint16_t frame, bool pause = false);
