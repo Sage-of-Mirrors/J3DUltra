@@ -71,7 +71,8 @@ std::shared_ptr<J3DMaterial> J3DMaterialFactoryV3::Create(bStream::CStream* stre
 
 	uint8_t chanControlNum = stream->peekUInt8(mBlock->ColorChannelCountTableOffset + initData.ColorChannelCount * sizeof(uint8_t));
 	for (int i = 0; i < chanControlNum * 2; i++) {
-		newMaterial->LightBlock.mColorChannels.push_back(std::make_shared<J3DColorChannel>(ReadMaterialComponent<J3DColorChannel>(stream, mBlock->ColorChannelTableOffset, initData.ColorChannel[i])));
+		uint16_t chan = initData.ColorChannel[i] == UINT16_MAX ? 0 : initData.ColorChannel[i];
+		newMaterial->LightBlock.mColorChannels.push_back(std::make_shared<J3DColorChannel>(ReadMaterialComponent<J3DColorChannel>(stream, mBlock->ColorChannelTableOffset, chan)));
 	}
 
 	// Tex gen block
