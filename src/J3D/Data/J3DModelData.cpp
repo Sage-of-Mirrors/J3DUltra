@@ -1,10 +1,17 @@
 #include "J3D/Data/J3DModelData.hpp"
 #include "J3D/Data/J3DModelInstance.hpp"
 #include "J3D/Skeleton/J3DNode.hpp"
-#include "J3D/Util/J3DUtil.hpp"
 #include "J3D/Material/J3DUniformBufferObject.hpp"
 
 #include <glad/glad.h>
+
+J3DModelData::J3DModelData() {
+    mMaterialTable = std::make_shared<J3DMaterialTable>();
+}
+
+J3DModelData::~J3DModelData() {
+
+}
 
 void J3DModelData::MakeHierarchy(J3DJoint* const root, uint32_t& index) {
     J3DJoint* last = root;
@@ -12,7 +19,7 @@ void J3DModelData::MakeHierarchy(J3DJoint* const root, uint32_t& index) {
 
     while (true) {
         J3DJoint* currentJoint = nullptr;
-        J3DMaterial* currentMaterial = nullptr;
+        std::shared_ptr<J3DMaterial> currentMaterial;
         const GXShape* currentShape = nullptr;
 
         switch (mHierarchyNodes[index].Type) {
@@ -38,7 +45,7 @@ void J3DModelData::MakeHierarchy(J3DJoint* const root, uint32_t& index) {
             break;
             // This node represents a material, so grab that material.
         case EJ3DHierarchyType::Material:
-            currentMaterial = mMaterials[mHierarchyNodes[index].Index].get();
+            currentMaterial = mMaterialTable->GetMaterial(mHierarchyNodes[index].Index);
             index++;
 
             break;
@@ -65,7 +72,7 @@ void J3DModelData::MakeHierarchy(J3DJoint* const root, uint32_t& index) {
         // If we have a shape this iteration, assign it to the last material we added to the current root joint.
         // Also generate shaders, since now that it has a shape the material has all the data it needs.
         else if (currentShape != nullptr) {
-            J3DMaterial* shapeMaterial = root->GetLastMaterial();
+            std::shared_ptr<J3DMaterial> shapeMaterial = root->GetLastMaterial();
 
             shapeMaterial->SetShape(currentShape);
             shapeMaterial->GenerateShaders();
@@ -220,40 +227,11 @@ bool J3DModelData::InitializeGL() {
 }
 
 std::shared_ptr<J3DModelInstance> J3DModelData::GetInstance() {
-    std::shared_ptr<J3DModelInstance> NewInstance = std::make_shared<J3DModelInstance>(shared_from_this());
-    return NewInstance;
+    return std::make_shared<J3DModelInstance>(shared_from_this());
 }
 
 std::vector<glm::mat4> J3DModelData::GetRestPose() const {
     return mRestPose;
-}
-
-std::vector<std::shared_ptr<J3DMaterial>> J3DModelData::GetMaterials() const {
-    return mMaterials;
-}
-
-std::weak_ptr<J3DMaterial> J3DModelData::GetMaterial(std::string name) {
-    auto t = std::find_if(mMaterials.begin(), mMaterials.end(),
-        [&name](const std::shared_ptr<J3DMaterial>& a) 
-        {
-            return a->Name == name;
-        }
-    );
-
-    return *t;
-}
-
-const std::vector<std::shared_ptr<J3DTexture>>& J3DModelData::GetTextures() const {
-    return mTextures;
-}
-
-void J3DModelData::Render(float deltaTime) {
-    if (!mGLInitialized)
-        mGLInitialized = InitializeGL();
-
-    glBindVertexArray(mVAO);
-    mRootJoint->RenderRecursive(mTextures);
-    glBindVertexArray(0);
 }
 
 void J3DModelData::BindVAO()

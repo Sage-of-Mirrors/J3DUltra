@@ -3,6 +3,7 @@
 #include "J3D/Geometry/J3DShapeFactory.hpp"
 #include "J3D/Material/J3DMaterialFactoryV2.hpp"
 #include "J3D/Material/J3DMaterialFactoryV3.hpp"
+#include "J3D/Material/J3DMaterialTable.hpp"
 #include "J3D/Texture/J3DTextureFactory.hpp"
 #include "J3D/Skeleton/J3DJoint.hpp"
 #include "J3D/Util/J3DNameTable.hpp"
@@ -317,7 +318,7 @@ void J3DModelLoader::ReadMaterialBlockV2(bStream::CStream* stream, uint32_t flag
 
     J3DMaterialFactoryV2 materialFactory(&matBlock, stream);
     for (int i = 0; i < matBlock.Count; i++) {
-        mModelData->mMaterials.push_back(materialFactory.Create(stream, i));
+        mModelData->mMaterialTable->mMaterials.push_back(materialFactory.Create(stream, i));
     }
 
     stream->seek(currentStreamPos + matBlock.BlockSize);
@@ -331,7 +332,7 @@ void J3DModelLoader::ReadMaterialBlockV3(bStream::CStream* stream, uint32_t flag
 
     J3DMaterialFactoryV3 materialFactory(&matBlock, stream);
     for (int i = 0; i < matBlock.Count; i++) {
-        mModelData->mMaterials.push_back(materialFactory.Create(stream, i));
+        mModelData->mMaterialTable->mMaterials.push_back(materialFactory.Create(stream, i));
     }
 
     stream->seek(currentStreamPos + matBlock.BlockSize);
@@ -345,7 +346,7 @@ void J3DModelLoader::ReadTextureBlock(bStream::CStream* stream, uint32_t flags) 
 
     J3DTextureFactory textureFactory(&texBlock, stream);
     for (int i = 0; i < texBlock.Count; i++) {
-        mModelData->mTextures.push_back(textureFactory.Create(stream, i));
+        mModelData->mMaterialTable->mTextures.push_back(textureFactory.Create(stream, i));
     }
 
     stream->seek(currentStreamPos + texBlock.BlockSize);

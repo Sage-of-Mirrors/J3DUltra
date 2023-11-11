@@ -2,7 +2,9 @@
 
 #include "J3DNode.hpp"
 #include "J3D/Util/J3DTransform.hpp"
-#include "glm/glm.hpp"
+#include "J3D/Util/J3DUtil.hpp"
+
+#include <glm/glm.hpp>
 
 #include <string>
 #include <vector>
@@ -31,7 +33,7 @@ class J3DJoint : public J3DNode {
 	glm::vec3 mBoundingBoxMin;
 	glm::vec3 mBoundingBoxMax;
 
-	std::vector<J3DMaterial*> mMaterials;
+	shared_vector<J3DMaterial> mMaterials;
 
 public:
 
@@ -40,8 +42,8 @@ public:
 	std::string GetJointName() { return mJointName; }
 	uint16_t GetJointID() { return mJointID; }
 
-	void AddMaterial(J3DMaterial* mat) { mMaterials.push_back(mat); }
-	J3DMaterial* const GetLastMaterial() { return mMaterials.back(); }
+	void AddMaterial(std::shared_ptr<J3DMaterial>& mat) { mMaterials.push_back(mat); }
+	std::shared_ptr<J3DMaterial>& GetLastMaterial() { return mMaterials.back(); }
 
 	glm::mat4 GetTransformMatrix();
 

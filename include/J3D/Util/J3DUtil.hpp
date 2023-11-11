@@ -6,10 +6,15 @@
 #include <filesystem>
 #include <cstddef>
 #include <algorithm>
+#include <memory>
 
 namespace bStream { class CStream; }
 
+template<typename T>
+using shared_vector = std::vector<std::shared_ptr<T>>;
+
 namespace J3DUtility {
+
     // Returns the index of the given element in the given vector, or -1 if the element is not in that vector.
     template<typename T>
     ptrdiff_t VectorIndexOf(const std::vector<T>& vec, const T& elem)

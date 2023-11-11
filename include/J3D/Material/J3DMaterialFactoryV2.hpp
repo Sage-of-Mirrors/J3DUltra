@@ -53,8 +53,6 @@ class J3DMaterialFactoryV2 {
 	std::vector<uint16_t> mInstanceTable;
 	J3DNameTable mNameTable;
 
-	uint8_t ReadMaterialPrimitiveComponent(bStream::CStream* stream, uint32_t offset, uint32_t index);
-
 	template<typename T>
 	T ReadMaterialComponent(bStream::CStream* stream, uint32_t offset, uint32_t index) {
 		T newComp;

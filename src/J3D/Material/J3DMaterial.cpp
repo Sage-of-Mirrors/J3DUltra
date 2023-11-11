@@ -9,7 +9,7 @@
 #include <vector>
 #include <glad/glad.h>
 
-J3DMaterial::J3DMaterial() : mShaderProgram(-1), AreRegisterColorsAnimating(false), AreTexIndicesAnimating(false){
+J3DMaterial::J3DMaterial() : mShaderProgram(-1), AreRegisterColorsAnimating(false), AreTexIndicesAnimating(false), mShape(nullptr) {
 	TevBlock = std::make_shared<J3DTevBlock>();
 }
 

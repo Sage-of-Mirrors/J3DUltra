@@ -3,6 +3,7 @@
 #include "J3D/Rendering/J3DRenderPacket.hpp"
 #include "J3D/Rendering/J3DLight.hpp"
 #include "J3D/Util/J3DTransform.hpp"
+#include "J3D/Util/J3DUtil.hpp"
 
 #include <glm/glm.hpp>
 #include <memory>
@@ -14,8 +15,11 @@ namespace J3DAnimation {
     class J3DTexMatrixAnimationInstance;
 }
 
-class J3DModelData;
+struct J3DTexture;
+
 class J3DMaterial;
+class J3DModelData;
+class J3DMaterialTable;
 
 class J3DModelInstance {
     std::shared_ptr<J3DModelData> mModelData;
@@ -50,6 +54,12 @@ class J3DModelInstance {
     std::shared_ptr<J3DAnimation::J3DTexIndexAnimationInstance> mTexIndexAnimation;
     std::shared_ptr<J3DAnimation::J3DTexMatrixAnimationInstance> mTexMatrixAnimation;
 
+    bool bUseInstanceMaterialTable;
+    std::shared_ptr<J3DMaterialTable> mInstanceMaterialTable;
+
+    bool CheckUseInstanceMaterials();
+    bool CheckUseInstanceTextures();
+
 public:
     J3DModelInstance(std::shared_ptr<J3DModelData> modelData);
     virtual ~J3DModelInstance();
@@ -77,4 +87,9 @@ public:
 
     std::shared_ptr<J3DAnimation::J3DTexMatrixAnimationInstance> GetTexMatrixAnimation() const { return mTexMatrixAnimation; }
     void SetTexMatrixAnimation(std::shared_ptr<J3DAnimation::J3DTexMatrixAnimationInstance> anim) { mTexMatrixAnimation = anim; }
+
+    bool GetUseInstanceMaterialTable() const { return bUseInstanceMaterialTable; }
+    void SetUseInstanceMaterialTable(bool use) { bUseInstanceMaterialTable = use; }
+
+    void SetInstanceMaterialTable(std::shared_ptr<J3DMaterialTable> matTable) { mInstanceMaterialTable = matTable; }
 };

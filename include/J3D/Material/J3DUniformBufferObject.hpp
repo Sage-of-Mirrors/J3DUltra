@@ -2,6 +2,8 @@
 
 #include <glm/glm.hpp>
 
+#include <memory>
+
 class J3DMaterial;
 struct J3DLight;
 
@@ -9,7 +11,7 @@ namespace J3DUniformBufferObject {
 	void CreateUBO();
 	void DestroyUBO();
 
-	bool LinkMaterialToUBO(const J3DMaterial* material);
+	bool LinkMaterialToUBO(const std::shared_ptr<J3DMaterial> material);
 
 	// Updates the UBO's projection and view matrices. Usually used by the environment.
 	void SetProjAndViewMatrices(const glm::mat4* proj, const glm::mat4* view);

@@ -1,6 +1,7 @@
 #include "J3D/Data/J3DModelInstance.hpp"
 #include "J3D/Data/J3DModelData.hpp"
 #include "J3D/Material/J3DUniformBufferObject.hpp"
+#include "J3D/Material/J3DMaterialTable.hpp"
 
 #include "J3D/Animation/J3DColorAnimationInstance.hpp"
 #include "J3D/Animation/J3DTexIndexAnimationInstance.hpp"
@@ -127,8 +128,14 @@ void J3DModelInstance::SetReferenceFrame(const glm::mat4 frame) {
 void J3DModelInstance::GatherRenderPackets(std::vector<J3DRenderPacket>& packetList, glm::vec3 cameraPosition) {
     glm::mat4 transformMat4 = mReferenceFrame * mTransform.ToMat4();
 
-    for (std::shared_ptr<J3DMaterial> mat : mModelData->GetMaterials())
+    shared_vector<J3DMaterial> materials = CheckUseInstanceMaterials() ? mInstanceMaterialTable->GetMaterials() : mModelData->GetMaterials();
+
+    for (std::shared_ptr<J3DMaterial> mat : materials)
     {
+        if (mat->GetShape() == nullptr) {
+            continue;
+        }
+
         const glm::vec3& center = mat->GetShape()->GetCenterOfMass();
         glm::vec4 transformedCenter = transformMat4 * glm::vec4(center.x, center.y, center.z, 1.0f);
 
@@ -163,8 +170,16 @@ void J3DModelInstance::Render(float deltaTime, std::shared_ptr<J3DMaterial> mate
 
     mModelData->BindVAO();
 
-    auto& textures = mModelData->GetTextures();
+    auto& textures = CheckUseInstanceTextures() ? mInstanceMaterialTable->GetTextures() : mModelData->GetTextures();
     material->Render(textures);
 
     mModelData->UnbindVAO();
+}
+
+bool J3DModelInstance::CheckUseInstanceMaterials() {
+    return bUseInstanceMaterialTable && mInstanceMaterialTable != nullptr && mInstanceMaterialTable->GetMaterials().size() != 0;
+}
+
+bool J3DModelInstance::CheckUseInstanceTextures() {
+    return bUseInstanceMaterialTable && mInstanceMaterialTable != nullptr && mInstanceMaterialTable->GetTextures().size() != 0;
 }

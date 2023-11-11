@@ -45,7 +45,7 @@ void J3DUniformBufferObject::DestroyUBO() {
 	mUBO = 0;
 }
 
-bool J3DUniformBufferObject::LinkMaterialToUBO(const J3DMaterial* material) {
+bool J3DUniformBufferObject::LinkMaterialToUBO(const std::shared_ptr<J3DMaterial> material) {
 	if (mUBO == 0)
 		CreateUBO();
 
