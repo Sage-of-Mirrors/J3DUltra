@@ -11,6 +11,8 @@
 #include "J3D/Data/J3DBlock.hpp"
 #include "J3D/Data/J3DModelData.hpp"
 
+#include "J3D/Util/J3DUtil.hpp"
+
 #include <bstream.h>
 #include <magic_enum.hpp>
 
@@ -48,14 +50,37 @@ std::shared_ptr<J3DMaterialTable> J3DMaterialTableLoader::Load(bStream::CStream*
         }
     }
 
-    for (std::shared_ptr<J3DMaterial>& m : mMaterialTable->GetMaterials()) {
-        std::shared_ptr<J3DMaterial> defaultMaterial = modelData->GetMaterial(m->Name);
+    // Initialize the materials that are being overridden from the model,
+    // and add the materials NOT being overridden to the list.
+    for (std::shared_ptr<J3DMaterial> defaultMaterial : modelData->GetMaterials()) {
+        std::shared_ptr<J3DMaterial> instanceMaterial = mMaterialTable->GetMaterial(defaultMaterial->Name);
 
-        if (defaultMaterial != nullptr) {
-            m->SetShape(defaultMaterial->GetShape());
-            m->GenerateShaders();
+        if (instanceMaterial != nullptr) {
+            instanceMaterial->SetShape(defaultMaterial->GetShape());
+            instanceMaterial->GenerateShaders();
 
-            J3DUniformBufferObject::LinkMaterialToUBO(m);
+            J3DUniformBufferObject::LinkMaterialToUBO(instanceMaterial);
+        }
+        else {
+            mMaterialTable->mMaterials.push_back(defaultMaterial);
+        }
+    }
+
+    // Prune materials that weren't initialized.
+    for (auto it = mMaterialTable->mMaterials.begin(); it != mMaterialTable->mMaterials.end(); ) {
+        if ((*it)->GetShape() == nullptr) {
+            it = mMaterialTable->mMaterials.erase(it);
+
+            continue;
+        }
+
+        ++it;
+    }
+
+    // Copy the textures that aren't being overridden from the model.
+    for (uint32_t i = 0; i < modelData->GetTextures().size(); i++) {
+        if (i >= mMaterialTable->mTextures.size()) {
+            mMaterialTable->mTextures.push_back(modelData->GetTexture(i));
         }
     }
 
