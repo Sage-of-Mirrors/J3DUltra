@@ -1,6 +1,6 @@
 #pragma once
 
-#include "J3D/J3DBlock.hpp"
+#include "J3D/Data/J3DBlock.hpp"
 
 #include <stdint.h>
 #include <memory>

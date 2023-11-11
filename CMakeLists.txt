@@ -13,13 +13,27 @@ add_subdirectory(lib/libflipper)
 
 file(GLOB J3DULTRA_SRC
     # J3DUltra
-    "src/*.cpp"
-    "include/*.hpp"
+    "include/J3D/*.hpp"
+    "include/J3D/Animation/*.hpp"
+    "include/J3D/Data/*.hpp"
+    "include/J3D/Geometry/*.hpp"
+    "include/J3D/Material/*.hpp"
+    "include/J3D/Rendering/*.hpp"
+    "include/J3D/Skeleton/*.hpp"
+    "include/J3D/Texture/*.hpp"
+    "include/J3D/Util/*.hpp"
+
     "src/J3D/*.cpp"
     "src/J3D/Animation/*.cpp"
-    "include/J3D/*.hpp"
+    "src/J3D/Data/*.cpp"
+    "src/J3D/Geometry/*.cpp"
+    "src/J3D/Material/*.cpp"
+    "src/J3D/Rendering/*.cpp"
+    "src/J3D/Skeleton/*.cpp"
+    "src/J3D/Texture/*.cpp"
+    "src/J3D/Util/*.cpp"
+
     "include/GX/*.hpp"
-    "include/J3D/Animation/*.hpp"
     
     # bStream
     "lib/bStream/*.cpp"

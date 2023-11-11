@@ -6,8 +6,8 @@
 #include "J3D/Animation/J3DTexIndexAnimationInstance.hpp"
 #include "J3D/Animation/J3DTexMatrixAnimationInstance.hpp"
 
-#include "J3D/J3DBlock.hpp"
-#include "J3D/J3DData.hpp"
+#include "J3D/Data/J3DBlock.hpp"
+#include "J3D/Data/J3DData.hpp"
 #include "bstream.h"
 
 #include <iostream>

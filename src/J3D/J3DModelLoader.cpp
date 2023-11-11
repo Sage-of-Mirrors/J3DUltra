@@ -1,16 +1,17 @@
 #include "J3D/J3DModelLoader.hpp"
-#include "J3D/J3DModelData.hpp"
+#include "J3D/Data/J3DModelData.hpp"
+#include "J3D/Geometry/J3DShapeFactory.hpp"
+#include "J3D/Material/J3DMaterialFactoryV2.hpp"
+#include "J3D/Material/J3DMaterialFactoryV3.hpp"
+#include "J3D/Texture/J3DTextureFactory.hpp"
+#include "J3D/Skeleton/J3DJoint.hpp"
+#include "J3D/Util/J3DNameTable.hpp"
+
 #include "GX/GXStruct.hpp"
-#include "J3D/J3DJoint.hpp"
-#include "J3D/J3DNameTable.hpp"
-#include "J3D/J3DShapeFactory.hpp"
-#include "J3D/J3DMaterialFactoryV2.hpp"
-#include "J3D/J3DMaterialFactoryV3.hpp"
-#include "J3D/J3DTextureFactory.hpp"
-#include "J3D/J3DJoint.hpp"
 
 #include <GXGeometryEnums.hpp>
 #include <GXVertexData.hpp>
+
 #include <bstream.h>
 
 J3DModelLoader::J3DModelLoader() : mModelData(nullptr) {

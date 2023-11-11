@@ -1,8 +1,8 @@
 #include "J3D/Animation/J3DColorAnimationInstance.hpp"
 
-#include "J3D/J3DModelInstance.hpp"
-#include "J3D/J3DNameTable.hpp"
-#include "J3D/J3DMaterial.hpp"
+#include "J3D/Data/J3DModelInstance.hpp"
+#include "J3D/Util/J3DNameTable.hpp"
+#include "J3D/Material/J3DMaterial.hpp"
 
 #include <memory>
 #include <algorithm>
