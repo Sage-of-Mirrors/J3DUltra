@@ -33,7 +33,7 @@ void J3DModelInstance::UpdateMaterialTextureMatrices(float deltaTime, std::share
         mTexMatrixAnimation->ApplyAnimation(material);
     }
 
-    material->CalculateTexMatrices(viewMatrix, projMatrix);
+    material->CalculateTexMatrices(mTransform.ToMat4(), viewMatrix, projMatrix);
 }
 
 void J3DModelInstance::UpdateMaterialTextures(float deltaTime, std::shared_ptr<J3DMaterial> material) {
@@ -69,7 +69,7 @@ void J3DModelInstance::Update(float deltaTime, std::shared_ptr<J3DMaterial> mate
     J3DUniformBufferObject::SetLights(mLights);
 
     glm::mat4 transformMat4 = mReferenceFrame * mTransform.ToMat4();
-    J3DUniformBufferObject::SetModelMatrix(&transformMat4);
+    J3DUniformBufferObject::SetModelMatrix(transformMat4);
 }
 
 void J3DModelInstance::SetTranslation(const glm::vec3 trans) {

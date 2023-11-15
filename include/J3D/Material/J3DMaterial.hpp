@@ -106,7 +106,7 @@ public:
 	bool AreTexMatricesAnimating;
 	J3DTexMatrixInfo AnimationTexMatrixInfo[10]{};
 
-	void CalculateTexMatrices(glm::mat4& viewMatrix, glm::mat4 projMatrix);
+	void CalculateTexMatrices(const glm::mat4& modelMatrix, const glm::mat4& viewMatrix, const glm::mat4& projMatrix);
 
 	const GXShape* GetShape() const { return mShape; }
 	void SetShape(const GXShape* shape) { mShape = shape; }

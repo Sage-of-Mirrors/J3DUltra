@@ -24,13 +24,14 @@ void J3DShapeInitData::Deserialize(bStream::CStream* stream) {
 
 GXShape* J3DShapeFactory::Create(bStream::CStream* stream, uint32_t index, const GXAttributeData* attributes) {
 	GXShape* gxShape = new GXShape();
-	//J3DShape* j3dShape = new J3DShape();
 
 	stream->seek(mBlock->InitDataTableOffset + (index * sizeof(J3DShapeInitData)));
 
 	// Load the initial shape data
 	J3DShapeInitData initData;
 	initData.Deserialize(stream);
+
+	gxShape->SetUserData(new uint32_t(initData.MatrixType));
 
 	// Load the vertex descriptions that will allow us to properly read the geometry data
 	auto& shapeAttributeTable = gxShape->GetAttributeTable();

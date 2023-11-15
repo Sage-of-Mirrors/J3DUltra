@@ -21,6 +21,7 @@ class J3DVertexShaderGenerator {
 	static std::string GenerateLight(std::shared_ptr<J3DColorChannel> colorChannel, const uint32_t& lightIndex);
 	static std::string GenerateColorChannel(std::shared_ptr<J3DColorChannel> colorChannnel, const int32_t& index);
 	static std::string GenerateTexGen(std::shared_ptr<J3DTexCoordInfo> texGen, const uint32_t index);
+	static std::string GenerateMatrixCalcFunction();
 	static std::string GenerateMainFunction(const J3DMaterial* material, const bool hasNormals);
 
 	static bool IsAttributeUsed(EGXAttribute a, const J3DMaterial* material);

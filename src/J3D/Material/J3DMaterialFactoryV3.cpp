@@ -81,7 +81,7 @@ std::shared_ptr<J3DMaterial> J3DMaterialFactoryV3::Create(bStream::CStream* stre
 		newMaterial->TexGenBlock.mTexCoordInfo.push_back(std::make_shared<J3DTexCoordInfo>(ReadMaterialComponent<J3DTexCoordInfo>(stream, mBlock->TexCoordTableOffset, initData.TexCoord[i])));
 
 		if (initData.TexCoord2[i] != UINT16_MAX)
-			newMaterial->TexGenBlock.mTexCoordInfo.push_back(std::make_shared<J3DTexCoordInfo>(ReadMaterialComponent<J3DTexCoordInfo>(stream, mBlock->TexCoord2TableOffset, initData.TexCoord2[i])));
+			newMaterial->TexGenBlock.mTexCoord2Info.push_back(std::make_shared<J3DTexCoordInfo>(ReadMaterialComponent<J3DTexCoordInfo>(stream, mBlock->TexCoord2TableOffset, initData.TexCoord2[i])));
 	}
 
 	for (int i = 0; i < 10; i++) {

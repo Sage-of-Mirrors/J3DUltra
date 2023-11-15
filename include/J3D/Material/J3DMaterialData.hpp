@@ -163,10 +163,20 @@ struct J3DTexMatrixInfo : public J3DMaterialComponentBase {
 	virtual void Deserialize(bStream::CStream* stream);
 	virtual size_t GetElementSize() override { return 100; }
 
-	void CalculateMatrix();
+	void CalculateMatrix(const glm::mat4& modelMtx, const glm::mat4& viewMtx, const glm::mat4& projMtx);
 
 	bool operator==(const J3DTexMatrixInfo& other) const;
 	bool operator!=(const J3DTexMatrixInfo& other) const;
+
+private:
+	glm::mat4 CalculateInputMatrix(const glm::mat4& modelViewMtx, const glm::mat4& modelMtx);
+
+	glm::mat4 CalculateSRMatrix(const glm::mat4& mtx);
+	glm::mat4 CalculateSRTMatrix();
+
+	glm::mat4 CalculateViewProjMatrix(const glm::mat4& projMtx);
+
+	void CalculateEffectMatrix(const glm::mat4 inputMtx, const glm::mat4& srtMtx, const glm::mat4& modelMtx, const glm::mat4& projMtx);
 };
 
 struct J3DNBTScaleInfo : public J3DMaterialComponentBase {

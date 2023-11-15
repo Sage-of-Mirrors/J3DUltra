@@ -25,6 +25,7 @@ std::string J3DShaderGeneratorCommon::GenerateStructs() {
 		"\tGXLight Lights[8];\n"
 		"\tmat4 Envelopes[512];\n"
 		"\tmat4 TexMatrices[10];\n"
+		"\tuint BillboardType;\n"
 		"};\n\n";
 
 	return stream.str();

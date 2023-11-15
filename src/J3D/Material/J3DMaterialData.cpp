@@ -2,6 +2,7 @@
 #include "J3D/Util/J3DTransform.hpp"
 
 #include <bstream.h>
+#include <glm/matrix.hpp>
 
 /* == J3DZMode == */
 void J3DZMode::Serialize(bStream::CStream* stream) {
@@ -246,47 +247,193 @@ void J3DTexMatrixInfo::Deserialize(bStream::CStream* stream) {
 
 	for (int x = 0; x < 4; x++) {
 		for (int y = 0; y < 4; y++) {
-			ProjectionMatrix[x][y] = stream->readFloat();
+			ProjectionMatrix[y][x] = stream->readFloat();
 		}
 	}
-
-	CalculateMatrix();
 }
 
-void J3DTexMatrixInfo::CalculateMatrix() {
-	CalculatedMatrix = glm::identity<glm::mat4>();
+void J3DTexMatrixInfo::CalculateMatrix(const glm::mat4& modelMtx, const glm::mat4& viewMtx, const glm::mat4& projMtx) {
+	glm::mat4 inputMtx = CalculateInputMatrix(viewMtx * modelMtx, modelMtx);
+	glm::mat4 srtMtx = CalculateSRTMatrix();
+
+	CalculateEffectMatrix(inputMtx, srtMtx, modelMtx, projMtx);
+}
+
+glm::mat4 J3DTexMatrixInfo::CalculateInputMatrix(const glm::mat4& modelViewMtx, const glm::mat4& modelMtx) {
+	switch (TexEffect) {
+		case EJ3DTexEffect::ENVMAP_BASIC:
+		case EJ3DTexEffect::ENVMAP_OLD:
+		case EJ3DTexEffect::ENVMAP:
+			return glm::mat4(modelViewMtx[0], modelViewMtx[1], modelViewMtx[2], { 0.0f, 0.0f, 0.0f, 1.0f });
+		case EJ3DTexEffect::PROJMAP_BASIC:
+		case EJ3DTexEffect::PROJMAP:
+			return modelMtx;
+		case EJ3DTexEffect::VIEWPROJMAP_BASIC:
+		case EJ3DTexEffect::VIEWPROJMAP:
+			return modelViewMtx;
+		case EJ3DTexEffect::EFFECT_5:
+		case EJ3DTexEffect::ENVMAP_OLD_EFFECTMTX:
+		case EJ3DTexEffect::ENVMAP_EFFECTMTX:
+			return glm::mat4(modelMtx[0], modelMtx[1], modelMtx[2], { 0.0f, 0.0f, 0.0f, 1.0f });
+		default:
+			return glm::identity<glm::mat4>();
+	}
+}
+
+glm::mat4 J3DTexMatrixInfo::CalculateSRTMatrix() {
+	glm::mat4 srtMtx = glm::identity<glm::mat4>();
 
 	if (CalcType == EJ3DMatrixCalcType::SOFTIMAGE) {
-		CalculatedMatrix[0][0] = Transform.Scale.x * glm::cos(Transform.Rotation);
-		CalculatedMatrix[0][1] = Transform.Scale.x * -glm::sin(Transform.Rotation);
+		srtMtx[0][0] = Transform.Scale.x * glm::cos(Transform.Rotation);
+		srtMtx[0][1] = Transform.Scale.x * -glm::sin(Transform.Rotation);
 
-		CalculatedMatrix[0][3] = -glm::cos(Transform.Rotation) * Origin.x +
+		srtMtx[0][3] = -glm::cos(Transform.Rotation) * Origin.x +
 			glm::sin(Transform.Rotation) * Origin.y +
 			Origin.x + Transform.Translation.x;
 
-		CalculatedMatrix[1][0] = Transform.Scale.y * glm::sin(Transform.Rotation);
-		CalculatedMatrix[1][1] = Transform.Scale.y * glm::cos(Transform.Rotation);
+		srtMtx[1][0] = Transform.Scale.y * glm::sin(Transform.Rotation);
+		srtMtx[1][1] = Transform.Scale.y * glm::cos(Transform.Rotation);
 
-		CalculatedMatrix[1][3] = glm::sin(Transform.Rotation) * Origin.x -
+		srtMtx[1][3] = glm::sin(Transform.Rotation) * Origin.x -
 			glm::cos(Transform.Rotation) * Origin.y +
 			Origin.y + Transform.Translation.y;
 	}
 	else {
-		CalculatedMatrix[0][0] = Transform.Scale.x * glm::cos(Transform.Rotation);
-		CalculatedMatrix[0][1] = Transform.Scale.y * glm::sin(Transform.Rotation);
+		srtMtx[0][0] = Transform.Scale.x * glm::cos(Transform.Rotation);
+		srtMtx[0][1] = Transform.Scale.y * glm::sin(Transform.Rotation);
 
-		CalculatedMatrix[0][2] = (
+		srtMtx[0][2] = (
 			(Transform.Translation.x - 0.5f) * glm::cos(Transform.Rotation) -
 			(Transform.Translation.y - 0.5f + Transform.Scale.y) * glm::sin(Transform.Rotation) + 0.5f
 		);
 
-		CalculatedMatrix[1][0] = Transform.Scale.x * -glm::sin(Transform.Rotation);
-		CalculatedMatrix[1][1] = Transform.Scale.y * glm::cos(Transform.Rotation);
+		srtMtx[1][0] = Transform.Scale.x * -glm::sin(Transform.Rotation);
+		srtMtx[1][1] = Transform.Scale.y * glm::cos(Transform.Rotation);
 
-		CalculatedMatrix[1][2] = (
+		srtMtx[1][2] = (
 			-(Transform.Translation.x - 0.5f) * glm::sin(Transform.Rotation) -
 			(Transform.Translation.y - 0.5f + Transform.Scale.y) * glm::cos(Transform.Rotation) + 0.5f
 		);
+	}
+
+	srtMtx[3][3] = 1.0f;
+
+	return srtMtx;
+}
+
+glm::mat4 envMtxOld = {
+	{ 0.5f, 0.0f, 0.0f, 0.0f },
+	{ 0.0f,-0.5f, 0.0f, 0.0f },
+	{ 0.0f, 0.0f, 1.0f, 0.0f },
+	{ 0.5f, 0.5f, 0.0f, 1.0f }
+};
+
+glm::mat4 envMtx = {
+	{ 0.5f, 0.0f, 0.0f, 0.0f },
+	{ 0.0f,-0.5f, 0.0f, 0.0f },
+	{ 0.5f, 0.5f, 1.0f, 0.0f },
+	{ 0.0f, 0.0f, 0.0f, 1.0f }
+};
+
+glm::mat4 J3DTexMatrixInfo::CalculateViewProjMatrix(const glm::mat4& projMtx) {
+	glm::mat4 pMtx = glm::identity<glm::mat4>();
+
+	pMtx[0][0] = projMtx[0][0] * 0.5f;
+	pMtx[1][0] = 0.0f;
+	pMtx[2][0] = projMtx[2][0] * 0.5f + projMtx[2][3] * 0.5f;
+	pMtx[3][0] = projMtx[3][0] * 0.5f + projMtx[3][3] * 0.5f;
+
+	pMtx[0][1] = 0.0f;
+	pMtx[1][1] = projMtx[1][1] * -0.5f;
+	pMtx[2][1] = projMtx[2][1] * -0.5f + projMtx[2][3] * 0.5f;
+	pMtx[3][1] = projMtx[3][1] * -0.5f + projMtx[3][3] * 0.5f;
+
+	pMtx[0][2] = 0.0f;
+	pMtx[1][2] = 0.0f;
+	pMtx[2][2] = projMtx[2][3];
+	pMtx[3][2] = projMtx[3][3];
+
+	return glm::transpose(pMtx);
+}
+
+void J3DTexMatrixInfo::CalculateEffectMatrix(const glm::mat4 inputMtx, const glm::mat4& srtMtx, const glm::mat4& modelMtx, const glm::mat4& projMtx) {
+	switch (TexEffect) {
+		case EJ3DTexEffect::ENVMAP_BASIC:
+		{
+			CalculatedMatrix = srtMtx * inputMtx;
+			break;
+		}
+		case EJ3DTexEffect::PROJMAP_BASIC:
+		case EJ3DTexEffect::VIEWPROJMAP_BASIC:
+		case EJ3DTexEffect::EFFECT_5:
+		{
+			CalculatedMatrix = (srtMtx * ProjectionMatrix) * inputMtx;
+			break;
+		}
+		case EJ3DTexEffect::EFFECT_4:
+		{
+			CalculatedMatrix = srtMtx * ProjectionMatrix;
+			break;
+		}
+		case EJ3DTexEffect::ENVMAP_OLD:
+		{
+			CalculatedMatrix = (srtMtx * envMtxOld) * inputMtx;
+			break;
+		}
+		case EJ3DTexEffect::ENVMAP:
+		{
+			glm::mat4 texMtx = srtMtx;
+			texMtx[2][0] = texMtx[3][0];
+			texMtx[2][1] = texMtx[3][1];
+			texMtx[2][2] = 1.0f;
+
+			texMtx[3][0] = 0.0f;
+			texMtx[3][1] = 0.0f;
+			texMtx[3][2] = 0.0f;
+
+			CalculatedMatrix = (texMtx * envMtx) * inputMtx;
+
+			break;
+		}
+		case EJ3DTexEffect::PROJMAP:
+		case EJ3DTexEffect::VIEWPROJMAP:
+		case EJ3DTexEffect::ENVMAP_EFFECTMTX:
+		{
+			glm::mat4 outMtx = glm::identity<glm::mat4>();
+
+			glm::mat4 texMtx = srtMtx;
+			texMtx[2][0] = texMtx[3][0];
+			texMtx[2][1] = texMtx[3][1];
+			texMtx[2][2] = 1.0f;
+
+			texMtx[3][0] = 0.0f;
+			texMtx[3][1] = 0.0f;
+			texMtx[3][2] = 0.0f;
+
+			if (TexEffect == EJ3DTexEffect::VIEWPROJMAP) {
+				outMtx = texMtx * CalculateViewProjMatrix(projMtx);
+			}
+			else if (TexEffect == EJ3DTexEffect::PROJMAP) {
+				outMtx = (texMtx * envMtx) * ProjectionMatrix;
+			}
+			else {
+				outMtx = (texMtx * envMtx) * ProjectionMatrix;
+			}
+
+			CalculatedMatrix = outMtx * inputMtx;
+
+			break;
+		}
+		case EJ3DTexEffect::ENVMAP_OLD_EFFECTMTX:
+		{
+			CalculatedMatrix = (srtMtx * envMtxOld) * ProjectionMatrix * inputMtx;
+			break;
+		}
+		case EJ3DTexEffect::NONE:
+		{
+			CalculatedMatrix = srtMtx;
+			break;
+		}
 	}
 }
 

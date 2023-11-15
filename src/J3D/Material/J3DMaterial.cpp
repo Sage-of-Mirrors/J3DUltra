@@ -16,6 +16,8 @@ J3DMaterial::J3DMaterial() : mShaderProgram(-1), AreRegisterColorsAnimating(fals
 J3DMaterial::~J3DMaterial() {
 	if (mShaderProgram != -1)
 		glDeleteProgram(mShaderProgram);
+
+	delete mShape;
 }
 
 bool J3DMaterial::GenerateShaders() {
@@ -221,6 +223,9 @@ void J3DMaterial::Render(const std::vector<std::shared_ptr<J3DTexture>>& texture
 	J3DUniformBufferObject::SetTexMatrices(TexMatrices);
 
 	if (mShape != nullptr) {
+		J3DUniformBufferObject::SetBillboardType(*mShape->GetUserData<uint32_t>());
+		J3DUniformBufferObject::SubmitUBO();
+
 		uint32_t offset, count;
 		mShape->GetVertexOffsetAndCount(offset, count);
 
@@ -243,8 +248,9 @@ void J3DMaterial::Render(const std::vector<std::shared_ptr<J3DTexture>>& texture
 	glDepthMask(GL_TRUE);
 }
 
-void J3DMaterial::CalculateTexMatrices(glm::mat4& viewMatrix, glm::mat4 projMatrix) {
+void J3DMaterial::CalculateTexMatrices(const glm::mat4& modelMatrix, const glm::mat4& viewMatrix, const glm::mat4& projMatrix) {
 	for (int i = 0; i < TexGenBlock.mTexMatrix.size(); i++) {
+		TexGenBlock.mTexMatrix[i]->CalculateMatrix(modelMatrix, viewMatrix, projMatrix);
 		TexMatrices[i] = TexGenBlock.mTexMatrix[i]->CalculatedMatrix;
 	}
 }

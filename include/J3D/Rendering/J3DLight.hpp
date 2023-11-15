@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <glm/ext.hpp>
 
 struct J3DLight {
 	// Position of the light in space. Set W to 0 for view-space, and 1 for world-space.
@@ -14,4 +15,12 @@ struct J3DLight {
 	glm::vec4 AngleAtten = glm::vec4(1, 0, 0, 1);
 	// Attenuation of the light's power depending on distance.
 	glm::vec4 DistAtten = glm::vec4(1, 0, 0, 1);
+};
+
+static J3DLight DEFAULT_LIGHT = {
+	glm::zero<glm::vec4>(),
+	{ 0.0f, 0.0f, 0.0f, 1.0f },
+	glm::zero<glm::vec4>(),
+	{ 1.0f, 0.0f, 0.0f, 1.0f },
+	{ 1.0f, 0.0f, 0.0f, 1.0f }
 };

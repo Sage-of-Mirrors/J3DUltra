@@ -47,6 +47,8 @@ bool J3DVertexShaderGenerator::GenerateVertexShader(const J3DMaterial* material,
 	vertexShader << "\treturn ivec3(FloatToS10(a.r), FloatToS10(a.g), FloatToS10(a.b));\n";
 	vertexShader << "}\n\n";
 
+	vertexShader << GenerateMatrixCalcFunction();
+
 	bool hasNormals = J3DUtility::VectorContains(material->GetShape()->GetAttributeTable(), EGXAttribute::Normal);
 	vertexShader << GenerateMainFunction(material, hasNormals);
 
@@ -455,11 +457,65 @@ std::string J3DVertexShaderGenerator::GenerateColorChannel(std::shared_ptr<J3DCo
 	return stream.str();
 }
 
+std::string J3DVertexShaderGenerator::GenerateMatrixCalcFunction() {
+	std::stringstream stream;
+	stream << "vec3 CalculateMatrix() {\n";
+	stream << "\tmat4 envelopeMtx = View * Model * Envelopes[int(aPos.w)];\n\n";
+
+	stream << "\tif (BillboardType == 0 || BillboardType == 3) {\n";
+	stream << "\t\treturn (envelopeMtx * vec4(aPos.xyz, 1.0)).xyz;\n";
+	stream << "\t}\n\n";
+
+	stream << "\tmat4 bboardMtx = mat4(1.0);\n\n";
+	stream << "\tfloat mx = envelopeMtx[0][0] * envelopeMtx[0][0] + envelopeMtx[0][1] * envelopeMtx[0][1] + envelopeMtx[0][2] * envelopeMtx[0][2];\n";
+	stream << "\tfloat my = envelopeMtx[1][0] * envelopeMtx[1][0] + envelopeMtx[1][1] * envelopeMtx[1][1] + envelopeMtx[1][2] * envelopeMtx[1][2];\n";
+	stream << "\tfloat mz = envelopeMtx[2][0] * envelopeMtx[2][0] + envelopeMtx[2][1] * envelopeMtx[2][1] + envelopeMtx[2][2] * envelopeMtx[2][2];\n";
+
+	stream << "\tif (BillboardType == 1) {\n";
+	stream << "\t\tbboardMtx[0][0] = mx;\n";
+	stream << "\t\tbboardMtx[0][1] = 0.0;\n";
+	stream << "\t\tbboardMtx[0][2] = 0.0;\n\n";
+
+	stream << "\t\tbboardMtx[1][0] = 0.0;\n";
+	stream << "\t\tbboardMtx[1][1] = my;\n";
+	stream << "\t\tbboardMtx[1][2] = 0.0;\n\n";
+
+	stream << "\t\tbboardMtx[2][0] = 0.0;\n";
+	stream << "\t\tbboardMtx[2][1] = 0.0;\n";
+	stream << "\t\tbboardMtx[2][2] = mz;\n";
+	stream << "\t}\n";
+
+	stream << "\telse {\n";
+	stream << "\t\tvec3 vs = normalize(vec3(0.0, -envelopeMtx[1][2], envelopeMtx[1][1]));\n\n";
+
+	stream << "\t\tbboardMtx[0][0] = mx;\n";
+	stream << "\t\tbboardMtx[0][1] = 0.0;\n";
+	stream << "\t\tbboardMtx[0][2] = 0.0;\n\n";
+
+	stream << "\t\tbboardMtx[1][0] = envelopeMtx[1][0];\n";
+	stream << "\t\tbboardMtx[1][1] = envelopeMtx[1][1];\n";
+	stream << "\t\tbboardMtx[1][2] = envelopeMtx[1][2];\n\n";
+
+	stream << "\t\tbboardMtx[2][0] = 0.0;\n";
+	stream << "\t\tbboardMtx[2][1] = vs.y * mz;\n";
+	stream << "\t\tbboardMtx[2][2] = vs.z * mz;\n";
+	stream << "\t}\n\n";
+
+	stream << "\tbboardMtx[3][0] = envelopeMtx[3][0];\n";
+	stream << "\tbboardMtx[3][1] = envelopeMtx[3][1];\n";
+	stream << "\tbboardMtx[3][2] = envelopeMtx[3][2];\n\n";
+
+	stream << "\treturn (bboardMtx * vec4(aPos.xyz, 1.0)).xyz;\n";
+	stream << "}\n\n";
+
+	return stream.str();
+}
+
 std::string J3DVertexShaderGenerator::GenerateMainFunction(const J3DMaterial* material, const bool hasNormals) {
 	std::stringstream stream;
 	stream << "void main() {\n";
 
-	stream << "\tvec3 ViewPos = (View * Model * (Envelopes[int(aPos.w)]) * vec4(aPos.xyz, 1.0)).xyz;\n";
+	stream << "\tvec3 ViewPos = CalculateMatrix();\n";
 	if (IsAttributeUsed(EGXAttribute::Normal, material)) {
 		stream << "\tvec3 ViewNormal = (View * Model * vec4(mat3(transpose(inverse(Envelopes[int(aPos.w)]))) * aNrm, 0.0)).xyz;\n";
 	}
