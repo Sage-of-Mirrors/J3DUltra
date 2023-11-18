@@ -43,9 +43,9 @@ class J3DTextureFactory {
 	uint8_t* DecodeCMPRSubBlock(bStream::CStream* stream);
 
 	// Utility
-	uint32_t GXWrapToGLWrap(EGXWrapMode gxWrap);
-	uint32_t GXFilterToGLFilter(EGXFilterMode gxFilter);
-	float GXAnisoToGLAniso(EGXMaxAnisotropy aniso);
+	static uint32_t GXWrapToGLWrap(EGXWrapMode gxWrap);
+	static uint32_t GXFilterToGLFilter(EGXFilterMode gxFilter);
+	static float GXAnisoToGLAniso(EGXMaxAnisotropy aniso);
 
 	// Debug
 	void OutputPNG(uint32_t index, std::shared_ptr<J3DTexture> texture);
@@ -53,6 +53,9 @@ class J3DTextureFactory {
 public:
 	J3DTextureFactory(J3DTextureBlock* srcBlock, bStream::CStream* stream);
 	~J3DTextureFactory() {}
+
+	static void InitTexture(std::shared_ptr<J3DTexture> texture);
+	static void SetTextureMipImage(uint32_t handle, uint32_t mipIdx, uint32_t mipWidth, uint32_t mipHeight, uint8_t* mipImg);
 
 	std::shared_ptr<J3DTexture> Create(bStream::CStream* stream, uint32_t index);
 };

@@ -72,7 +72,7 @@ public:
 	J3DModelData();
 	virtual ~J3DModelData();
 
-	std::shared_ptr<J3DModelInstance> GetInstance();
+	std::shared_ptr<J3DModelInstance> CreateInstance();
 
 	std::vector<glm::mat4> GetRestPose() const;
 	const std::vector<J3DEnvelope>& GetJointEnvelopes() const { return mJointEnvelopes; }
@@ -90,6 +90,9 @@ public:
 	std::shared_ptr<J3DTexture> GetTexture(std::string name) { return mMaterialTable->GetTexture(name); }
 	/* Returns this model's list of default textures. */
 	shared_vector<J3DTexture>& GetTextures() { return mMaterialTable->GetTextures(); }
+
+	bool SetTexture(uint32_t idx, uint32_t width, uint32_t height, uint8_t* data, uint32_t size);
+	bool SetTexture(std::string name, uint32_t width, uint32_t height, uint8_t* data, uint32_t size);
 
 	void BindVAO();
 	void UnbindVAO();

@@ -2,7 +2,7 @@
 
 #include <bstream.h>
 
-J3DTexture::J3DTexture() {
+J3DTexture::J3DTexture() : TexHandle(UINT32_MAX) {
 
 }
 

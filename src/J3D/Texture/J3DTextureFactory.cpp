@@ -16,17 +16,12 @@ J3DTextureFactory::J3DTextureFactory(J3DTextureBlock* srcBlock, bStream::CStream
 	mNameTable.Deserialize(stream);
 }
 
-std::shared_ptr<J3DTexture> J3DTextureFactory::Create(bStream::CStream* stream, uint32_t index) {
-	uint32_t dataOffset = mBlock->TexTableOffset + (index * TEXTURE_ENTRY_SIZE);
-	stream->seek(dataOffset);
+void J3DTextureFactory::InitTexture(std::shared_ptr<J3DTexture> texture) {
+	if (texture->TexHandle != UINT32_MAX) {
+		glDeleteTextures(1, &texture->TexHandle);
+		texture->TexHandle = UINT32_MAX;
+	}
 
-	std::shared_ptr<J3DTexture> texture = std::make_shared<J3DTexture>();
-	texture->Deserialize(stream);
-
-	texture->Name = mNameTable.GetName(index);
-
-	// Generate GL data
-	texture->TexHandle = UINT32_MAX;
 	glCreateTextures(GL_TEXTURE_2D, 1, &texture->TexHandle);
 
 	glTextureParameteri(texture->TexHandle, GL_TEXTURE_WRAP_S, GXWrapToGLWrap(texture->WrapS));
@@ -39,50 +34,69 @@ std::shared_ptr<J3DTexture> J3DTextureFactory::Create(bStream::CStream* stream, 
 	glTextureParameterf(texture->TexHandle, GL_TEXTURE_MAX_ANISOTROPY, GXAnisoToGLAniso(texture->MaxAnisotropy));
 
 	glTextureStorage2D(texture->TexHandle, texture->MipmapCount, GL_RGBA8, texture->Width, texture->Height);
+}
+
+void J3DTextureFactory::SetTextureMipImage(uint32_t handle, uint32_t mipIdx, uint32_t mipWidth, uint32_t mipHeight, uint8_t* mipImg) {
+	glTextureSubImage2D(handle, mipIdx, 0, 0, mipWidth, mipHeight, GL_RGBA, GL_UNSIGNED_BYTE, mipImg);
+}
+
+std::shared_ptr<J3DTexture> J3DTextureFactory::Create(bStream::CStream* stream, uint32_t index) {
+	uint32_t dataOffset = mBlock->TexTableOffset + (index * TEXTURE_ENTRY_SIZE);
+	stream->seek(dataOffset);
+
+	std::shared_ptr<J3DTexture> texture = std::make_shared<J3DTexture>();
+	texture->Deserialize(stream);
+
+	texture->Name = mNameTable.GetName(index);
+	InitTexture(texture);
 
 	// Load image data
 	stream->seek(dataOffset + texture->TextureOffset);
 
 	for (int i = 0; i < texture->MipmapCount; i++) {
+		size_t f = stream->tell();
+
 		uint16_t mipWidth = texture->Width / std::pow(2.0f, i);
 		uint16_t mipHeight = texture->Height / std::pow(2.0f, i);
 
 		uint8_t* imgData = new uint8_t[mipWidth * mipHeight * 4]{ };
 
-		switch (texture->TextureFormat) {
-		case EGXTextureFormat::I4:
-			DecodeI4(stream, mipWidth, mipHeight, imgData);
-			break;
-		case EGXTextureFormat::I8:
-			DecodeI8(stream, mipWidth, mipHeight, imgData);
-			break;
-		case EGXTextureFormat::IA4:
-			DecodeIA4(stream, mipWidth, mipHeight, imgData);
-			break;
-		case EGXTextureFormat::IA8:
-			DecodeIA8(stream, mipWidth, mipHeight, imgData);
-			break;
-		case EGXTextureFormat::RGB565:
-			DecodeRGB565(stream, mipWidth, mipHeight, imgData);
-			break;
-		case EGXTextureFormat::RGB5A3:
-			DecodeRGB5A3(stream, mipWidth, mipHeight, imgData);
-			break;
-		case EGXTextureFormat::RGBA32:
-			DecodeRGBA32(stream, mipWidth, mipHeight, imgData);
-			break;
-		case EGXTextureFormat::C4:
-		case EGXTextureFormat::C8:
-		case EGXTextureFormat::C14X2:
-			DecodePaletteFormat(stream, mipWidth, mipHeight, imgData, dataOffset, texture);
-			break;
-		case EGXTextureFormat::CMPR:
-			DecodeCMPR(stream, mipWidth, mipHeight, imgData);
-			break;
+		if (texture->TextureOffset != 0) {
+			switch (texture->TextureFormat) {
+				case EGXTextureFormat::I4:
+					DecodeI4(stream, mipWidth, mipHeight, imgData);
+					break;
+				case EGXTextureFormat::I8:
+					DecodeI8(stream, mipWidth, mipHeight, imgData);
+					break;
+				case EGXTextureFormat::IA4:
+					DecodeIA4(stream, mipWidth, mipHeight, imgData);
+					break;
+				case EGXTextureFormat::IA8:
+					DecodeIA8(stream, mipWidth, mipHeight, imgData);
+					break;
+				case EGXTextureFormat::RGB565:
+					DecodeRGB565(stream, mipWidth, mipHeight, imgData);
+					break;
+				case EGXTextureFormat::RGB5A3:
+					DecodeRGB5A3(stream, mipWidth, mipHeight, imgData);
+					break;
+				case EGXTextureFormat::RGBA32:
+					DecodeRGBA32(stream, mipWidth, mipHeight, imgData);
+					break;
+				case EGXTextureFormat::C4:
+				case EGXTextureFormat::C8:
+				case EGXTextureFormat::C14X2:
+					DecodePaletteFormat(stream, mipWidth, mipHeight, imgData, dataOffset, texture);
+					break;
+				case EGXTextureFormat::CMPR:
+					DecodeCMPR(stream, mipWidth, mipHeight, imgData);
+					break;
+			}
 		}
 
 		texture->ImageData.push_back(imgData);
-		glTextureSubImage2D(texture->TexHandle, i, 0, 0, mipWidth, mipHeight, GL_RGBA, GL_UNSIGNED_BYTE, imgData);
+		SetTextureMipImage(texture->TexHandle, i, mipWidth, mipHeight, imgData);
 	}
 
 	return texture;

@@ -226,12 +226,20 @@ bool J3DModelData::InitializeGL() {
     return true;
 }
 
-std::shared_ptr<J3DModelInstance> J3DModelData::GetInstance() {
+std::shared_ptr<J3DModelInstance> J3DModelData::CreateInstance() {
     return std::make_shared<J3DModelInstance>(shared_from_this());
 }
 
 std::vector<glm::mat4> J3DModelData::GetRestPose() const {
     return mRestPose;
+}
+
+bool J3DModelData::SetTexture(uint32_t idx, uint32_t width, uint32_t height, uint8_t* data, uint32_t size) {
+    return mMaterialTable->SetTexture(idx, width, height, data, size);
+}
+
+bool J3DModelData::SetTexture(std::string name, uint32_t width, uint32_t height, uint8_t* data, uint32_t size) {
+    return mMaterialTable->SetTexture(name, width, height, data, size);
 }
 
 void J3DModelData::BindVAO()
