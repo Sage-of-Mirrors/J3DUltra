@@ -431,7 +431,7 @@ void J3DTexMatrixInfo::CalculateEffectMatrix(const glm::mat4 inputMtx, const glm
 		}
 		case EJ3DTexEffect::NONE:
 		{
-			CalculatedMatrix = srtMtx;
+			CalculatedMatrix = glm::transpose(srtMtx);
 			break;
 		}
 	}

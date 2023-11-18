@@ -172,16 +172,20 @@ void J3DAnimation::J3DTexMatrixAnimationInstance::ApplyAnimation(std::shared_ptr
     float frameTime = GetFrame();
 
     for (auto t : mEntries) {
-        J3DTexMatrixInfo& texMat = material->AnimationTexMatrixInfo[t.TexGenIndex];
+        if (t.MaterialName != material->Name) {
+            continue;
+        }
 
-        texMat.Origin = t.Origin;
+        std::shared_ptr<J3DTexMatrixInfo> texMat = material->TexGenBlock.mTexMatrix[t.TexGenIndex];
 
-        texMat.Transform.Translation = glm::vec3(
+        texMat->Origin = t.Origin;
+
+        texMat->Transform.Translation = glm::vec3(
             t.TranslationS.GetValue(frameTime),
             t.TranslationT.GetValue(frameTime),
             t.TranslationQ.GetValue(frameTime)
         );
-        texMat.Transform.Scale = glm::vec3(
+        texMat->Transform.Scale = glm::vec3(
             t.ScaleS.GetValue(frameTime),
             t.ScaleT.GetValue(frameTime),
             t.ScaleQ.GetValue(frameTime)
