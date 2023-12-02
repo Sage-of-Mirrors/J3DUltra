@@ -1,9 +1,8 @@
 #pragma once
 
 #include "J3DBlock.hpp"
-#include "J3D/Skeleton/J3DEnvelope.hpp"
-#include "J3D/Skeleton/J3DJoint.hpp"
 #include "J3D/Geometry/J3DShape.hpp"
+#include "J3D/Skeleton/J3DSkeleton.hpp"
 #include "J3D/Material//J3DMaterialTable.hpp"
 #include "J3D/Material/J3DMaterial.hpp"
 #include "J3D/Texture/J3DTexture.hpp"
@@ -16,8 +15,10 @@
 #include <vector>
 #include <memory>
 
+struct J3DEnvelope;
 class J3DModelLoader;
 class J3DModelInstance;
+class J3DJoint;
 
 class J3DModelData : public std::enable_shared_from_this<J3DModelData> {
 	friend J3DModelLoader;
@@ -37,18 +38,6 @@ class J3DModelData : public std::enable_shared_from_this<J3DModelData> {
 	// VTX1 data, vertex buffers
 	GXAttributeData mVertexData;
 
-	// EVP1 data, skinning envelopes
-	std::vector<J3DEnvelope> mJointEnvelopes;
-	std::vector<glm::mat4x4> mInverseBindMatrices;
-
-	// DRW1 data, maps shapes to skinning envelopes
-	std::vector<bool> mDrawBools;
-	std::vector<uint16_t> mEnvelopeIndices;
-
-	// JNT1 data, joints
-	J3DJoint* mRootJoint;
-	std::vector<J3DJoint*> mJoints;
-
 	// SHP1 data, geometry
 	GXGeometry mGeometry;
 
@@ -56,13 +45,11 @@ class J3DModelData : public std::enable_shared_from_this<J3DModelData> {
 	std::vector<J3DVertexGL> mGLVertices;
 	std::vector<uint16_t> mIndices;
 
+	std::shared_ptr<J3DSkeleton> mSkeleton;
+
 	std::shared_ptr<J3DMaterialTable> mMaterialTable;
 
-	// Calculated envelopes for the model's rest pose
-	std::vector<glm::mat4> mRestPose;
-
-	void MakeHierarchy(J3DJoint* const root, uint32_t& index);
-
+	void MakeHierarchy(std::shared_ptr<J3DJoint> root, uint32_t& index);
 	void CalculateRestPose();
 	
 	void CreateVBO();
@@ -74,8 +61,13 @@ public:
 
 	std::shared_ptr<J3DModelInstance> CreateInstance();
 
+	const std::vector<GXShape*>& GetShapes() { return mGeometry.GetShapes(); }
+
 	std::vector<glm::mat4> GetRestPose() const;
-	const std::vector<J3DEnvelope>& GetJointEnvelopes() const { return mJointEnvelopes; }
+	const std::vector<J3DEnvelope>& GetJointEnvelopes() const { return mSkeleton->GetJointEnvelopes(); }
+	shared_vector<J3DJoint>& GetJoints() { return mSkeleton->GetJoints(); }
+
+	std::vector<glm::mat4> CalculateAnimJointPose(const std::vector<glm::mat4>& transforms) { return mSkeleton->CalculateAnimJointPose(transforms); }
 
 	/* Returns the material at the given index, or an empty shared_ptr if it does not exist. */
 	std::shared_ptr<J3DMaterial> GetMaterial(uint32_t idx) { return mMaterialTable->GetMaterial(idx); }

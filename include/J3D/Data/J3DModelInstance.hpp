@@ -13,6 +13,9 @@ namespace J3DAnimation {
     class J3DColorAnimationInstance;
     class J3DTexIndexAnimationInstance;
     class J3DTexMatrixAnimationInstance;
+    class J3DJointAnimationInstance;
+    class J3DJointFullAnimationInstance;
+    class J3DVisibilityAnimationInstance;
 }
 
 struct J3DTexture;
@@ -53,6 +56,9 @@ class J3DModelInstance {
     std::shared_ptr<J3DAnimation::J3DColorAnimationInstance> mRegisterColorAnimation;
     std::shared_ptr<J3DAnimation::J3DTexIndexAnimationInstance> mTexIndexAnimation;
     std::shared_ptr<J3DAnimation::J3DTexMatrixAnimationInstance> mTexMatrixAnimation;
+    std::shared_ptr<J3DAnimation::J3DJointAnimationInstance> mJointAnimation;
+    std::shared_ptr<J3DAnimation::J3DJointFullAnimationInstance> mJointFullAnimation;
+    std::shared_ptr<J3DAnimation::J3DVisibilityAnimationInstance> mVisibilityAnimation;
 
     bool bUseInstanceMaterialTable;
     std::shared_ptr<J3DMaterialTable> mInstanceMaterialTable;
@@ -87,6 +93,15 @@ public:
 
     std::shared_ptr<J3DAnimation::J3DTexMatrixAnimationInstance> GetTexMatrixAnimation() const { return mTexMatrixAnimation; }
     void SetTexMatrixAnimation(std::shared_ptr<J3DAnimation::J3DTexMatrixAnimationInstance> anim) { mTexMatrixAnimation = anim; }
+
+    std::shared_ptr<J3DAnimation::J3DJointAnimationInstance> GetJointAnimation() const { return mJointAnimation; }
+    void SetJointAnimation(std::shared_ptr<J3DAnimation::J3DJointAnimationInstance> anim) { mJointAnimation = anim; }
+
+    std::shared_ptr<J3DAnimation::J3DJointFullAnimationInstance> GetJointFullAnimation() const { return mJointFullAnimation; }
+    void SetJointFullAnimation(std::shared_ptr<J3DAnimation::J3DJointFullAnimationInstance> anim) { mJointFullAnimation = anim; }
+
+    std::shared_ptr<J3DAnimation::J3DVisibilityAnimationInstance> GetVisibilityAnimation() const { return mVisibilityAnimation; }
+    void SetVisibilityAnimation(std::shared_ptr<J3DAnimation::J3DVisibilityAnimationInstance> anim) { mVisibilityAnimation = anim; }
 
     bool GetUseInstanceMaterialTable() const { return bUseInstanceMaterialTable; }
     void SetUseInstanceMaterialTable(bool use) { bUseInstanceMaterialTable = use; }

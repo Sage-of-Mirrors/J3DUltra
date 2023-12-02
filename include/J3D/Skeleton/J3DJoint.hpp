@@ -39,8 +39,10 @@ public:
 
 	virtual EJ3DNodeType GetType() { return EJ3DNodeType::Joint; }
 
-	std::string GetJointName() { return mJointName; }
-	uint16_t GetJointID() { return mJointID; }
+	const std::string& GetJointName() const { return mJointName; }
+	uint16_t GetJointID() const { return mJointID; }
+	uint8_t GetMatrixFlag() const { return mMatrixFlag; }
+	uint8_t GetAttachFlag() const { return mAttachFlag; }
 
 	void AddMaterial(std::shared_ptr<J3DMaterial>& mat) { mMaterials.push_back(mat); }
 	std::shared_ptr<J3DMaterial>& GetLastMaterial() { return mMaterials.back(); }

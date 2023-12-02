@@ -5,6 +5,9 @@
 #include "J3D/Animation/J3DColorAnimationInstance.hpp"
 #include "J3D/Animation/J3DTexIndexAnimationInstance.hpp"
 #include "J3D/Animation/J3DTexMatrixAnimationInstance.hpp"
+#include "J3D/Animation/J3DJointAnimationInstance.hpp"
+#include "J3D/Animation/J3DJointFullAnimationInstance.hpp"
+#include "J3D/Animation/J3DVisibilityAnimationInstance.hpp"
 
 #include "J3D/Data/J3DBlock.hpp"
 #include "J3D/Data/J3DData.hpp"
@@ -54,10 +57,18 @@ std::shared_ptr<J3DAnimation::J3DAnimationInstance> J3DAnimation::J3DAnimationLo
             break;
         // BCK
         case EJ3DBlockType::ANK1:
-        // BPK
-        case EJ3DBlockType::PAK1:
+            mAnimInstance = std::make_shared<J3DJointAnimationInstance>();
+            break;
+        // BCA
+        case EJ3DBlockType::ANF1:
+            mAnimInstance = std::make_shared<J3DJointFullAnimationInstance>();
+            break;
         // BVA
         case EJ3DBlockType::VAF1:
+            mAnimInstance = std::make_shared<J3DVisibilityAnimationInstance>();
+            break;
+        // BPK
+        case EJ3DBlockType::PAK1:
         // Unknown
         default:
             std::cout << "Failed to load animation with block type \"" << static_cast<int>(blockType) << "\"." << std::endl;

@@ -1,11 +1,17 @@
 #include "J3D/J3DModelLoader.hpp"
 #include "J3D/Data/J3DModelData.hpp"
+
 #include "J3D/Geometry/J3DShapeFactory.hpp"
+
+#include "J3D/Skeleton/J3DSkeleton.hpp"
+#include "J3D/Skeleton/J3DEnvelope.hpp"
+#include "J3D/Skeleton/J3DJoint.hpp"
+
 #include "J3D/Material/J3DMaterialFactoryV2.hpp"
 #include "J3D/Material/J3DMaterialFactoryV3.hpp"
 #include "J3D/Material/J3DMaterialTable.hpp"
 #include "J3D/Texture/J3DTextureFactory.hpp"
-#include "J3D/Skeleton/J3DJoint.hpp"
+
 #include "J3D/Util/J3DNameTable.hpp"
 
 #include "GX/GXStruct.hpp"
@@ -202,7 +208,7 @@ void J3DModelLoader::ReadEnvelopeBlock(bStream::CStream* stream, uint32_t flags)
         for (int j = 0; j < curJointCount; j++)
             envelope.Weights.push_back(stream->readFloat());
 
-        mModelData->mJointEnvelopes.push_back(envelope);
+        mModelData->mSkeleton->mJointEnvelopes.push_back(envelope);
         stream->seek(envBlock.JointIndexTableOffset + (i + sizeof(uint8_t)));
 
         runningWeightIndex += curJointCount;
@@ -226,7 +232,7 @@ void J3DModelLoader::ReadEnvelopeBlock(bStream::CStream* stream, uint32_t flags)
             }
         }
 
-        mModelData->mInverseBindMatrices.push_back(glm::transpose(matrix));
+        mModelData->mSkeleton->mInverseBindMatrices.push_back(glm::transpose(matrix));
     }
 
     stream->seek(currentStreamPos + envBlock.BlockSize);
@@ -242,10 +248,10 @@ void J3DModelLoader::ReadDrawBlock(bStream::CStream* stream, uint32_t flags) {
 
     for (int i = 0; i < drawBlock.Count; i++) {
         stream->seek(drawBlock.DrawTableOffset + (i * sizeof(uint8_t)));
-        mModelData->mDrawBools.push_back(stream->readUInt8());
+        mModelData->mSkeleton->mDrawBools.push_back(stream->readUInt8());
 
         stream->seek(drawBlock.IndexTableOffset + (i * sizeof(uint16_t)));
-        mModelData->mEnvelopeIndices.push_back(stream->readUInt16());
+        mModelData->mSkeleton->mEnvelopeIndices.push_back(stream->readUInt16());
 
         posMtxIdx.push_back(i);
     }
@@ -266,7 +272,7 @@ void J3DModelLoader::ReadJointBlock(bStream::CStream* stream, uint32_t flags) {
 
     stream->seek(jointBlock.InitDataTableOffset);
     for (int i = 0; i < jointBlock.Count; i++) {
-        J3DJoint* newJoint = new J3DJoint();
+        std::shared_ptr<J3DJoint> newJoint = std::make_shared<J3DJoint>();
         
         newJoint->mJointName = nameTable.GetName(i);
         newJoint->mJointID = i;
@@ -288,7 +294,7 @@ void J3DModelLoader::ReadJointBlock(bStream::CStream* stream, uint32_t flags) {
         newJoint->mBoundingBoxMax.y = stream->readFloat();
         newJoint->mBoundingBoxMax.z = stream->readFloat();
 
-        mModelData->mJoints.push_back(newJoint);
+        mModelData->mSkeleton->mJoints.push_back(newJoint);
     }
 
     stream->seek(currentStreamPos + jointBlock.BlockSize);

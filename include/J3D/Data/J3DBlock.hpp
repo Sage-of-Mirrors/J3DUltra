@@ -313,3 +313,55 @@ struct J3DTexMatrixKeyBlock : public J3DBlock {
 
 	virtual bool Deserialize(bStream::CStream* stream) override;
 };
+
+struct J3DJointKeyBlock : public J3DBlock {
+	uint8_t LoopMode;
+	uint8_t RotationFraction;
+
+	uint16_t Length;
+	uint16_t TrackCount;
+
+	uint16_t ScaleTableCount;
+	uint16_t RotationTableCount;
+	uint16_t TranslationTableCount;
+
+	uint32_t TrackTableOffset;
+	uint32_t ScaleTableOffset;
+	uint32_t RotationTableOffset;
+	uint32_t TranslationTableOffset;
+
+	virtual bool Deserialize(bStream::CStream* stream) override;
+};
+
+struct J3DJointFullBlock : public J3DBlock {
+	uint8_t LoopMode;
+
+	uint16_t Length;
+	uint16_t TrackCount;
+
+	uint16_t ScaleTableCount;
+	uint16_t RotationTableCount;
+	uint16_t TranslationTableCount;
+
+	uint32_t TrackTableOffset;
+	uint32_t ScaleTableOffset;
+	uint32_t RotationTableOffset;
+	uint32_t TranslationTableOffset;
+
+	virtual bool Deserialize(bStream::CStream* stream) override;
+};
+
+struct J3DVisibilityBlock : public J3DBlock {
+	uint8_t LoopMode;
+	uint8_t m0009;
+
+	uint16_t Length;
+	uint16_t TrackCount;
+
+	uint16_t BooleanTableCount;
+
+	uint32_t TrackTableOffset;
+	uint32_t BooleanTableOffset;
+
+	virtual bool Deserialize(bStream::CStream* stream) override;
+};

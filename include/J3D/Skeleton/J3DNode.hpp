@@ -1,29 +1,33 @@
 #pragma once
 
+#include "J3D/Util/J3DUtil.hpp"
+
 #include <cstdint>
 #include <vector>
+#include <memory>
+
 
 enum class EJ3DNodeType {
 	Base,
 	Joint
 };
 
-class J3DNode {
+class J3DNode : public std::enable_shared_from_this<J3DNode> {
 protected:
-	J3DNode* mParent;
-	std::vector<J3DNode*> mChildren;
+	std::shared_ptr<J3DNode> mParent;
+	shared_vector<J3DNode> mChildren;
 
 public:
-	J3DNode() {}
+	J3DNode() : mParent(std::shared_ptr<J3DNode>()) {}
 	virtual ~J3DNode() {}
 
 	virtual EJ3DNodeType GetType() const { return EJ3DNodeType::Base; }
 
-	J3DNode* GetParent() { return mParent; }
-	std::vector<J3DNode*> GetChildren() { return mChildren; }
+	std::shared_ptr<J3DNode> GetParent() { return mParent; }
+	shared_vector<J3DNode>& GetChildren() { return mChildren; }
 
-	void AddChild(J3DNode* const newChild) {
+	void AddChild(std::shared_ptr<J3DNode> newChild) {
 		mChildren.push_back(newChild);
-		newChild->mParent = this;
+		newChild->mParent = shared_from_this();
 	}
 };

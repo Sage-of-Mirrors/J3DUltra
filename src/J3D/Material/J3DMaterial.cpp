@@ -222,7 +222,7 @@ void J3DMaterial::Render(const std::vector<std::shared_ptr<J3DTexture>>& texture
 
 	J3DUniformBufferObject::SetTexMatrices(TexMatrices);
 
-	if (mShape != nullptr) {
+	if (mShape != nullptr && mShape->GetVisible()) {
 		J3DUniformBufferObject::SetBillboardType(*mShape->GetUserData<uint32_t>());
 		J3DUniformBufferObject::SubmitUBO();
 

@@ -619,3 +619,88 @@ bool J3DTexMatrixKeyBlock::Deserialize(bStream::CStream* stream) {
 
     return true;
 }
+
+bool J3DJointKeyBlock::Deserialize(bStream::CStream* stream) {
+    size_t currentStreamPosition = stream->tell();
+
+    if (!J3DBlock::Deserialize(stream)) {
+        return false;
+    }
+
+    try {
+        LoopMode = stream->readUInt8();
+        RotationFraction = stream->readUInt8();
+
+        Length = stream->readUInt16();
+        TrackCount = stream->readUInt16();
+
+        ScaleTableCount = stream->readUInt16();
+        RotationTableCount = stream->readUInt16();
+        TranslationTableCount = stream->readUInt16();
+
+        TrackTableOffset = stream->readUInt32() + BlockOffset;
+        ScaleTableOffset = stream->readUInt32() + BlockOffset;
+        RotationTableOffset = stream->readUInt32() + BlockOffset;
+        TranslationTableOffset = stream->readUInt32() + BlockOffset;
+    }
+    catch (...) {
+        return false;
+    }
+
+    return true;
+}
+
+bool J3DJointFullBlock::Deserialize(bStream::CStream* stream) {
+    size_t currentStreamPosition = stream->tell();
+
+    if (!J3DBlock::Deserialize(stream)) {
+        return false;
+    }
+
+    try {
+        LoopMode = stream->readUInt8();
+        stream->skip(1);
+
+        Length = stream->readUInt16();
+        TrackCount = stream->readUInt16();
+
+        ScaleTableCount = stream->readUInt16();
+        RotationTableCount = stream->readUInt16();
+        TranslationTableCount = stream->readUInt16();
+
+        TrackTableOffset = stream->readUInt32() + BlockOffset;
+        ScaleTableOffset = stream->readUInt32() + BlockOffset;
+        RotationTableOffset = stream->readUInt32() + BlockOffset;
+        TranslationTableOffset = stream->readUInt32() + BlockOffset;
+    }
+    catch (...) {
+        return false;
+    }
+
+    return true;
+}
+
+bool J3DVisibilityBlock::Deserialize(bStream::CStream* stream) {
+    size_t currentStreamPosition = stream->tell();
+
+    if (!J3DBlock::Deserialize(stream)) {
+        return false;
+    }
+
+    try {
+        LoopMode = stream->readUInt8();
+        m0009 = stream->readUInt8();
+
+        Length = stream->readUInt16();
+        TrackCount = stream->readUInt16();
+        BooleanTableCount = stream->readUInt16();
+
+        TrackTableOffset = stream->readUInt32() + BlockOffset;
+        BooleanTableOffset = stream->readUInt32() + BlockOffset;
+    }
+    catch (...) {
+        return false;
+    }
+
+    return true;
+}

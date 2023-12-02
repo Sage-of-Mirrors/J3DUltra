@@ -6,10 +6,17 @@
 #include "J3D/Animation/J3DColorAnimationInstance.hpp"
 #include "J3D/Animation/J3DTexIndexAnimationInstance.hpp"
 #include "J3D/Animation/J3DTexMatrixAnimationInstance.hpp"
+#include "J3D/Animation/J3DJointAnimationInstance.hpp"
+#include "J3D/Animation/J3DJointFullAnimationInstance.hpp"
+#include "J3D/Animation/J3DVisibilityAnimationInstance.hpp"
+
+#include "J3D/Skeleton/J3DJoint.hpp"
 
 #include <stdexcept>
 #include <iostream>
 #include <glm/gtx/matrix_decompose.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/transform.hpp>
 
 J3DModelInstance::J3DModelInstance(std::shared_ptr<J3DModelData> modelData) {
     if (modelData == nullptr)
@@ -25,7 +32,38 @@ J3DModelInstance::~J3DModelInstance() {
 }
 
 void J3DModelInstance::CalculateJointMatrices(float deltaTime) {
-    // TODO: implement BCK/BCA
+    if (mJointFullAnimation == nullptr) {
+        return;
+    }
+
+    std::vector<glm::mat4> animTransforms = mJointFullAnimation->GetTransformsAtFrame(deltaTime);
+    std::vector<glm::mat4> t;
+
+    for (std::shared_ptr<J3DJoint> jnt : mModelData->GetJoints()) {
+        std::shared_ptr<J3DJoint> p = jnt;
+
+        glm::mat4 completeTransform = glm::identity<glm::mat4>();
+
+        while (p != nullptr) {
+            glm::mat4 parentTransform = animTransforms[p->GetJointID()];
+
+            if (p->GetAttachFlag() == 1) {
+                glm::vec3 scale, translation, skew;
+                glm::vec4 persp;
+                glm::quat rotation;
+
+                glm::decompose(parentTransform, scale, rotation, translation, skew, persp);
+                parentTransform = glm::inverse(glm::scale(scale)) * parentTransform;
+            }
+
+            completeTransform = animTransforms[p->GetJointID()] * completeTransform;
+            p = std::dynamic_pointer_cast<J3DJoint>(p->GetParent());
+        }
+
+        t.push_back(completeTransform);
+    }
+
+    mEnvelopeMatrices = mModelData->CalculateAnimJointPose(t);
 }
 
 void J3DModelInstance::UpdateMaterialTextureMatrices(float deltaTime, std::shared_ptr<J3DMaterial> material, glm::mat4& viewMatrix, glm::mat4& projMatrix) {
@@ -57,13 +95,22 @@ void J3DModelInstance::UpdateTEVRegisterColors(float deltaTime, std::shared_ptr<
 }
 
 void J3DModelInstance::UpdateShapeVisibility(float deltaTime) {
-    // TODO: implement BVA
+    if (mVisibilityAnimation == nullptr) {
+        return;
+    }
+
+    const std::vector<GXShape*>& shapes = mModelData->GetShapes();
+    for (uint32_t i = 0; i < shapes.size(); i++) {
+        shapes[i]->SetVisible(mVisibilityAnimation->GetVisibilityAtFrame(i, deltaTime));
+    }
 }
 
 void J3DModelInstance::Update(float deltaTime, std::shared_ptr<J3DMaterial> material, glm::mat4& viewMatrix, glm::mat4& projMatrix) {
     UpdateTEVRegisterColors(deltaTime, material);
     UpdateMaterialTextures(deltaTime, material);
     UpdateMaterialTextureMatrices(deltaTime, material, viewMatrix, projMatrix);
+    UpdateShapeVisibility(deltaTime);
+    CalculateJointMatrices(deltaTime);
 
     J3DUniformBufferObject::SetEnvelopeMatrices(mEnvelopeMatrices.data(), mEnvelopeMatrices.size());
     J3DUniformBufferObject::SetLights(mLights);
@@ -162,6 +209,14 @@ void J3DModelInstance::UpdateAnimations(float deltaTime) {
 
     if (mTexMatrixAnimation != nullptr) {
         mTexMatrixAnimation->Tick(deltaTime);
+    }
+
+    if (mJointFullAnimation != nullptr) {
+        mJointFullAnimation->Tick(deltaTime);
+    }
+
+    if (mVisibilityAnimation != nullptr) {
+        mVisibilityAnimation->Tick(deltaTime);
     }
 }
 

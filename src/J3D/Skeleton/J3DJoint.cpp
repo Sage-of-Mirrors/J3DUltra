@@ -3,12 +3,12 @@
 #include "J3D/Texture/J3DTexture.hpp"
 
 glm::mat4 J3DJoint::GetTransformMatrix() {
-	J3DJoint* p = this;
+	std::shared_ptr<J3DJoint> p = std::dynamic_pointer_cast<J3DJoint>(shared_from_this());
 	glm::mat4 completeTransform = glm::identity<glm::mat4>();
 
 	while (p != nullptr) {
 		completeTransform = p->mTransform.ToMat4() * completeTransform;
-		p = (J3DJoint*)p->mParent;
+		p = std::dynamic_pointer_cast<J3DJoint>(p->mParent);
 	}
 
 	return completeTransform;

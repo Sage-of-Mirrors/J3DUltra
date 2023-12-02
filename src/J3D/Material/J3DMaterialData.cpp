@@ -225,7 +225,7 @@ void J3DTexMatrixInfo::Serialize(bStream::CStream* stream) {
 
 	for (int x = 0; x < 4; x++) {
 		for (int y = 0; y < 4; y++) {
-			stream->writeFloat(ProjectionMatrix[x][y]);
+			stream->writeFloat(ProjectionMatrix[y][x]);
 		}
 	}
 }
@@ -318,7 +318,7 @@ glm::mat4 J3DTexMatrixInfo::CalculateSRTMatrix() {
 
 	srtMtx[3][3] = 1.0f;
 
-	return srtMtx;
+	return glm::transpose(srtMtx);
 }
 
 glm::mat4 envMtxOld = {
@@ -431,7 +431,7 @@ void J3DTexMatrixInfo::CalculateEffectMatrix(const glm::mat4 inputMtx, const glm
 		}
 		case EJ3DTexEffect::NONE:
 		{
-			CalculatedMatrix = glm::transpose(srtMtx);
+			CalculatedMatrix = srtMtx;
 			break;
 		}
 	}

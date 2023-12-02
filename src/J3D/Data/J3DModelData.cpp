@@ -1,11 +1,16 @@
 #include "J3D/Data/J3DModelData.hpp"
 #include "J3D/Data/J3DModelInstance.hpp"
+
+#include "J3D/Skeleton/J3DSkeleton.hpp"
+#include "J3D/Skeleton/J3DJoint.hpp"
 #include "J3D/Skeleton/J3DNode.hpp"
+
 #include "J3D/Material/J3DUniformBufferObject.hpp"
 
 #include <glad/glad.h>
 
 J3DModelData::J3DModelData() {
+    mSkeleton = std::make_shared<J3DSkeleton>();
     mMaterialTable = std::make_shared<J3DMaterialTable>();
 }
 
@@ -13,12 +18,12 @@ J3DModelData::~J3DModelData() {
 
 }
 
-void J3DModelData::MakeHierarchy(J3DJoint* const root, uint32_t& index) {
-    J3DJoint* last = root;
+void J3DModelData::MakeHierarchy(std::shared_ptr<J3DJoint> root, uint32_t& index) {
+    std::shared_ptr<J3DJoint> last = root;
     const auto& shapes = mGeometry.GetShapes();
 
     while (true) {
-        J3DJoint* currentJoint = nullptr;
+        std::shared_ptr<J3DJoint> currentJoint = nullptr;
         std::shared_ptr<J3DMaterial> currentMaterial;
         const GXShape* currentShape = nullptr;
 
@@ -39,7 +44,7 @@ void J3DModelData::MakeHierarchy(J3DJoint* const root, uint32_t& index) {
             return;
             // This node represents a joint, so grab that joint.
         case EJ3DHierarchyType::Joint:
-            currentJoint = mJoints[mHierarchyNodes[index].Index];
+            currentJoint = mSkeleton->GetJoint(mHierarchyNodes[index].Index);
             index++;
 
             break;
@@ -61,10 +66,12 @@ void J3DModelData::MakeHierarchy(J3DJoint* const root, uint32_t& index) {
         if (currentJoint != nullptr) {
             last = currentJoint;
 
-            if (root == nullptr)
-                mRootJoint = currentJoint;
-            else
+            if (root == nullptr) {
+                mSkeleton->SetRootJoint(currentJoint);
+            }
+            else {
                 root->AddChild(currentJoint);
+            }
         }
         // If we have a material this iteration, add it to the current root joint.
         else if (currentMaterial != nullptr)
@@ -82,29 +89,7 @@ void J3DModelData::MakeHierarchy(J3DJoint* const root, uint32_t& index) {
 }
 
 void J3DModelData::CalculateRestPose() {
-    for (int i = 0; i < mEnvelopeIndices.size(); i++) {
-        if (mDrawBools[i] == false) {
-            mRestPose.push_back(mJoints[mEnvelopeIndices[i]]->GetTransformMatrix());
-        }
-        else {
-            glm::mat4 matrix = glm::zero<glm::mat4>();
-
-            J3DEnvelope env = mJointEnvelopes[mEnvelopeIndices[i]];
-            float weightTotal = 0.f;
-
-            for (int j = 0; j < env.Weights.size(); j++) {
-                uint32_t jointIndex = env.JointIndices[j];
-
-                glm::mat4 ibm = mInverseBindMatrices[jointIndex];
-                glm::mat4 jointTransform = mJoints[jointIndex]->GetTransformMatrix();
-
-                matrix += (jointTransform * ibm) * env.Weights[j];
-                weightTotal += env.Weights[j];
-            }
-
-            mRestPose.push_back(matrix);
-        }
-    }
+    mSkeleton->CalculateRestPose();
 }
 
 bool J3DModelData::InitializeGL() {
@@ -231,7 +216,7 @@ std::shared_ptr<J3DModelInstance> J3DModelData::CreateInstance() {
 }
 
 std::vector<glm::mat4> J3DModelData::GetRestPose() const {
-    return mRestPose;
+    return mSkeleton->GetRestPose();
 }
 
 bool J3DModelData::SetTexture(uint32_t idx, uint32_t width, uint32_t height, uint8_t* data, uint32_t size) {
