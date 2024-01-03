@@ -81,6 +81,8 @@ class J3DMaterial {
 
 	glm::mat4 TexMatrices[10]{};
 
+	void BindJ3DShader(const std::vector<std::shared_ptr<struct J3DTexture>>& textures);
+
 public:
 	J3DMaterial();
 	~J3DMaterial();
@@ -114,5 +116,5 @@ public:
 	int32_t GetShaderProgram() const { return mShaderProgram; }
 	bool GenerateShaders();
 
-	void Render(const std::vector<std::shared_ptr<struct J3DTexture>>& textures);
+	void Render(const std::vector<std::shared_ptr<struct J3DTexture>>& textures, uint32_t shaderOverride = 0);
 };

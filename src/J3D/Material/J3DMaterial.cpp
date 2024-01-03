@@ -123,7 +123,7 @@ int GXBlendModeControlToGLFactor(EGXBlendModeControl Control)
 	}
 }
 
-void J3DMaterial::Render(const std::vector<std::shared_ptr<J3DTexture>>& textures) {
+void J3DMaterial::BindJ3DShader(const std::vector<std::shared_ptr<J3DTexture>>& textures) {
 	glUseProgram(mShaderProgram);
 	for (int i = 0; i < TevBlock->mTextureIndices.size(); i++)
 	{
@@ -141,15 +141,15 @@ void J3DMaterial::Render(const std::vector<std::shared_ptr<J3DTexture>>& texture
 
 		switch (PEBlock.mBlendMode.Type)
 		{
-			case EGXBlendMode::Blend:
-				glBlendEquation(GL_FUNC_ADD);
-				break;
-			case EGXBlendMode::Subtract:
-				glBlendEquation(GL_FUNC_SUBTRACT);
-				break;
-			case EGXBlendMode::Logic:
-				glBlendEquation(GL_FUNC_ADD);
-				break;
+		case EGXBlendMode::Blend:
+			glBlendEquation(GL_FUNC_ADD);
+			break;
+		case EGXBlendMode::Subtract:
+			glBlendEquation(GL_FUNC_SUBTRACT);
+			break;
+		case EGXBlendMode::Logic:
+			glBlendEquation(GL_FUNC_ADD);
+			break;
 		}
 
 		glBlendFunc(GXBlendModeControlToGLFactor(PEBlock.mBlendMode.SourceFactor), GXBlendModeControlToGLFactor(PEBlock.mBlendMode.DestinationFactor));
@@ -161,18 +161,18 @@ void J3DMaterial::Render(const std::vector<std::shared_ptr<J3DTexture>>& texture
 
 		switch (LightBlock.mCullMode)
 		{
-			case (EGXCullMode::All):
-				glCullFace(GL_FRONT_AND_BACK);
-				break;
-			case (EGXCullMode::Front):
-				glCullFace(GL_BACK);
-				break;
-			case (EGXCullMode::Back):
-				glCullFace(GL_FRONT);
-				break;
-			case (EGXCullMode::None):
-				glCullFace(GL_NONE);
-				break;
+		case (EGXCullMode::All):
+			glCullFace(GL_FRONT_AND_BACK);
+			break;
+		case (EGXCullMode::Front):
+			glCullFace(GL_BACK);
+			break;
+		case (EGXCullMode::Back):
+			glCullFace(GL_FRONT);
+			break;
+		case (EGXCullMode::None):
+			glCullFace(GL_NONE);
+			break;
 		}
 	}
 
@@ -182,30 +182,30 @@ void J3DMaterial::Render(const std::vector<std::shared_ptr<J3DTexture>>& texture
 
 		switch (PEBlock.mZMode.Function)
 		{
-			case EGXCompareType::Always:
-				glDepthFunc(GL_ALWAYS);
-				break;
-			case EGXCompareType::Never:
-				glDepthFunc(GL_NEVER);
-				break;
-			case EGXCompareType::Equal:
-				glDepthFunc(GL_EQUAL);
-				break;
-			case EGXCompareType::GEqual:
-				glDepthFunc(GL_GEQUAL);
-				break;
-			case EGXCompareType::Greater:
-				glDepthFunc(GL_GREATER);
-				break;
-			case EGXCompareType::LEqual:
-				glDepthFunc(GL_LEQUAL);
-				break;
-			case EGXCompareType::Less:
-				glDepthFunc(GL_LESS);
-				break;
-			case EGXCompareType::NEqual:
-				glDepthFunc(GL_NOTEQUAL);
-				break;
+		case EGXCompareType::Always:
+			glDepthFunc(GL_ALWAYS);
+			break;
+		case EGXCompareType::Never:
+			glDepthFunc(GL_NEVER);
+			break;
+		case EGXCompareType::Equal:
+			glDepthFunc(GL_EQUAL);
+			break;
+		case EGXCompareType::GEqual:
+			glDepthFunc(GL_GEQUAL);
+			break;
+		case EGXCompareType::Greater:
+			glDepthFunc(GL_GREATER);
+			break;
+		case EGXCompareType::LEqual:
+			glDepthFunc(GL_LEQUAL);
+			break;
+		case EGXCompareType::Less:
+			glDepthFunc(GL_LESS);
+			break;
+		case EGXCompareType::NEqual:
+			glDepthFunc(GL_NOTEQUAL);
+			break;
 		}
 
 		glDepthMask(PEBlock.mZMode.UpdateEnable ? GL_TRUE : GL_FALSE);
@@ -221,6 +221,15 @@ void J3DMaterial::Render(const std::vector<std::shared_ptr<J3DTexture>>& texture
 	}
 
 	J3DUniformBufferObject::SetTexMatrices(TexMatrices);
+}
+
+void J3DMaterial::Render(const std::vector<std::shared_ptr<J3DTexture>>& textures, uint32_t shaderOverride) {
+	if (shaderOverride == 0) {
+		BindJ3DShader(textures);
+	}
+	else {
+		glUseProgram(mShaderProgram);
+	}
 
 	if (mShape != nullptr && mShape->GetVisible()) {
 		J3DUniformBufferObject::SetBillboardType(*mShape->GetUserData<uint32_t>());
@@ -233,19 +242,23 @@ void J3DMaterial::Render(const std::vector<std::shared_ptr<J3DTexture>>& texture
 	}
 
 	glUseProgram(0);
-	for (int i = 0; i < 8; i++)
-		glBindTextureUnit(i, 0);
 
-	glDisable(GL_BLEND);
-	glBlendEquation(GL_FUNC_ADD);
-	glBlendFunc(GL_ONE, GL_ZERO);
+	// Only reset GL state if the material used its own shader program.
+	if (shaderOverride == 0) {
+		for (int i = 0; i < 8; i++)
+			glBindTextureUnit(i, 0);
 
-	glDisable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
+		glDisable(GL_BLEND);
+		glBlendEquation(GL_FUNC_ADD);
+		glBlendFunc(GL_ONE, GL_ZERO);
 
-	glDisable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);
-	glDepthMask(GL_TRUE);
+		glDisable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+
+		glDisable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LESS);
+		glDepthMask(GL_TRUE);
+	}
 }
 
 void J3DMaterial::CalculateTexMatrices(const glm::mat4& modelMatrix, const glm::mat4& viewMatrix, const glm::mat4& projMatrix) {

@@ -12,5 +12,5 @@ struct J3DRenderPacket {
     std::shared_ptr<class J3DMaterial> Material;
     class J3DModelInstance* Instance;
 
-    void Render(float deltaTime, glm::mat4& viewMatrix, glm::mat4& projMatrix);
+    void Render(float deltaTime, glm::mat4& viewMatrix, glm::mat4& projMatrix, uint32_t materialShaderOverride = 0);
 };

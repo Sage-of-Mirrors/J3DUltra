@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-void J3DRenderPacket::Render(float deltaTime, glm::mat4& viewMatrix, glm::mat4& projMatrix)
+void J3DRenderPacket::Render(float deltaTime, glm::mat4& viewMatrix, glm::mat4& projMatrix, uint32_t materialShaderOverride)
 {
     if (Material == nullptr || Instance == nullptr)
     {
@@ -12,5 +12,5 @@ void J3DRenderPacket::Render(float deltaTime, glm::mat4& viewMatrix, glm::mat4& 
         return;
     }
 
-    Instance->Render(deltaTime, Material, viewMatrix, projMatrix);
+    Instance->Render(deltaTime, Material, viewMatrix, projMatrix, materialShaderOverride);
 }

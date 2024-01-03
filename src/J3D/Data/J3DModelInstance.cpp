@@ -32,11 +32,22 @@ J3DModelInstance::~J3DModelInstance() {
 }
 
 void J3DModelInstance::CalculateJointMatrices(float deltaTime) {
-    if (mJointFullAnimation == nullptr) {
+    if (mJointAnimation == nullptr && mJointFullAnimation == nullptr) {
         return;
     }
 
-    std::vector<glm::mat4> animTransforms = mJointFullAnimation->GetTransformsAtFrame(deltaTime);
+    std::vector<glm::mat4> animTransforms;
+
+    if (mJointAnimation != nullptr) {
+        animTransforms = mJointAnimation->GetTransformsAtFrame(deltaTime);
+    }
+    else if (mJointFullAnimation != nullptr) {
+        animTransforms = mJointFullAnimation->GetTransformsAtFrame(deltaTime);
+    }
+    else {
+        animTransforms = { glm::identity<glm::mat4>() };
+    }
+
     std::vector<glm::mat4> t;
 
     for (std::shared_ptr<J3DJoint> jnt : mModelData->GetJoints()) {
@@ -211,7 +222,11 @@ void J3DModelInstance::UpdateAnimations(float deltaTime) {
         mTexMatrixAnimation->Tick(deltaTime);
     }
 
-    if (mJointFullAnimation != nullptr) {
+    if (mJointAnimation != nullptr) {
+        mJointAnimation->Tick(deltaTime);
+    }
+
+    if (mJointAnimation == nullptr && mJointFullAnimation != nullptr) {
         mJointFullAnimation->Tick(deltaTime);
     }
 
@@ -220,13 +235,13 @@ void J3DModelInstance::UpdateAnimations(float deltaTime) {
     }
 }
 
-void J3DModelInstance::Render(float deltaTime, std::shared_ptr<J3DMaterial> material, glm::mat4& viewMatrix, glm::mat4& projMatrix) {
+void J3DModelInstance::Render(float deltaTime, std::shared_ptr<J3DMaterial> material, glm::mat4& viewMatrix, glm::mat4& projMatrix, uint32_t materialShaderOverride) {
     Update(deltaTime, material, viewMatrix, projMatrix);
 
     mModelData->BindVAO();
 
     auto& textures = CheckUseInstanceTextures() ? mInstanceMaterialTable->GetTextures() : mModelData->GetTextures();
-    material->Render(textures);
+    material->Render(textures, materialShaderOverride);
 
     mModelData->UnbindVAO();
 }
