@@ -29,6 +29,9 @@ class J3DModelInstance {
     std::vector<glm::mat4> mEnvelopeMatrices;
     J3DTransformInfo mTransform;
 
+    glm::vec3 mBBMin;
+    glm::vec3 mBBMax;
+
     // Transform applied to the model-space transform stored in mTransform.
     glm::mat4 mReferenceFrame;
 
@@ -50,6 +53,8 @@ class J3DModelInstance {
 
     // Updates shape visibility based on a loaded BVA animation.
     void UpdateShapeVisibility(float deltaTime);
+
+    void UpdateBoundingBox(float deltaTime);
 
     void Update(float deltaTime, std::shared_ptr<J3DMaterial> material, glm::mat4& viewMatrix, glm::mat4& projMatrix);
 
@@ -79,6 +84,8 @@ public:
 
     void SetTransform(const glm::mat4 transform);
     void SetReferenceFrame(const glm::mat4 frame);
+
+    void GetBoundingBox(glm::vec3& min, glm::vec3& max);
 
     void GatherRenderPackets(std::vector<J3DRenderPacket>& packetList, glm::vec3 cameraPosition);
 
