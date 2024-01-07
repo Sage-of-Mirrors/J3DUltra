@@ -184,7 +184,7 @@ void J3DModelInstance::SetTransform(const glm::mat4 transform) {
     mTransform.Rotation = rotation;
 }
 
-void GetBoundingBox(glm::vec2& min, glm::vec2& max) {
+void J3DModelInstance::GetBoundingBox(glm::vec3& min, glm::vec3& max) const {
   min = mBBMin;
   max = mBBMax;
 }
