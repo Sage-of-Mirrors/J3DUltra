@@ -125,8 +125,8 @@ void J3DModelInstance::UpdateBoundingBox(float deltaTime) {
   GXGeometry& geometry = mModelData->mGeometry;
   const std::vector<ModernVertex>& vertices = geometry.GetModelVertices();
 
-  mBBMin = { 0, 0 };
-  mBBMax = { 0, 0 };
+  mBBMin = { 0, 0, 0 };
+  mBBMax = { 0, 0, 0 };
   for (const auto& vertex : vertices) {
     mBBMin.x = std::min(mBBMin.x, vertex.Position.x);
     mBBMin.y = std::min(mBBMin.y, vertex.Position.y);
