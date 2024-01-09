@@ -118,33 +118,12 @@ void J3DModelInstance::UpdateShapeVisibility(float deltaTime) {
     }
 }
 
-void J3DModelInstance::UpdateBoundingBox(float deltaTime) {
-  if (deltaTime == 0.0f)
-    return;
-
-  GXGeometry& geometry = mModelData->mGeometry;
-  const std::vector<ModernVertex>& vertices = geometry.GetModelVertices();
-
-  mBBMin = { 0, 0, 0 };
-  mBBMax = { 0, 0, 0 };
-  for (const auto& vertex : vertices) {
-    mBBMin.x = std::min(mBBMin.x, vertex.Position.x);
-    mBBMin.y = std::min(mBBMin.y, vertex.Position.y);
-    mBBMin.z = std::min(mBBMin.z, vertex.Position.z);
-    mBBMax.x = std::max(mBBMax.x, vertex.Position.x);
-    mBBMax.y = std::max(mBBMax.y, vertex.Position.y);
-    mBBMax.z = std::max(mBBMax.z, vertex.Position.z);
-  }
-}
-
 void J3DModelInstance::Update(float deltaTime, std::shared_ptr<J3DMaterial> material, glm::mat4& viewMatrix, glm::mat4& projMatrix) {
     UpdateTEVRegisterColors(deltaTime, material);
     UpdateMaterialTextures(deltaTime, material);
     UpdateMaterialTextureMatrices(deltaTime, material, viewMatrix, projMatrix);
     UpdateShapeVisibility(deltaTime);
     CalculateJointMatrices(deltaTime);
-
-    UpdateBoundingBox(deltaTime);
 
     J3DUniformBufferObject::SetEnvelopeMatrices(mEnvelopeMatrices.data(), mEnvelopeMatrices.size());
     J3DUniformBufferObject::SetLights(mLights);
@@ -185,8 +164,7 @@ void J3DModelInstance::SetTransform(const glm::mat4 transform) {
 }
 
 void J3DModelInstance::GetBoundingBox(glm::vec3& min, glm::vec3& max) const {
-  min = mBBMin;
-  max = mBBMax;
+    mModelData->GetBoundingBox(min, max);
 }
 
 J3DLight J3DModelInstance::GetLight(int index) const {
