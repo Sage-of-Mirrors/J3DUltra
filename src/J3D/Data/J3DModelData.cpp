@@ -98,6 +98,24 @@ bool J3DModelData::InitializeGL() {
     const auto& verts = mGeometry.GetModelVertices();
     const auto& indices = mGeometry.GetModelIndices();
 
+    mBBMin = { 0, 0, 0 };
+    mBBMax = { 0, 0, 0 };
+    for (const auto& vertex : verts) {
+        if (mBBMin.x > vertex.Position.x)
+            mBBMin.x = vertex.Position.x;
+        if (mBBMin.y > vertex.Position.y)
+            mBBMin.y = vertex.Position.y;
+        if (mBBMin.z > vertex.Position.z)
+            mBBMin.z = vertex.Position.z;
+
+        if (mBBMax.x < vertex.Position.x)
+            mBBMax.x = vertex.Position.x;
+        if (mBBMax.y < vertex.Position.y)
+            mBBMax.y = vertex.Position.y;
+        if (mBBMax.z < vertex.Position.z)
+            mBBMax.z = vertex.Position.z;
+    }
+
     // Create VBO
     glCreateBuffers(1, &mVBO);
     glNamedBufferStorage(mVBO, verts.size() * sizeof(ModernVertex), verts.data(), GL_MAP_WRITE_BIT | GL_DYNAMIC_STORAGE_BIT);
@@ -213,6 +231,11 @@ bool J3DModelData::InitializeGL() {
 
 std::shared_ptr<J3DModelInstance> J3DModelData::CreateInstance() {
     return std::make_shared<J3DModelInstance>(shared_from_this());
+}
+
+void J3DModelData::GetBoundingBox(glm::vec3& min, glm::vec3& max) const {
+  min = mBBMin;
+  max = mBBMax;
 }
 
 std::vector<glm::mat4> J3DModelData::GetRestPose() const {

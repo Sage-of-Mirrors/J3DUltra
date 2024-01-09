@@ -41,6 +41,9 @@ class J3DModelData : public std::enable_shared_from_this<J3DModelData> {
 	// SHP1 data, geometry
 	GXGeometry mGeometry;
 
+	glm::vec3 mBBMin;
+	glm::vec3 mBBMax;
+
 	std::vector<J3DVertexGX> mGXVertices;
 	std::vector<J3DVertexGL> mGLVertices;
 	std::vector<uint16_t> mIndices;
@@ -60,6 +63,8 @@ public:
 	virtual ~J3DModelData();
 
 	std::shared_ptr<J3DModelInstance> CreateInstance();
+
+	void GetBoundingBox(glm::vec3& min, glm::vec3& max) const;
 
 	const std::vector<GXShape*>& GetShapes() { return mGeometry.GetShapes(); }
 

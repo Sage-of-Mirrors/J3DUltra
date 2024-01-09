@@ -54,8 +54,6 @@ class J3DModelInstance {
     // Updates shape visibility based on a loaded BVA animation.
     void UpdateShapeVisibility(float deltaTime);
 
-    void UpdateBoundingBox(float deltaTime);
-
     void Update(float deltaTime, std::shared_ptr<J3DMaterial> material, glm::mat4& viewMatrix, glm::mat4& projMatrix);
 
     std::shared_ptr<J3DAnimation::J3DColorAnimationInstance> mRegisterColorAnimation;
