@@ -25,6 +25,7 @@ J3DModelInstance::J3DModelInstance(std::shared_ptr<J3DModelData> modelData) {
     mModelData = modelData;
     mEnvelopeMatrices = mModelData->GetRestPose();
     mReferenceFrame = glm::identity<glm::mat4>();
+    mSortBias = 0;
 }
 
 J3DModelInstance::~J3DModelInstance() {
@@ -202,12 +203,14 @@ void J3DModelInstance::GatherRenderPackets(std::vector<J3DRenderPacket>& packetL
         glm::vec4 transformedCenter = transformMat4 * glm::vec4(center.x, center.y, center.z, 1.0f);
 
         float distToCamera = glm::distance(cameraPosition, glm::vec3(transformedCenter.x, transformedCenter.y, transformedCenter.z));
-        uint32_t sortKey = static_cast<uint32_t>(distToCamera) & 0xFFFFFF;
+        uint32_t sortKey = static_cast<uint32_t>(distToCamera) & 0x7FFFFF;
 
         if (mat->PEMode == EPixelEngineMode::Opaque || mat->PEMode == EPixelEngineMode::AlphaTest)
         {
-            sortKey |= 0x01000000;
+            sortKey |= 0x00800000;
         }
+
+        sortKey |= mSortBias << 24;
 
         packetList.push_back({ sortKey, mat, this });
     }

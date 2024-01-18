@@ -66,6 +66,8 @@ class J3DModelInstance {
     bool bUseInstanceMaterialTable;
     std::shared_ptr<J3DMaterialTable> mInstanceMaterialTable;
 
+    uint8_t mSortBias;
+
     bool CheckUseInstanceMaterials();
     bool CheckUseInstanceTextures();
 
@@ -112,4 +114,9 @@ public:
     void SetUseInstanceMaterialTable(bool use) { bUseInstanceMaterialTable = use; }
 
     void SetInstanceMaterialTable(std::shared_ptr<J3DMaterialTable> matTable) { mInstanceMaterialTable = matTable; }
+
+    // Sets a bias value that affects a model's position in the rendering list.
+    // The higher the bias value, the earlier the model will be rendered.
+    void SetSortBias(uint8_t bias) { mSortBias = bias; }
+    uint8_t GetSortBias() const { return mSortBias; }
 };
