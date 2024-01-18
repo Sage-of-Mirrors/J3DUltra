@@ -256,3 +256,19 @@ bool J3DModelInstance::CheckUseInstanceMaterials() {
 bool J3DModelInstance::CheckUseInstanceTextures() {
     return bUseInstanceMaterialTable && mInstanceMaterialTable != nullptr && mInstanceMaterialTable->GetTextures().size() != 0;
 }
+
+void J3DModelInstance::SetJointAnimation(std::shared_ptr<J3DAnimation::J3DJointAnimationInstance> anim) {
+    if (anim->GetJointCount() != mModelData->GetJointCount()) {
+        return;
+    }
+
+    mJointAnimation = anim;
+}
+
+void J3DModelInstance::SetJointFullAnimation(std::shared_ptr<J3DAnimation::J3DJointFullAnimationInstance> anim) {
+    if (anim->GetJointCount() != mModelData->GetJointCount()) {
+        return;
+    }
+
+    mJointFullAnimation = anim;
+}

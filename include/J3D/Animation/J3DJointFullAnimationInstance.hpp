@@ -31,6 +31,7 @@ namespace J3DAnimation {
         virtual void Deserialize(bStream::CStream& stream) override;
 
         const std::vector<J3DJointFullAnimationData>& GetEntries() const { return mEntries; }
+        uint32_t GetJointCount() const { return mEntries.size(); }
 
         virtual std::vector<glm::mat4> GetTransformsAtFrame(float deltaTime);
     };

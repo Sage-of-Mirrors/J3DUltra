@@ -97,10 +97,10 @@ public:
     void SetTexMatrixAnimation(std::shared_ptr<J3DAnimation::J3DTexMatrixAnimationInstance> anim) { mTexMatrixAnimation = anim; }
 
     std::shared_ptr<J3DAnimation::J3DJointAnimationInstance> GetJointAnimation() const { return mJointAnimation; }
-    void SetJointAnimation(std::shared_ptr<J3DAnimation::J3DJointAnimationInstance> anim) { mJointAnimation = anim; }
+    void SetJointAnimation(std::shared_ptr<J3DAnimation::J3DJointAnimationInstance> anim);
 
     std::shared_ptr<J3DAnimation::J3DJointFullAnimationInstance> GetJointFullAnimation() const { return mJointFullAnimation; }
-    void SetJointFullAnimation(std::shared_ptr<J3DAnimation::J3DJointFullAnimationInstance> anim) { mJointFullAnimation = anim; }
+    void SetJointFullAnimation(std::shared_ptr<J3DAnimation::J3DJointFullAnimationInstance> anim);
 
     std::shared_ptr<J3DAnimation::J3DVisibilityAnimationInstance> GetVisibilityAnimation() const { return mVisibilityAnimation; }
     void SetVisibilityAnimation(std::shared_ptr<J3DAnimation::J3DVisibilityAnimationInstance> anim) { mVisibilityAnimation = anim; }
