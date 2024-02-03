@@ -64,12 +64,13 @@ class J3DModelInstance {
     std::shared_ptr<J3DMaterialTable> mInstanceMaterialTable;
 
     uint8_t mSortBias;
+    uint16_t mModelId;
 
     bool CheckUseInstanceMaterials();
     bool CheckUseInstanceTextures();
 
 public:
-    J3DModelInstance(std::shared_ptr<J3DModelData> modelData);
+    J3DModelInstance(std::shared_ptr<J3DModelData> modelData, uint16_t id);
     virtual ~J3DModelInstance();
 
     void SetTranslation(const glm::vec3 trans);
@@ -114,4 +115,7 @@ public:
     // The higher the bias value, the earlier the model will be rendered.
     void SetSortBias(uint8_t bias) { mSortBias = bias; }
     uint8_t GetSortBias() const { return mSortBias; }
+
+    // Returns this model's unique ID.
+    uint16_t GetModelId() const { return mModelId; }
 };

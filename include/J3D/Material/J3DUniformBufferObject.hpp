@@ -14,6 +14,7 @@ namespace J3DUniformBufferObject {
 	void SubmitUBO();
 	void ClearUBO();
 
+	bool LinkShaderProgramToUBO(const int32_t shaderProgram);
 	bool LinkMaterialToUBO(const std::shared_ptr<J3DMaterial> material);
 
 	// Updates the UBO's projection and view matrices. Usually used by the environment.
@@ -32,4 +33,8 @@ namespace J3DUniformBufferObject {
 	void SetTexMatrices(const glm::mat4* matrices);
 	// Updates the UBO's billboard type.
 	void SetBillboardType(const uint32_t& type);
+
+	void SetModelId(const uint16_t& id);
+
+	void SetMaterialId(const uint16_t& id);
 }

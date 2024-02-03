@@ -55,6 +55,8 @@ class J3DModelData : public std::enable_shared_from_this<J3DModelData> {
 	void CreateVBO();
 	bool InitializeGL();
 
+	static std::atomic<uint16_t> sInstanceIdSrc;
+
 public:
 	J3DModelData();
 	virtual ~J3DModelData();

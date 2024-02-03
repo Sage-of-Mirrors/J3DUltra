@@ -1,4 +1,8 @@
 #include "J3D/Picking/J3DPicking.hpp"
+#include "J3D/Picking/J3DPickingShaders.hpp"
+#include "J3D/Data/J3DModelInstance.hpp"
+#include "J3D/Material/J3DMaterial.hpp"
+#include "J3D/Material/J3DUniformBufferObject.hpp"
 
 #include <glad/glad.h>
 
@@ -28,6 +32,28 @@ namespace J3D {
         void InitFramebuffer(uint32_t width, uint32_t height) {
             if (IsPickingEnabled()) {
                 DestroyFramebuffer();
+            }
+
+            if (mPickingShaderId == 0) {
+                int32_t vertShader = glCreateShader(GL_VERTEX_SHADER);
+                glShaderSource(vertShader, 1, &VtxShader, NULL);
+                glCompileShader(vertShader);
+
+                int32_t fragShader = glCreateShader(GL_FRAGMENT_SHADER);
+                glShaderSource(fragShader, 1, &FragShader, NULL);
+                glCompileShader(fragShader);
+
+                mPickingShaderId = glCreateProgram();
+                glAttachShader(mPickingShaderId, vertShader);
+                glAttachShader(mPickingShaderId, fragShader);
+
+                glLinkProgram(mPickingShaderId);
+                J3DUniformBufferObject::LinkShaderProgramToUBO(mPickingShaderId);
+
+                glDetachShader(mPickingShaderId, vertShader);
+                glDetachShader(mPickingShaderId, fragShader);
+                glDeleteShader(vertShader);
+                glDeleteShader(fragShader);
             }
 
             mWidth = width;
@@ -80,13 +106,24 @@ namespace J3D {
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
         }
 
+        uint32_t ReadPixel(uint32_t pX, uint32_t pY) {
+            glBindFramebuffer(GL_FRAMEBUFFER, mFBO);
+            glViewport(0, 0, mWidth, mHeight);
+
+            uint32_t pixelValue = 0;
+            glReadPixels(pX, pY, 1, 1, GL_RED_INTEGER, GL_UNSIGNED_INT, &pixelValue);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+            return pixelValue;
+        }
+
         ModelMaterialIdPair Query(uint32_t pX, uint32_t pY) {
             if (!IsPickingEnabled()) {
                 return ModelMaterialIdPair(0, 0);
             }
 
-            uint32_t pixelValue;
-            glReadPixels(pX, pY, 1, 1, GL_R32UI, GL_UNSIGNED_INT, &pixelValue);
+            uint32_t pixelValue = ReadPixel(pX, pY);
 
             uint16_t modelId = (pixelValue & 0xFFFF0000) >> 0x10;
             uint16_t matId = pixelValue & 0x0000FFFF;
@@ -99,15 +136,15 @@ namespace J3D {
                 return false;
             }
 
-            uint32_t pixelValue;
-            glReadPixels(pX, pY, 1, 1, GL_R32UI, GL_UNSIGNED_INT, &pixelValue);
+            uint32_t pixelValue = ReadPixel(pX, pY);
 
             uint16_t modelId = (pixelValue & 0xFFFF0000) >> 0x10;
             uint16_t matId = pixelValue & 0x0000FFFF;
 
-            // TODO: compare model and material ids
+            bool bModelIdMatch = modelId == model.GetModelId();
+            bool bMaterialIdMatch = material != nullptr ? matId == material->GetMaterialId() : true;
 
-            return false;
+            return bModelIdMatch && bMaterialIdMatch;
         }
     }
 }

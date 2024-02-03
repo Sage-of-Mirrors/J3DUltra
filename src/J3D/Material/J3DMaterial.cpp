@@ -228,7 +228,7 @@ void J3DMaterial::Render(const std::vector<std::shared_ptr<J3DTexture>>& texture
 		BindJ3DShader(textures);
 	}
 	else {
-		glUseProgram(mShaderProgram);
+		glUseProgram(shaderOverride);
 	}
 
 	if (mShape != nullptr && mShape->GetVisible()) {

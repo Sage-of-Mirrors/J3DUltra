@@ -25,7 +25,7 @@ bool J3DFragmentShaderGenerator::GenerateFragmentShader(J3DMaterial* material, u
 	fragmentShader << GenerateUtilityFunctions();
 	fragmentShader << GenerateMainFunction(material);
 
-	std::ofstream debugFOut("./shader/" + material->Name + "_frag.glsl");
+	std::ofstream debugFOut("E:/Github/Jekyll/shader/" + material->Name + "_frag.glsl");
 	if (debugFOut.is_open()) {
 		debugFOut << fragmentShader.str();
 		debugFOut.close();
