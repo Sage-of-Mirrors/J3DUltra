@@ -241,7 +241,61 @@ void J3DMaterial::Render(const std::vector<std::shared_ptr<J3DTexture>>& texture
 		glUseProgram(shaderOverride);
 		J3DUniformBufferObject::SetMaterialId(mMaterialId);
 
-		
+		if (LightBlock.mCullMode != EGXCullMode::None)
+		{
+			glEnable(GL_CULL_FACE);
+
+			switch (LightBlock.mCullMode)
+			{
+				case (EGXCullMode::All):
+					glCullFace(GL_FRONT_AND_BACK);
+					break;
+				case (EGXCullMode::Front):
+					glCullFace(GL_BACK);
+					break;
+				case (EGXCullMode::Back):
+					glCullFace(GL_FRONT);
+					break;
+				case (EGXCullMode::None):
+					glCullFace(GL_NONE);
+					break;
+			}
+		}
+
+		if (PEBlock.mZMode.Enable == true)
+		{
+			glEnable(GL_DEPTH_TEST);
+
+			switch (PEBlock.mZMode.Function)
+			{
+				case EGXCompareType::Always:
+					glDepthFunc(GL_ALWAYS);
+					break;
+				case EGXCompareType::Never:
+					glDepthFunc(GL_NEVER);
+					break;
+				case EGXCompareType::Equal:
+					glDepthFunc(GL_EQUAL);
+					break;
+				case EGXCompareType::GEqual:
+					glDepthFunc(GL_GEQUAL);
+					break;
+				case EGXCompareType::Greater:
+					glDepthFunc(GL_GREATER);
+					break;
+				case EGXCompareType::LEqual:
+					glDepthFunc(GL_LEQUAL);
+					break;
+				case EGXCompareType::Less:
+					glDepthFunc(GL_LESS);
+					break;
+				case EGXCompareType::NEqual:
+					glDepthFunc(GL_NOTEQUAL);
+					break;
+			}
+
+			glDepthMask(PEBlock.mZMode.UpdateEnable ? GL_TRUE : GL_FALSE);
+		}
 	}
 
 	if (mShape != nullptr && mShape->GetVisible()) {
@@ -253,8 +307,6 @@ void J3DMaterial::Render(const std::vector<std::shared_ptr<J3DTexture>>& texture
 
 		glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, (const void*)(offset * sizeof(uint32_t)));
 	}
-
-	glUseProgram(0);
 
 	for (int i = 0; i < 8; i++)
 		glBindTextureUnit(i, 0);
@@ -269,6 +321,8 @@ void J3DMaterial::Render(const std::vector<std::shared_ptr<J3DTexture>>& texture
 	glDisable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	glDepthMask(GL_TRUE);
+
+	glUseProgram(0);
 }
 
 void J3DMaterial::CalculateTexMatrices(const glm::mat4& modelMatrix, const glm::mat4& viewMatrix, const glm::mat4& projMatrix) {
