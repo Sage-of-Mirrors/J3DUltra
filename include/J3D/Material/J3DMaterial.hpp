@@ -81,7 +81,10 @@ class J3DMaterial {
 
 	glm::mat4 TexMatrices[10]{};
 
+	static std::atomic<uint16_t> sMaterialIdSrc;
+
 	uint16_t mMaterialId;
+	bool bSelected;
 
 	void BindJ3DShader(const std::vector<std::shared_ptr<struct J3DTexture>>& textures);
 
@@ -121,4 +124,7 @@ public:
 	void Render(const std::vector<std::shared_ptr<struct J3DTexture>>& textures, uint32_t shaderOverride = 0);
 
 	uint16_t GetMaterialId() const { return mMaterialId; }
+
+	bool IsSelected() const { return bSelected; }
+	void SetSelected(bool selected) { bSelected = selected; }
 };

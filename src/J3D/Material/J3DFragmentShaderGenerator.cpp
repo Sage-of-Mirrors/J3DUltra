@@ -172,7 +172,7 @@ std::string J3DFragmentShaderGenerator::GenerateMainFunction(J3DMaterial* materi
 	stream << "\n\tTevPrev = TevPrev & 0xFF;\n";
 
 	stream << GenerateAlphaCompare(material->PEBlock.mAlphaCompare);
-	stream << "\n\tPixelColor = VecS10ToFloat(TevPrev);\n";
+	stream << "\n\tPixelColor = VecS10ToFloat(TevPrev) + HighlightColor;\n";
 	stream << "}\n";
 
 	return stream.str();

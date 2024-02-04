@@ -37,4 +37,6 @@ namespace J3DUniformBufferObject {
 	void SetModelId(const uint16_t& id);
 
 	void SetMaterialId(const uint16_t& id);
+
+	void SetHighlightColor(const glm::vec4 color);
 }

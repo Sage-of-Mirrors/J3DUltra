@@ -29,8 +29,10 @@ namespace J3DUniformBufferObject {
 
 			uint32_t BillboardType;
 
-			uint16_t ModelId;
-			uint16_t MaterialId;
+			uint32_t ModelId;
+			uint32_t MaterialId;
+
+			glm::vec4 HighlightColor;
 
 			J3DUniformBufferObject() { ClearUBO(); }
 		};
@@ -79,6 +81,8 @@ void J3DUniformBufferObject::ClearUBO() {
 
 	mUBO.ModelId = 0;
 	mUBO.MaterialId = 0;
+
+	mUBO.HighlightColor = { 0, 0, 0, 0 };
 }
 
 bool J3DUniformBufferObject::LinkShaderProgramToUBO(const int32_t shaderProgram) {
@@ -145,4 +149,8 @@ void J3DUniformBufferObject::SetModelId(const uint16_t& id) {
 
 void J3DUniformBufferObject::SetMaterialId(const uint16_t& id) {
 	mUBO.MaterialId = id;
+}
+
+void J3DUniformBufferObject::SetHighlightColor(const glm::vec4 color) {
+	mUBO.HighlightColor = color;
 }

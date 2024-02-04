@@ -28,6 +28,7 @@ std::string J3DShaderGeneratorCommon::GenerateStructs() {
 		"\tuint BillboardType;\n"
 		"\tuint ModelId;\n"
 		"\tuint MaterialId;\n"
+		"\tvec4 HighlightColor;\n"
 		"};\n\n";
 
 	return stream.str();
