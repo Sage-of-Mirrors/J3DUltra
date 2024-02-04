@@ -25,7 +25,7 @@ bool J3DFragmentShaderGenerator::GenerateFragmentShader(J3DMaterial* material, u
 	fragmentShader << GenerateUtilityFunctions();
 	fragmentShader << GenerateMainFunction(material);
 
-	std::ofstream debugFOut("./shader/" + material->Name + "_frag.glsl");
+	std::ofstream debugFOut("E:/Github/Jekyll/shader/" + material->Name + "_frag.glsl");
 	if (debugFOut.is_open()) {
 		debugFOut << fragmentShader.str();
 		debugFOut.close();
@@ -172,7 +172,7 @@ std::string J3DFragmentShaderGenerator::GenerateMainFunction(J3DMaterial* materi
 	stream << "\n\tTevPrev = TevPrev & 0xFF;\n";
 
 	stream << GenerateAlphaCompare(material->PEBlock.mAlphaCompare);
-	stream << "\n\tPixelColor = VecS10ToFloat(TevPrev);\n";
+	stream << "\n\tPixelColor = VecS10ToFloat(TevPrev) + HighlightColor;\n";
 	stream << "}\n";
 
 	return stream.str();

@@ -67,12 +67,13 @@ class J3DModelInstance {
     std::shared_ptr<J3DMaterialTable> mInstanceMaterialTable;
 
     uint8_t mSortBias;
+    uint16_t mModelId;
 
     bool CheckUseInstanceMaterials();
     bool CheckUseInstanceTextures();
 
 public:
-    J3DModelInstance(std::shared_ptr<J3DModelData> modelData);
+    J3DModelInstance(std::shared_ptr<J3DModelData> modelData, uint16_t id);
     virtual ~J3DModelInstance();
 
     void SetTranslation(const glm::vec3 trans);
@@ -102,10 +103,10 @@ public:
     void SetTexMatrixAnimation(std::shared_ptr<J3DAnimation::J3DTexMatrixAnimationInstance> anim) { mTexMatrixAnimation = anim; }
 
     std::shared_ptr<J3DAnimation::J3DJointAnimationInstance> GetJointAnimation() const { return mJointAnimation; }
-    void SetJointAnimation(std::shared_ptr<J3DAnimation::J3DJointAnimationInstance> anim) { mJointAnimation = anim; }
+    void SetJointAnimation(std::shared_ptr<J3DAnimation::J3DJointAnimationInstance> anim);
 
     std::shared_ptr<J3DAnimation::J3DJointFullAnimationInstance> GetJointFullAnimation() const { return mJointFullAnimation; }
-    void SetJointFullAnimation(std::shared_ptr<J3DAnimation::J3DJointFullAnimationInstance> anim) { mJointFullAnimation = anim; }
+    void SetJointFullAnimation(std::shared_ptr<J3DAnimation::J3DJointFullAnimationInstance> anim);
 
     std::shared_ptr<J3DAnimation::J3DVisibilityAnimationInstance> GetVisibilityAnimation() const { return mVisibilityAnimation; }
     void SetVisibilityAnimation(std::shared_ptr<J3DAnimation::J3DVisibilityAnimationInstance> anim) { mVisibilityAnimation = anim; }
@@ -119,4 +120,7 @@ public:
     // The higher the bias value, the earlier the model will be rendered.
     void SetSortBias(uint8_t bias) { mSortBias = bias; }
     uint8_t GetSortBias() const { return mSortBias; }
+
+    // Returns this model's unique ID.
+    uint16_t GetModelId() const { return mModelId; }
 };

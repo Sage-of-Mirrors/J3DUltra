@@ -58,6 +58,8 @@ class J3DModelData : public std::enable_shared_from_this<J3DModelData> {
 	void CreateVBO();
 	bool InitializeGL();
 
+	static std::atomic<uint16_t> sInstanceIdSrc;
+
 public:
 	J3DModelData();
 	virtual ~J3DModelData();
@@ -87,6 +89,8 @@ public:
 	std::shared_ptr<J3DTexture> GetTexture(std::string name) { return mMaterialTable->GetTexture(name); }
 	/* Returns this model's list of default textures. */
 	shared_vector<J3DTexture>& GetTextures() { return mMaterialTable->GetTextures(); }
+
+	uint32_t GetJointCount() const { return mSkeleton->GetJoints().size(); }
 
 	bool SetTexture(uint32_t idx, uint32_t width, uint32_t height, uint8_t* data, uint32_t size);
 	bool SetTexture(std::string name, uint32_t width, uint32_t height, uint8_t* data, uint32_t size);

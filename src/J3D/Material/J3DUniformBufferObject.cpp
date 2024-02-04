@@ -29,6 +29,11 @@ namespace J3DUniformBufferObject {
 
 			uint32_t BillboardType;
 
+			uint32_t ModelId;
+			uint32_t MaterialId;
+
+			glm::vec4 HighlightColor;
+
 			J3DUniformBufferObject() { ClearUBO(); }
 		};
 
@@ -73,6 +78,21 @@ void J3DUniformBufferObject::ClearUBO() {
 	std::fill_n(mUBO.TexMatrices, TEX_MATS_MAX, glm::identity<glm::mat4>());
 
 	mUBO.BillboardType = 0;
+
+	mUBO.ModelId = 0;
+	mUBO.MaterialId = 0;
+
+	mUBO.HighlightColor = { 0, 0, 0, 0 };
+}
+
+bool J3DUniformBufferObject::LinkShaderProgramToUBO(const int32_t shaderProgram) {
+	if (mUBOID == 0)
+		CreateUBO();
+
+	uint32_t uniformIndex = glGetUniformBlockIndex(shaderProgram, UBO_NAME);
+	glUniformBlockBinding(shaderProgram, uniformIndex, 0);
+
+	return true;
 }
 
 bool J3DUniformBufferObject::LinkMaterialToUBO(const std::shared_ptr<J3DMaterial> material) {
@@ -121,4 +141,16 @@ void J3DUniformBufferObject::SetTexMatrices(const glm::mat4* texMatrices) {
 
 void J3DUniformBufferObject::SetBillboardType(const uint32_t& type) {
 	mUBO.BillboardType = type;
+}
+
+void J3DUniformBufferObject::SetModelId(const uint16_t& id) {
+	mUBO.ModelId = id;
+}
+
+void J3DUniformBufferObject::SetMaterialId(const uint16_t& id) {
+	mUBO.MaterialId = id;
+}
+
+void J3DUniformBufferObject::SetHighlightColor(const glm::vec4 color) {
+	mUBO.HighlightColor = color;
 }

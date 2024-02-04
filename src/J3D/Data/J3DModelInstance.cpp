@@ -18,7 +18,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
-J3DModelInstance::J3DModelInstance(std::shared_ptr<J3DModelData> modelData) {
+J3DModelInstance::J3DModelInstance(std::shared_ptr<J3DModelData> modelData, uint16_t id) {
     if (modelData == nullptr)
         throw std::invalid_argument("Tried to create a J3DModelInstance from invalid J3DModelData pointer!");
 
@@ -26,6 +26,7 @@ J3DModelInstance::J3DModelInstance(std::shared_ptr<J3DModelData> modelData) {
     mEnvelopeMatrices = mModelData->GetRestPose();
     mReferenceFrame = glm::identity<glm::mat4>();
     mSortBias = 0;
+    mModelId = id;
 }
 
 J3DModelInstance::~J3DModelInstance() {
@@ -245,6 +246,7 @@ void J3DModelInstance::UpdateAnimations(float deltaTime) {
 void J3DModelInstance::Render(float deltaTime, std::shared_ptr<J3DMaterial> material, glm::mat4& viewMatrix, glm::mat4& projMatrix, uint32_t materialShaderOverride) {
     Update(deltaTime, material, viewMatrix, projMatrix);
 
+    J3DUniformBufferObject::SetModelId(mModelId);
     mModelData->BindVAO();
 
     auto& textures = CheckUseInstanceTextures() ? mInstanceMaterialTable->GetTextures() : mModelData->GetTextures();
@@ -259,4 +261,20 @@ bool J3DModelInstance::CheckUseInstanceMaterials() {
 
 bool J3DModelInstance::CheckUseInstanceTextures() {
     return bUseInstanceMaterialTable && mInstanceMaterialTable != nullptr && mInstanceMaterialTable->GetTextures().size() != 0;
+}
+
+void J3DModelInstance::SetJointAnimation(std::shared_ptr<J3DAnimation::J3DJointAnimationInstance> anim) {
+    if (anim->GetJointCount() != mModelData->GetJointCount()) {
+        return;
+    }
+
+    mJointAnimation = anim;
+}
+
+void J3DModelInstance::SetJointFullAnimation(std::shared_ptr<J3DAnimation::J3DJointFullAnimationInstance> anim) {
+    if (anim->GetJointCount() != mModelData->GetJointCount()) {
+        return;
+    }
+
+    mJointFullAnimation = anim;
 }

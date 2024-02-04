@@ -9,6 +9,8 @@
 
 #include <glad/glad.h>
 
+std::atomic<uint16_t> J3DModelData::sInstanceIdSrc = 1;
+
 J3DModelData::J3DModelData() {
     mSkeleton = std::make_shared<J3DSkeleton>();
     mMaterialTable = std::make_shared<J3DMaterialTable>();
@@ -230,7 +232,7 @@ bool J3DModelData::InitializeGL() {
 }
 
 std::shared_ptr<J3DModelInstance> J3DModelData::CreateInstance() {
-    return std::make_shared<J3DModelInstance>(shared_from_this());
+    return std::make_shared<J3DModelInstance>(shared_from_this(), sInstanceIdSrc++);
 }
 
 void J3DModelData::GetBoundingBox(glm::vec3& min, glm::vec3& max) const {
