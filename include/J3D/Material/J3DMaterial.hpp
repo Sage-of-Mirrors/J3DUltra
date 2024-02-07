@@ -87,6 +87,7 @@ class J3DMaterial {
 	bool bSelected;
 
 	void BindJ3DShader(const std::vector<std::shared_ptr<struct J3DTexture>>& textures);
+	void ConfigureGLState();
 
 public:
 	J3DMaterial();
