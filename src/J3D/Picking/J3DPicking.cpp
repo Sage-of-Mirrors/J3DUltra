@@ -89,7 +89,7 @@ namespace J3D {
             glDeleteTextures(2, mTexObjs);
         }
 
-        void RenderPickingScene(glm::mat4& viewMatrix, glm::mat4& projMatrix, J3DRendering::RenderFunctionArgs modelInstances) {
+        void RenderPickingScene(glm::mat4& viewMatrix, glm::mat4& projMatrix, J3D::Rendering::RenderPacketVector& renderPackets) {
             if (!IsPickingEnabled()) {
                 return;
             }
@@ -101,7 +101,7 @@ namespace J3D {
             glClearBufferuiv(GL_COLOR, 0, &DATA_RESET);
             glClearBufferfv(GL_DEPTH, 0, &DEPTH_RESET);
 
-            J3DRendering::Render(0, glm::vec3(), viewMatrix, projMatrix, modelInstances, mPickingShaderId);
+            J3D::Rendering::Render(0, viewMatrix, projMatrix, renderPackets, mPickingShaderId);
 
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
         }
