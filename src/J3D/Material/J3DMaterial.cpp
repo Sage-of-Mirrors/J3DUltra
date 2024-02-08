@@ -12,15 +12,14 @@
 std::atomic<uint16_t> J3DMaterial::sMaterialIdSrc = 1;
 
 J3DMaterial::J3DMaterial() : mShaderProgram(-1), AreRegisterColorsAnimating(false), AreTexIndicesAnimating(false),
-	mShape(nullptr), bSelected(false), mMaterialId(sMaterialIdSrc++) {
+	mShape(std::weak_ptr<GXShape>()), bSelected(false), mMaterialId(sMaterialIdSrc++) {
 	TevBlock = std::make_shared<J3DTevBlock>();
 }
 
 J3DMaterial::~J3DMaterial() {
-	if (mShaderProgram != -1)
+	if (mShaderProgram != -1) {
 		glDeleteProgram(mShaderProgram);
-
-	delete mShape;
+	}
 }
 
 bool J3DMaterial::GenerateShaders() {
@@ -253,14 +252,20 @@ void J3DMaterial::Render(const std::vector<std::shared_ptr<J3DTexture>>& texture
 		J3DUniformBufferObject::SetMaterialId(mMaterialId);
 	}
 
-	if (mShape != nullptr && mShape->GetVisible()) {
+	if (mShape.expired()) {
+		return;
+	}
+
+	std::shared_ptr<GXShape> lockedShape = mShape.lock();
+
+	if (lockedShape->GetVisible()) {
 		ConfigureGLState();
 
-		J3DUniformBufferObject::SetBillboardType(*mShape->GetUserData<uint32_t>());
+		J3DUniformBufferObject::SetBillboardType(*lockedShape->GetUserData<uint32_t>());
 		J3DUniformBufferObject::SubmitUBO();
 
 		uint32_t offset, count;
-		mShape->GetVertexOffsetAndCount(offset, count);
+		lockedShape->GetVertexOffsetAndCount(offset, count);
 
 		glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, (const void*)(offset * sizeof(uint32_t)));
 	}

@@ -17,7 +17,8 @@ J3DModelData::J3DModelData() {
 }
 
 J3DModelData::~J3DModelData() {
-
+    uint32_t buffers[] = { mVBO, mVAO, mIBO };
+    glDeleteBuffers(3, buffers);
 }
 
 void J3DModelData::MakeHierarchy(std::shared_ptr<J3DJoint> root, uint32_t& index) {
@@ -27,7 +28,7 @@ void J3DModelData::MakeHierarchy(std::shared_ptr<J3DJoint> root, uint32_t& index
     while (true) {
         std::shared_ptr<J3DJoint> currentJoint = nullptr;
         std::shared_ptr<J3DMaterial> currentMaterial;
-        const GXShape* currentShape = nullptr;
+        std::shared_ptr<GXShape> currentShape = nullptr;
 
         switch (mHierarchyNodes[index].Type) {
             // The nodes after this one are lower on the hierarchy (eg go down to joint children)
@@ -81,7 +82,7 @@ void J3DModelData::MakeHierarchy(std::shared_ptr<J3DJoint> root, uint32_t& index
         // If we have a shape this iteration, assign it to the last material we added to the current root joint.
         // Also generate shaders, since now that it has a shape the material has all the data it needs.
         else if (currentShape != nullptr) {
-            std::shared_ptr<J3DMaterial> shapeMaterial = root->GetLastMaterial();
+            std::shared_ptr<J3DMaterial> shapeMaterial = root->GetLastMaterial().lock();
 
             shapeMaterial->SetShape(currentShape);
             shapeMaterial->GenerateShaders();

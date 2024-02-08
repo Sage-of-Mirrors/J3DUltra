@@ -17,10 +17,7 @@ J3DTextureFactory::J3DTextureFactory(J3DTextureBlock* srcBlock, bStream::CStream
 }
 
 void J3DTextureFactory::InitTexture(std::shared_ptr<J3DTexture> texture) {
-	if (texture->TexHandle != UINT32_MAX) {
-		glDeleteTextures(1, &texture->TexHandle);
-		texture->TexHandle = UINT32_MAX;
-	}
+	texture->Clear();
 
 	glCreateTextures(GL_TEXTURE_2D, 1, &texture->TexHandle);
 

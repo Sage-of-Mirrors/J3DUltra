@@ -33,7 +33,7 @@ class J3DJoint : public J3DNode {
 	glm::vec3 mBoundingBoxMin;
 	glm::vec3 mBoundingBoxMax;
 
-	shared_vector<J3DMaterial> mMaterials;
+	std::vector<std::weak_ptr<J3DMaterial>> mMaterials;
 
 public:
 
@@ -45,9 +45,7 @@ public:
 	uint8_t GetAttachFlag() const { return mAttachFlag; }
 
 	void AddMaterial(std::shared_ptr<J3DMaterial>& mat) { mMaterials.push_back(mat); }
-	std::shared_ptr<J3DMaterial>& GetLastMaterial() { return mMaterials.back(); }
+	std::weak_ptr<J3DMaterial>& GetLastMaterial() { return mMaterials.back(); }
 
 	glm::mat4 GetTransformMatrix();
-
-	void RenderRecursive(std::vector<std::shared_ptr<struct J3DTexture>>& textures);
 };

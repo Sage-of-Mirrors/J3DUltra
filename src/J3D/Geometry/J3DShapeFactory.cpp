@@ -22,8 +22,8 @@ void J3DShapeInitData::Deserialize(bStream::CStream* stream) {
 	BoundingBoxMax = glm::vec3(stream->readFloat(), stream->readFloat(), stream->readFloat());
 }
 
-GXShape* J3DShapeFactory::Create(bStream::CStream* stream, uint32_t index, const GXAttributeData* attributes) {
-	GXShape* gxShape = new GXShape();
+std::shared_ptr<GXShape> J3DShapeFactory::Create(bStream::CStream* stream, uint32_t index, const GXAttributeData* attributes) {
+	std::shared_ptr<GXShape> gxShape = std::make_shared<GXShape>();
 
 	stream->seek(mBlock->InitDataTableOffset + (index * sizeof(J3DShapeInitData)));
 

@@ -18,8 +18,9 @@
 #define etoi magic_enum::enum_integer
 
 bool J3DVertexShaderGenerator::GenerateVertexShader(const J3DMaterial* material, uint32_t& shaderHandle) {
-	if (material == nullptr || material->GetShape() == nullptr)
+	if (material == nullptr || material->GetShape().expired()) {
 		return false;
+	}
 	
 	shaderHandle = glCreateShader(GL_VERTEX_SHADER);
 
@@ -49,7 +50,7 @@ bool J3DVertexShaderGenerator::GenerateVertexShader(const J3DMaterial* material,
 
 	vertexShader << GenerateMatrixCalcFunction();
 
-	bool hasNormals = J3DUtility::VectorContains(material->GetShape()->GetAttributeTable(), EGXAttribute::Normal);
+	bool hasNormals = J3DUtility::VectorContains(material->GetShape().lock()->GetAttributeTable(), EGXAttribute::Normal);
 	vertexShader << GenerateMainFunction(material, hasNormals);
 
 	shaderHandle = glCreateShader(GL_VERTEX_SHADER);

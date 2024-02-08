@@ -13,8 +13,6 @@ class J3DModelData;
 class J3DMaterialTable;
 
 class J3DMaterialTableLoader {
-	std::shared_ptr<J3DMaterialTable> mMaterialTable;
-
 public:
 	J3DMaterialTableLoader();
 	~J3DMaterialTableLoader() {}
@@ -22,7 +20,7 @@ public:
 	std::shared_ptr<J3DMaterialTable> Load(bStream::CStream* stream, std::shared_ptr<J3DModelData> modelData);
 
 protected:
-	void ReadMaterialBlockV2(bStream::CStream* stream);
-	void ReadMaterialBlockV3(bStream::CStream* stream);
-	void ReadTextureBlock(bStream::CStream* stream);
+	void ReadMaterialBlockV2(bStream::CStream* stream, std::shared_ptr<J3DMaterialTable> materialTable);
+	void ReadMaterialBlockV3(bStream::CStream* stream, std::shared_ptr<J3DMaterialTable> materialTable);
+	void ReadTextureBlock(bStream::CStream* stream, std::shared_ptr<J3DMaterialTable> materialTable);
 };
