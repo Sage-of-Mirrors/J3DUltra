@@ -17,8 +17,10 @@ J3DModelData::J3DModelData() {
 }
 
 J3DModelData::~J3DModelData() {
-    uint32_t buffers[] = { mVBO, mVAO, mIBO };
-    glDeleteBuffers(3, buffers);
+    uint32_t buffers[] = { mVBO, mIBO };
+    glDeleteBuffers(2, buffers);
+
+    glDeleteVertexArrays(1, &mVAO);
 }
 
 void J3DModelData::MakeHierarchy(std::shared_ptr<J3DJoint> root, uint32_t& index) {
