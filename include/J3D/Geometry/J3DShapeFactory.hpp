@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <cstdint>
 #include <vector>
+#include <memory>
 
 namespace bStream { class CStream; }
 struct J3DShapeBlock;
@@ -52,5 +53,5 @@ public:
 	J3DShapeFactory(J3DShapeBlock* srcBlock) { mBlock = srcBlock; }
 	~J3DShapeFactory() {}
 
-	GXShape* Create(bStream::CStream* stream, uint32_t index, const GXAttributeData* attributes);
+	std::shared_ptr<GXShape> Create(bStream::CStream* stream, uint32_t index, const GXAttributeData* attributes);
 };

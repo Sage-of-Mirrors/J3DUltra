@@ -68,7 +68,7 @@ public:
 
 	void GetBoundingBox(glm::vec3& min, glm::vec3& max) const;
 
-	const std::vector<GXShape*>& GetShapes() { return mGeometry.GetShapes(); }
+	shared_vector<GXShape>& GetShapes() { return mGeometry.GetShapes(); }
 
 	std::vector<glm::mat4> GetRestPose() const;
 	const std::vector<J3DEnvelope>& GetJointEnvelopes() const { return mSkeleton->GetJointEnvelopes(); }

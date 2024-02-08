@@ -14,8 +14,8 @@ enum class EJ3DNodeType {
 
 class J3DNode : public std::enable_shared_from_this<J3DNode> {
 protected:
-	std::shared_ptr<J3DNode> mParent;
-	shared_vector<J3DNode> mChildren;
+	std::weak_ptr<J3DNode> mParent;
+	std::vector<std::weak_ptr<J3DNode>> mChildren;
 
 public:
 	J3DNode() : mParent(std::shared_ptr<J3DNode>()) {}
@@ -23,8 +23,8 @@ public:
 
 	virtual EJ3DNodeType GetType() const { return EJ3DNodeType::Base; }
 
-	std::shared_ptr<J3DNode> GetParent() { return mParent; }
-	shared_vector<J3DNode>& GetChildren() { return mChildren; }
+	std::weak_ptr<J3DNode> GetParent() { return mParent; }
+	std::vector<std::weak_ptr<J3DNode>>& GetChildren() { return mChildren; }
 
 	void AddChild(std::shared_ptr<J3DNode> newChild) {
 		mChildren.push_back(newChild);

@@ -47,4 +47,6 @@ struct J3DTexture {
 	~J3DTexture();
 
 	void Deserialize(bStream::CStream* stream);
+
+	void Clear();
 };

@@ -23,7 +23,7 @@ J3DMaterialTableLoader::J3DMaterialTableLoader() {
 }
 
 std::shared_ptr<J3DMaterialTable> J3DMaterialTableLoader::Load(bStream::CStream* stream, std::shared_ptr<J3DModelData> modelData) {
-    mMaterialTable = std::make_shared<J3DMaterialTable>();
+    std::shared_ptr<J3DMaterialTable> materialTable = std::make_shared<J3DMaterialTable>();
 
     J3DDataBase header;
     header.Deserialize(stream);
@@ -35,13 +35,13 @@ std::shared_ptr<J3DMaterialTable> J3DMaterialTableLoader::Load(bStream::CStream*
     for (uint32_t i = 0; i < header.BlockCount; i++) {
         switch ((EJ3DBlockType)stream->peekUInt32(stream->tell())) {
         case EJ3DBlockType::MAT2:
-            ReadMaterialBlockV2(stream);
+            ReadMaterialBlockV2(stream, materialTable);
             break;
         case EJ3DBlockType::MAT3:
-            ReadMaterialBlockV3(stream);
+            ReadMaterialBlockV3(stream, materialTable);
             break;
         case EJ3DBlockType::TEX1:
-            ReadTextureBlock(stream);
+            ReadTextureBlock(stream, materialTable);
             break;
         default:
             uint32_t unsupportedBlockSize = stream->peekUInt32(stream->tell() + 4);
@@ -53,7 +53,7 @@ std::shared_ptr<J3DMaterialTable> J3DMaterialTableLoader::Load(bStream::CStream*
     // Initialize the materials that are being overridden from the model,
     // and add the materials NOT being overridden to the list.
     for (std::shared_ptr<J3DMaterial> defaultMaterial : modelData->GetMaterials()) {
-        std::shared_ptr<J3DMaterial> instanceMaterial = mMaterialTable->GetMaterial(defaultMaterial->Name);
+        std::shared_ptr<J3DMaterial> instanceMaterial = materialTable->GetMaterial(defaultMaterial->Name);
 
         if (instanceMaterial != nullptr) {
             instanceMaterial->SetShape(defaultMaterial->GetShape());
@@ -62,14 +62,14 @@ std::shared_ptr<J3DMaterialTable> J3DMaterialTableLoader::Load(bStream::CStream*
             J3DUniformBufferObject::LinkMaterialToUBO(instanceMaterial);
         }
         else {
-            mMaterialTable->mMaterials.push_back(defaultMaterial);
+            materialTable->mMaterials.push_back(defaultMaterial);
         }
     }
 
     // Prune materials that weren't initialized.
-    for (auto it = mMaterialTable->mMaterials.begin(); it != mMaterialTable->mMaterials.end(); ) {
-        if ((*it)->GetShape() == nullptr) {
-            it = mMaterialTable->mMaterials.erase(it);
+    for (auto it = materialTable->mMaterials.begin(); it != materialTable->mMaterials.end(); ) {
+        if ((*it)->GetShape().expired()) {
+            it = materialTable->mMaterials.erase(it);
 
             continue;
         }
@@ -79,15 +79,15 @@ std::shared_ptr<J3DMaterialTable> J3DMaterialTableLoader::Load(bStream::CStream*
 
     // Copy the textures that aren't being overridden from the model.
     for (uint32_t i = 0; i < modelData->GetTextures().size(); i++) {
-        if (i >= mMaterialTable->mTextures.size()) {
-            mMaterialTable->mTextures.push_back(modelData->GetTexture(i));
+        if (i >= materialTable->mTextures.size()) {
+            materialTable->mTextures.push_back(modelData->GetTexture(i));
         }
     }
 
-    return mMaterialTable;
+    return materialTable;
 }
 
-void J3DMaterialTableLoader::ReadMaterialBlockV2(bStream::CStream* stream) {
+void J3DMaterialTableLoader::ReadMaterialBlockV2(bStream::CStream* stream, std::shared_ptr<J3DMaterialTable> materialTable) {
     size_t currentStreamPos = stream->tell();
 
     J3DMaterialBlockV2 matBlock;
@@ -95,13 +95,13 @@ void J3DMaterialTableLoader::ReadMaterialBlockV2(bStream::CStream* stream) {
 
     J3DMaterialFactoryV2 materialFactory(&matBlock, stream);
     for (int i = 0; i < matBlock.Count; i++) {
-        mMaterialTable->mMaterials.push_back(materialFactory.Create(stream, i));
+        materialTable->mMaterials.push_back(materialFactory.Create(stream, i));
     }
 
     stream->seek(currentStreamPos + matBlock.BlockSize);
 }
 
-void J3DMaterialTableLoader::ReadMaterialBlockV3(bStream::CStream* stream) {
+void J3DMaterialTableLoader::ReadMaterialBlockV3(bStream::CStream* stream, std::shared_ptr<J3DMaterialTable> materialTable) {
     size_t currentStreamPos = stream->tell();
 
     J3DMaterialBlockV3 matBlock;
@@ -109,13 +109,13 @@ void J3DMaterialTableLoader::ReadMaterialBlockV3(bStream::CStream* stream) {
 
     J3DMaterialFactoryV3 materialFactory(&matBlock, stream);
     for (int i = 0; i < matBlock.Count; i++) {
-        mMaterialTable->mMaterials.push_back(materialFactory.Create(stream, i));
+        materialTable->mMaterials.push_back(materialFactory.Create(stream, i));
     }
 
     stream->seek(currentStreamPos + matBlock.BlockSize);
 }
 
-void J3DMaterialTableLoader::ReadTextureBlock(bStream::CStream* stream) {
+void J3DMaterialTableLoader::ReadTextureBlock(bStream::CStream* stream, std::shared_ptr<J3DMaterialTable> materialTable) {
     size_t currentStreamPos = stream->tell();
 
     J3DTextureBlock texBlock;
@@ -123,7 +123,7 @@ void J3DMaterialTableLoader::ReadTextureBlock(bStream::CStream* stream) {
 
     J3DTextureFactory textureFactory(&texBlock, stream);
     for (int i = 0; i < texBlock.Count; i++) {
-        mMaterialTable->mTextures.push_back(textureFactory.Create(stream, i));
+        materialTable->mTextures.push_back(textureFactory.Create(stream, i));
     }
 
     stream->seek(currentStreamPos + texBlock.BlockSize);

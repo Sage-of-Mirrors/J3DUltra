@@ -1,15 +1,14 @@
 #include "J3D/Texture/J3DTexture.hpp"
 
 #include <bstream.h>
+#include <glad/glad.h>
 
 J3DTexture::J3DTexture() : TexHandle(UINT32_MAX) {
 
 }
 
 J3DTexture::~J3DTexture() {
-	for (uint8_t* img : ImageData) {
-		delete[] img;
-	}
+	Clear();
 }
 
 void J3DTexture::Deserialize(bStream::CStream* stream) {
@@ -38,4 +37,15 @@ void J3DTexture::Deserialize(bStream::CStream* stream) {
 	Unknown = stream->readUInt8();
 	LODBias = stream->readUInt16();
 	TextureOffset = stream->readUInt32();
+}
+
+void J3DTexture::Clear() {
+	for (uint8_t* img : ImageData) {
+		delete[] img;
+	}
+
+	if (TexHandle != UINT32_MAX) {
+		glDeleteTextures(1, &TexHandle);
+		TexHandle = UINT32_MAX;
+	}
 }
