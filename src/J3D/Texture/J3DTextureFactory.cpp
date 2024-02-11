@@ -51,8 +51,6 @@ std::shared_ptr<J3DTexture> J3DTextureFactory::Create(bStream::CStream* stream, 
 	stream->seek(dataOffset + texture->TextureOffset);
 
 	for (int i = 0; i < texture->MipmapCount; i++) {
-		size_t f = stream->tell();
-
 		uint16_t mipWidth = texture->Width / std::pow(2.0f, i);
 		uint16_t mipHeight = texture->Height / std::pow(2.0f, i);
 

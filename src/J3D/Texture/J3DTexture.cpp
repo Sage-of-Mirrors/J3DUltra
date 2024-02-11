@@ -35,7 +35,7 @@ void J3DTexture::Deserialize(bStream::CStream* stream) {
 	MaxLOD = stream->readUInt8();
 	MipmapCount = stream->readUInt8();
 	Unknown = stream->readUInt8();
-	LODBias = stream->readUInt16();
+	LODBias = stream->readInt16();
 	TextureOffset = stream->readUInt32();
 }
 

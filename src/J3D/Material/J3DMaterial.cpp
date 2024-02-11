@@ -108,20 +108,38 @@ int GXBlendModeControlToGLFactor(EGXBlendModeControl Control)
 			return GL_ZERO;
 		case EGXBlendModeControl::One:
 			return GL_ONE;
-		case EGXBlendModeControl::SrcColor:
-			return GL_SRC_COLOR;
 		case EGXBlendModeControl::SrcAlpha:
 			return GL_SRC_ALPHA;
-		case EGXBlendModeControl::DstAlpha:
-			return GL_DST_ALPHA;
-		case EGXBlendModeControl::InverseSrcColor:
-			return GL_ONE_MINUS_SRC_COLOR;
 		case EGXBlendModeControl::InverseSrcAlpha:
 			return GL_ONE_MINUS_SRC_ALPHA;
+		case EGXBlendModeControl::DstAlpha:
+			return GL_DST_ALPHA;
 		case EGXBlendModeControl::InverseDstAlpha:
 			return GL_ONE_MINUS_DST_ALPHA;
 		default:
-			return GL_ONE;
+			return GL_ZERO;
+	}
+}
+
+int GXSrcBlendModeControlToGLFactor(EGXBlendModeControl control) {
+	switch (control) {
+		case EGXBlendModeControl::SrcColor:
+			return GL_DST_COLOR;
+		case EGXBlendModeControl::InverseSrcColor:
+			return GL_ONE_MINUS_DST_COLOR;
+		default:
+			return GXBlendModeControlToGLFactor(control);
+	}
+}
+
+int GXDstBlendModeControlToGLFactor(EGXBlendModeControl control) {
+	switch (control) {
+		case EGXBlendModeControl::SrcColor:
+			return GL_SRC_COLOR;
+		case EGXBlendModeControl::InverseSrcColor:
+			return GL_ONE_MINUS_SRC_COLOR;
+		default:
+			return GXBlendModeControlToGLFactor(control);
 	}
 }
 
@@ -143,18 +161,18 @@ void J3DMaterial::BindJ3DShader(const std::vector<std::shared_ptr<J3DTexture>>& 
 
 		switch (PEBlock.mBlendMode.Type)
 		{
-		case EGXBlendMode::Blend:
-			glBlendEquation(GL_FUNC_ADD);
-			break;
-		case EGXBlendMode::Subtract:
-			glBlendEquation(GL_FUNC_SUBTRACT);
-			break;
-		case EGXBlendMode::Logic:
-			glBlendEquation(GL_FUNC_ADD);
-			break;
+			case EGXBlendMode::Blend:
+				glBlendEquation(GL_FUNC_ADD);
+				break;
+			case EGXBlendMode::Subtract:
+				glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
+				break;
+			case EGXBlendMode::Logic:
+				glBlendEquation(GL_FUNC_ADD);
+				break;
 		}
 
-		glBlendFunc(GXBlendModeControlToGLFactor(PEBlock.mBlendMode.SourceFactor), GXBlendModeControlToGLFactor(PEBlock.mBlendMode.DestinationFactor));
+		glBlendFunc(GXSrcBlendModeControlToGLFactor(PEBlock.mBlendMode.SourceFactor), GXDstBlendModeControlToGLFactor(PEBlock.mBlendMode.DestinationFactor));
 	}
 	else {
 		glDisable(GL_BLEND);
@@ -194,9 +212,6 @@ void J3DMaterial::ConfigureGLState() {
 				break;
 			case (EGXCullMode::Back):
 				glCullFace(GL_FRONT);
-				break;
-			case (EGXCullMode::None):
-				glCullFace(GL_NONE);
 				break;
 		}
 	}

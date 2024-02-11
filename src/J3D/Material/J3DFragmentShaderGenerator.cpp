@@ -458,7 +458,7 @@ std::string J3DFragmentShaderGenerator::GenerateAlphaCompare(J3DAlphaCompare& al
 			stream << compare0 << " == " << compare1;
 			break;
 		case EGXAlphaOp::XOR:
-			stream << "((" << compare0 << ") && !(" << compare1 << ")) || (!(" << compare0 << ") && (" << compare1 << "))";
+			stream << compare0 << " != " << compare1;
 			break;
 	}
 

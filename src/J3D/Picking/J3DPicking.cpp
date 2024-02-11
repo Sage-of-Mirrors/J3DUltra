@@ -98,6 +98,7 @@ namespace J3D {
             glBindFramebuffer(GL_FRAMEBUFFER, mFBO);
             glViewport(0, 0, mWidth, mHeight);
 
+            glDepthMask(true);
             glClearBufferuiv(GL_COLOR, 0, &DATA_RESET);
             glClearBufferfv(GL_DEPTH, 0, &DEPTH_RESET);
 
