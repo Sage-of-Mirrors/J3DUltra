@@ -267,7 +267,7 @@ struct J3DTevStageInfo : public J3DMaterialComponentBase {
 
 struct J3DIndirectTexMatrixInfo : public J3DMaterialComponentBase {
 	glm::mat2x3 TexMatrix;
-	uint8_t Exponent;
+	int8_t Exponent;
 
 	J3DIndirectTexMatrixInfo();
 

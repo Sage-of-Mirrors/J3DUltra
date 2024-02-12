@@ -25,6 +25,7 @@ std::string J3DShaderGeneratorCommon::GenerateStructs() {
 		"\tGXLight Lights[8];\n"
 		"\tmat4 Envelopes[512];\n"
 		"\tmat4 TexMatrices[10];\n"
+		"\tmat4 IndTexMatrices[10];\n"
 		"\tuint BillboardType;\n"
 		"\tuint ModelId;\n"
 		"\tuint MaterialId;\n"

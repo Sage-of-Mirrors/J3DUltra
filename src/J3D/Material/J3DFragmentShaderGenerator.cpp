@@ -178,7 +178,12 @@ std::string J3DFragmentShaderGenerator::GenerateMainFunction(J3DMaterial* materi
 	return stream.str();
 }
 
-std::string J3DFragmentShaderGenerator::GenerateTextureColor(std::shared_ptr<J3DTevOrderInfo> tevOrder) {
+bool IsIndirectEnabledForStage(std::shared_ptr<J3DIndirectTevStageInfo> indTevStage) {
+	return indTevStage->TexMtxId != EGXIndirectTexMatrixId::IndTexMtx_Off;
+}
+
+std::string J3DFragmentShaderGenerator::GenerateTextureColor(J3DMaterial* material, uint32_t index) {
+	std::shared_ptr<J3DTevOrderInfo> tevOrder = material->TevBlock->mTevOrders[index];
 	std::stringstream stream;
 
 	if (tevOrder->TexCoordId != EGXTexCoordSlot::Null) {
@@ -188,12 +193,77 @@ std::string J3DFragmentShaderGenerator::GenerateTextureColor(std::shared_ptr<J3D
 		componentSwap[2] = TGXTevSwapComponents[(uint8_t)tevOrder->mTexSwapMode.B];
 		componentSwap[3] = TGXTevSwapComponents[(uint8_t)tevOrder->mTexSwapMode.A];
 
+		if (material->IndirectBlock->mEnabled && IsIndirectEnabledForStage(material->IndirectBlock->mIndirectTevStages[index])) {
+			std::shared_ptr<J3DIndirectTevStageInfo> indTevStage = material->IndirectBlock->mIndirectTevStages[index];
+			uint32_t indStageIndex = etoi(indTevStage->TevStageId);
+			std::shared_ptr<J3DIndirectTexOrderInfo> indTexOrder = material->IndirectBlock->mIndirectTexOrders[indStageIndex];
+
+			stream << "\t\t// Indirect texturing enabled. Source coords: " << magic_enum::enum_name(indTexOrder->TexCoordId)
+				<< ", source texture map: " << magic_enum::enum_name(indTexOrder->TexMapId) << "\n";
+
+			stream << "\t\tivec4 IndLookupCoords = VecFloatToS10(vec4(texture(Texture[" << std::to_string(etoi(indTexOrder->TexMapId)) << "], vec2("
+				<< TGXTexCoordSlot[etoi(indTexOrder->TexCoordId)] << ".x * " << TGXIndScale[etoi(material->IndirectBlock->mIndirectTexCoordScales[indStageIndex]->ScaleS)] << ", "
+				<< TGXTexCoordSlot[etoi(indTexOrder->TexCoordId)] << ".y * " << TGXIndScale[etoi(material->IndirectBlock->mIndirectTexCoordScales[indStageIndex]->ScaleT)] << ")).abg, 0)); \n";
+
+			if (indTevStage->TexBias != EGXIndirectTexBias::IndBias_None) {
+				const char* biasVal = indTevStage->TexFormat == EGXIndirectTexFormat::IndFormat_8 ? "-128" : "1";
+				stream << "\t\tIndLookupCoords += ivec4(";
+
+				switch (indTevStage->TexBias) {
+				case EGXIndirectTexBias::IndBias_S:
+					stream << biasVal << ", 0, 0";
+					break;
+				case EGXIndirectTexBias::IndBias_ST:
+					stream << biasVal << ", " << biasVal << ", 0";
+					break;
+				case EGXIndirectTexBias::IndBias_SU:
+					stream << biasVal << ", 0, " << biasVal;
+					break;
+				case EGXIndirectTexBias::IndBias_T:
+					stream << "0, " << biasVal << ", 0";
+					break;
+				case EGXIndirectTexBias::IndBias_TU:
+					stream << "0, " << biasVal << ", " << biasVal;
+					break;
+				case EGXIndirectTexBias::IndBias_U:
+					stream <<"0, 0, " << biasVal;
+					break;
+				case EGXIndirectTexBias::IndBias_STU:
+					stream << biasVal << ", " << biasVal << ", " << biasVal;
+					break;
+				default:
+					break;
+				}
+
+				stream << ", 0);\n\n";
+			}
+
+			stream << "\t\tvec4 FinalIndLookupCoords = ";
+
+			switch (indTevStage->TexMtxId) {
+				case EGXIndirectTexMatrixId::IndTexMtx_0:
+				case EGXIndirectTexMatrixId::IndTexMtx_1:
+				case EGXIndirectTexMatrixId::IndTexMtx_2:
+					stream << "IndTexMatrices[" << etoi(indTevStage->TexMtxId) - 1 << "] * VecS10ToFloat(IndLookupCoords);\n";
+					break;
+				default:
+					stream << "vec4(0.0);\n";
+					break;
+			}
+
+			stream << "\n";
+		}
+		else {
+			stream << "\t\t// No indirect texturing\n";
+			stream << "\t\tvec4 FinalIndLookupCoords = vec4(0.0);\n\n";
+		}
+
 		stream << "\t\t// Texture Coords: " << magic_enum::enum_name(tevOrder->TexCoordId)
 			<< ", Texture Map: " << magic_enum::enum_name(tevOrder->TexMapId) << ", Component Swap: " << componentSwap << "\n";
 
-		stream << "\t\tivec4 TexTemp = VecFloatToS10(texture(Texture[" << std::to_string(etoi(tevOrder->TexMapId)) << "], vec2(";
-		stream << TGXTexCoordSlot[etoi(tevOrder->TexCoordId)] << ".x / " << TGXTexCoordSlot[etoi(tevOrder->TexCoordId)] << ".z, ";
-		stream << TGXTexCoordSlot[etoi(tevOrder->TexCoordId)] << ".y / " << TGXTexCoordSlot[etoi(tevOrder->TexCoordId)] << ".z))." << componentSwap << ");\n\n";
+		stream << "\t\tvec3 ModifiedTexCoords = (" << TGXTexCoordSlot[etoi(tevOrder->TexCoordId)] << " / " << TGXTexCoordSlot[etoi(tevOrder->TexCoordId)] << ".z) + FinalIndLookupCoords.xyz;\n";
+
+		stream << "\t\tivec4 TexTemp = VecFloatToS10(texture(Texture[" << std::to_string(etoi(tevOrder->TexMapId)) << "], ModifiedTexCoords.xy)." << componentSwap << ");\n\n";
 	}
 	else {
 		stream << "\t\t// No texture specified per TEV Order.\n\n";
@@ -395,7 +465,7 @@ std::string J3DFragmentShaderGenerator::GenerateTEVStage(J3DMaterial* material, 
 	stream << "\t// TEV Stage " << std::to_string(index) << "\n";
 	stream << "\t{\n";
 
-	stream << GenerateTextureColor(curTevOrder);
+	stream << GenerateTextureColor(material, index);
 	stream << GenerateRasterColor(curTevOrder);
 	stream << GenerateKonstColor(material->TevBlock->mKonstColorSelection[index], material->TevBlock->mKonstAlphaSelection[index]);
 

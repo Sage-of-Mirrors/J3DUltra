@@ -31,6 +31,7 @@ namespace J3DUniformBufferObject {
 	void SetEnvelopeMatrices(const glm::mat4* envelopes, const uint32_t count);
 	// Updates the UBO's tex matrix array - assumes an array of 10 elements. Usually used by a model instance.
 	void SetTexMatrices(const glm::mat4* matrices);
+	void SetIndTexMatrix(const glm::mat4* matrix, uint32_t index);
 	// Updates the UBO's billboard type.
 	void SetBillboardType(const uint32_t& type);
 

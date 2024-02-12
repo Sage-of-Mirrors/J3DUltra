@@ -163,22 +163,29 @@ void J3DMaterial::BindJ3DShader(const std::vector<std::shared_ptr<J3DTexture>>& 
 		{
 			case EGXBlendMode::Blend:
 				glBlendEquation(GL_FUNC_ADD);
+				glBlendFunc(GXSrcBlendModeControlToGLFactor(PEBlock.mBlendMode.SourceFactor), GXDstBlendModeControlToGLFactor(PEBlock.mBlendMode.DestinationFactor));
 				break;
 			case EGXBlendMode::Subtract:
 				glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
+				glBlendFunc(GL_ONE, GL_ONE);
 				break;
 			case EGXBlendMode::Logic:
 				glBlendEquation(GL_FUNC_ADD);
 				break;
 		}
-
-		glBlendFunc(GXSrcBlendModeControlToGLFactor(PEBlock.mBlendMode.SourceFactor), GXDstBlendModeControlToGLFactor(PEBlock.mBlendMode.DestinationFactor));
 	}
 	else {
 		glDisable(GL_BLEND);
 	}
 
 	J3DUniformBufferObject::SetTexMatrices(TexMatrices);
+
+	if (IndirectBlock->mEnabled) {
+		for (uint32_t i = 0; i < 3; i++) {
+			glm::mat4 indTexMat = glm::mat4(IndirectBlock->mIndirectTexMatrices[i]->TexMatrix);
+			J3DUniformBufferObject::SetIndTexMatrix(&indTexMat, i);
+		}
+	}
 
 	if (AreRegisterColorsAnimating) {
 		J3DUniformBufferObject::SetTevColors(AnimationRegisterColors);

@@ -180,3 +180,15 @@ const std::string TGXKonstAlphaSel[]{
 	"KonstColor[2].a",
 	"KonstColor[3].a",
 };
+
+const std::string TGXIndScale[]{
+	"1.0",
+	"1.0 / 2.0",
+	"1.0 / 4.0",
+	"1.0 / 8.0",
+	"1.0 / 16.0",
+	"1.0 / 32.0",
+	"1.0 / 64.0",
+	"1.0 / 128.0",
+	"1.0 / 256.0"
+};

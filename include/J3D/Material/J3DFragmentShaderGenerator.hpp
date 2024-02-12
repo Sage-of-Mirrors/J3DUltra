@@ -18,7 +18,7 @@ class J3DFragmentShaderGenerator {
 	static std::string GenerateMainFunction(J3DMaterial* material);
 	
 	// TEV stuff
-	static std::string GenerateTextureColor(std::shared_ptr<J3DTevOrderInfo> tevOrder);
+	static std::string GenerateTextureColor(J3DMaterial* material, uint32_t index);
 	static std::string GenerateRasterColor(std::shared_ptr<J3DTevOrderInfo> tevOrder);
 	static std::string GenerateKonstColor(EGXKonstColorSel colorSel, EGXKonstAlphaSel alphaSel);
 	static std::string GenerateTEVStage(J3DMaterial* material, uint32_t index);

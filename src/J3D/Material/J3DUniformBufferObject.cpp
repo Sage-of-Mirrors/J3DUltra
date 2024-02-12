@@ -13,6 +13,7 @@ namespace J3DUniformBufferObject {
 		constexpr uint32_t COLORS_MAX = 4;
 		constexpr uint32_t ENVELOPE_MATS_MAX = 512;
 		constexpr uint32_t TEX_MATS_MAX = 10;
+		constexpr uint32_t IND_TEX_MATS_MAX = 10;
 		constexpr char* UBO_NAME = "uSharedData";
 
 		struct J3DUniformBufferObject {
@@ -26,6 +27,7 @@ namespace J3DUniformBufferObject {
 			J3DLight Lights[LIGHTS_MAX];
 			glm::mat4 Envelopes[ENVELOPE_MATS_MAX];
 			glm::mat4 TexMatrices[TEX_MATS_MAX];
+			glm::mat4 IndTexMatrices[IND_TEX_MATS_MAX];
 
 			uint32_t BillboardType;
 
@@ -76,6 +78,7 @@ void J3DUniformBufferObject::ClearUBO() {
 
 	std::fill_n(mUBO.Envelopes, ENVELOPE_MATS_MAX, glm::identity<glm::mat4>());
 	std::fill_n(mUBO.TexMatrices, TEX_MATS_MAX, glm::identity<glm::mat4>());
+	std::fill_n(mUBO.IndTexMatrices, IND_TEX_MATS_MAX, glm::identity<glm::mat4>());
 
 	mUBO.BillboardType = 0;
 
@@ -137,6 +140,10 @@ void J3DUniformBufferObject::SetEnvelopeMatrices(const glm::mat4* envelopes, con
 
 void J3DUniformBufferObject::SetTexMatrices(const glm::mat4* texMatrices) {
 	std::memcpy(mUBO.TexMatrices, texMatrices, sizeof(glm::mat4) * TEX_MATS_MAX);
+}
+
+void J3DUniformBufferObject::SetIndTexMatrix(const glm::mat4* matrix, uint32_t index) {
+	std::memcpy(&mUBO.IndTexMatrices[index], matrix, sizeof(glm::mat4));
 }
 
 void J3DUniformBufferObject::SetBillboardType(const uint32_t& type) {

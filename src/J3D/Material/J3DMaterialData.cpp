@@ -655,7 +655,7 @@ void J3DIndirectTexMatrixInfo::Serialize(bStream::CStream* stream) {
 	stream->writeFloat(TexMatrix[1].y);
 	stream->writeFloat(TexMatrix[1].z);
 
-	stream->writeUInt8(Exponent);
+	stream->writeInt8(Exponent);
 	stream->writeUInt8(0xFF);
 	stream->writeUInt8(0xFF);
 	stream->writeUInt8(0xFF);
@@ -670,9 +670,11 @@ void J3DIndirectTexMatrixInfo::Deserialize(bStream::CStream* stream) {
 	TexMatrix[1].y = stream->readFloat();
 	TexMatrix[1].z = stream->readFloat();
 
-	Exponent = stream->readUInt8();
+	Exponent = stream->readInt8();
 
 	stream->skip(3);
+
+	TexMatrix *= std::pow(2, Exponent);
 }
 
 bool J3DIndirectTexMatrixInfo::operator==(const J3DIndirectTexMatrixInfo& other) const {
