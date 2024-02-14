@@ -200,10 +200,10 @@ std::string J3DFragmentShaderGenerator::GenerateTextureColor(J3DMaterial* materi
 
 			stream << "\t\t// Indirect texturing enabled. Source coords: " << magic_enum::enum_name(indTexOrder->TexCoordId)
 				<< ", source texture map: " << magic_enum::enum_name(indTexOrder->TexMapId) << "\n";
-
-			stream << "\t\tivec4 IndLookupCoords = VecFloatToS10(vec4(texture(Texture[" << std::to_string(etoi(indTexOrder->TexMapId)) << "], vec2("
-				<< TGXTexCoordSlot[etoi(indTexOrder->TexCoordId)] << ".x * " << TGXIndScale[etoi(material->IndirectBlock->mIndirectTexCoordScales[indStageIndex]->ScaleS)] << ", "
-				<< TGXTexCoordSlot[etoi(indTexOrder->TexCoordId)] << ".y * " << TGXIndScale[etoi(material->IndirectBlock->mIndirectTexCoordScales[indStageIndex]->ScaleT)] << ")).abg, 0)); \n";
+			
+			stream << "\t\tvec2 BaseCoords = vec2((" << TGXTexCoordSlot[etoi(indTexOrder->TexCoordId)] << ".x / " << TGXTexCoordSlot[etoi(indTexOrder->TexCoordId)] << ".z) * " << TGXIndScale[etoi(material->IndirectBlock->mIndirectTexCoordScales[indStageIndex]->ScaleS)] << ", ("
+				                                     << TGXTexCoordSlot[etoi(indTexOrder->TexCoordId)] << ".y / " << TGXTexCoordSlot[etoi(indTexOrder->TexCoordId)] << ".z) * " << TGXIndScale[etoi(material->IndirectBlock->mIndirectTexCoordScales[indStageIndex]->ScaleT)] << ");\n";
+			stream << "\t\tivec4 IndLookupCoords = VecFloatToS10(vec4(texture(Texture[" << std::to_string(etoi(indTexOrder->TexMapId)) << "], BaseCoords).abg, 0));\n";
 
 			if (indTevStage->TexBias != EGXIndirectTexBias::IndBias_None) {
 				const char* biasVal = indTevStage->TexFormat == EGXIndirectTexFormat::IndFormat_8 ? "-128" : "1";
