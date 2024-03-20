@@ -262,7 +262,7 @@ bool J3DModelInstance::CheckUseInstanceTextures() {
 }
 
 void J3DModelInstance::SetJointAnimation(std::shared_ptr<J3DAnimation::J3DJointAnimationInstance> anim) {
-    if (anim->GetJointCount() != mModelData->GetJointCount()) {
+    if (anim != nullptr && anim->GetJointCount() != mModelData->GetJointCount()) {
         return;
     }
 
@@ -270,7 +270,7 @@ void J3DModelInstance::SetJointAnimation(std::shared_ptr<J3DAnimation::J3DJointA
 }
 
 void J3DModelInstance::SetJointFullAnimation(std::shared_ptr<J3DAnimation::J3DJointFullAnimationInstance> anim) {
-    if (anim->GetJointCount() != mModelData->GetJointCount()) {
+    if (anim != nullptr && anim->GetJointCount() != mModelData->GetJointCount()) {
         return;
     }
 
