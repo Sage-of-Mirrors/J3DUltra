@@ -29,7 +29,7 @@ std::shared_ptr<J3DMaterialTable> J3DMaterialTableLoader::Load(bStream::CStream*
     header.Deserialize(stream);
 
     if (header.FormatVersion != EJ3DFormatVersion::BMT3) {
-        std::cout << "Unknown BMT format version " << magic_enum::enum_name(header.FormatVersion) << "!" << std::endl;
+        std::cout << "Unknown BMT format version " << (uint32_t)header.FormatVersion << "!" << std::endl;
     }
 
     for (uint32_t i = 0; i < header.BlockCount; i++) {

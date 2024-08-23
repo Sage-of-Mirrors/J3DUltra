@@ -7,6 +7,8 @@ set( GLM_TEST_ENABLE      OFF CACHE INTERNAL "" )
 set( BUILD_SHARED_LIBS    OFF CACHE INTERNAL "" )
 set( BUILD_STATIC_LIBS    OFF CACHE INTERNAL "" )
 
+add_compile_definitions(-DGLM_ENABLE_EXPERIMENTAL)
+
 add_subdirectory(lib/magic_enum)
 add_subdirectory(lib/glm)
 add_subdirectory(lib/libflipper)
