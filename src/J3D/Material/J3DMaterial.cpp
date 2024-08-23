@@ -180,7 +180,7 @@ void J3DMaterial::BindJ3DShader(const std::vector<std::shared_ptr<J3DTexture>>& 
 
 	J3DUniformBufferObject::SetTexMatrices(TexMatrices);
 
-	if (IndirectBlock->mEnabled) {
+	if (IndirectBlock && IndirectBlock->mEnabled) {
 		for (uint32_t i = 0; i < 3; i++) {
 			glm::mat4 indTexMat = glm::mat4(IndirectBlock->mIndirectTexMatrices[i]->TexMatrix);
 			J3DUniformBufferObject::SetIndTexMatrix(&indTexMat, i);
