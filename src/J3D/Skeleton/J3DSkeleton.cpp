@@ -45,6 +45,7 @@ void J3DSkeleton::CalculateRestPose() {
             mRestPose.push_back(matrix);
         }
     }
+    mRestPose.shrink_to_fit();
 }
 
 std::vector<glm::mat4> J3DSkeleton::CalculateAnimJointPose(const std::vector<glm::mat4>& transforms) {
@@ -73,6 +74,8 @@ std::vector<glm::mat4> J3DSkeleton::CalculateAnimJointPose(const std::vector<glm
             animTransforms.push_back(matrix);
         }
     }
+
+    animTransforms.shrink_to_fit();
 
     return animTransforms;
 }

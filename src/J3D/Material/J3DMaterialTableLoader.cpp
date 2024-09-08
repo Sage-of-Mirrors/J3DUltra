@@ -84,6 +84,9 @@ std::shared_ptr<J3DMaterialTable> J3DMaterialTableLoader::Load(bStream::CStream*
         }
     }
 
+    materialTable->mTextures.shrink_to_fit();
+    materialTable->mMaterials.shrink_to_fit();
+
     return materialTable;
 }
 

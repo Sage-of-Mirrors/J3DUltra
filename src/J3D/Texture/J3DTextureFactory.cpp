@@ -93,6 +93,8 @@ std::shared_ptr<J3DTexture> J3DTextureFactory::Create(bStream::CStream* stream, 
 		texture->ImageData.push_back(imgData);
 		SetTextureMipImage(texture->TexHandle, i, mipWidth, mipHeight, imgData);
 	}
+	
+	texture->ImageData.shrink_to_fit();
 
 	return texture;
 }

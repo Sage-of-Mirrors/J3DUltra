@@ -112,6 +112,8 @@ void J3DAnimation::J3DJointAnimationInstance::Deserialize(bStream::CStream& stre
 
     float rotationScale = (1 << jointKeyBlock.RotationFraction) * (180.0f / 32768.0f);
 
+    mEntries.reserve(fullTrackCount);
+
     stream.seek(jointKeyBlock.TrackTableOffset);
     for (int i = 0; i < fullTrackCount; i++) {
         J3DJointAnimationData animData;
@@ -138,6 +140,8 @@ void J3DAnimation::J3DJointAnimationInstance::Deserialize(bStream::CStream& stre
 std::vector<glm::mat4> J3DAnimation::J3DJointAnimationInstance::GetTransformsAtFrame(float deltaTime) {
     std::vector<glm::mat4> transforms;
     float frameTime = GetFrame();
+
+    transforms.reserve(mEntries.size());
 
     for (const J3DJointAnimationData& j : mEntries) {
         glm::vec3 translation = glm::vec3(j.TranslationX.GetValue(frameTime), j.TranslationY.GetValue(frameTime), j.TranslationZ.GetValue(frameTime));

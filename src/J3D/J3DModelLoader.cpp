@@ -111,6 +111,8 @@ void J3DModelLoader::ReadInformationBlock(bStream::CStream* stream, uint32_t fla
         mModelData->mHierarchyNodes.push_back(hierarchyNode);
     }
 
+    mModelData->mHierarchyNodes.shrink_to_fit();
+
     stream->seek(currentStreamPos + infoBlock.BlockSize);
 }
 
@@ -136,6 +138,8 @@ void J3DModelLoader::ReadVertexBlock(bStream::CStream* stream, uint32_t flags) {
 
         stream->skip(3);
     }
+
+    attributes.shrink_to_fit();
 
     GXAttributeData* vtxData = &mModelData->mVertexData;
 
@@ -245,6 +249,7 @@ void J3DModelLoader::ReadDrawBlock(bStream::CStream* stream, uint32_t flags) {
     drawBlock.Deserialize(stream);
 
     auto& posMtxIdx = mModelData->mVertexData.GetPositionMatrixIndices();
+    posMtxIdx.reserve(drawBlock.Count);
 
     for (int i = 0; i < drawBlock.Count; i++) {
         stream->seek(drawBlock.DrawTableOffset + (i * sizeof(uint8_t)));
@@ -269,6 +274,8 @@ void J3DModelLoader::ReadJointBlock(bStream::CStream* stream, uint32_t flags) {
 
     J3DNameTable nameTable;
     nameTable.Deserialize(stream);
+
+    mModelData->mSkeleton->mJoints.reserve(jointBlock.Count);
 
     stream->seek(jointBlock.InitDataTableOffset);
     for (int i = 0; i < jointBlock.Count; i++) {
@@ -308,6 +315,7 @@ void J3DModelLoader::ReadShapeBlock(bStream::CStream* stream, uint32_t flags) {
 
     auto& shapes = mModelData->mGeometry.GetShapes();
 
+    shapes.reserve(shapeBlock.Count);
     J3DShapeFactory shapeFactory(&shapeBlock);
     for (int i = 0; i < shapeBlock.Count; i++) {
         shapes.push_back(shapeFactory.Create(stream, i, &mModelData->mVertexData));
@@ -321,6 +329,8 @@ void J3DModelLoader::ReadMaterialBlockV2(bStream::CStream* stream, uint32_t flag
 
     J3DMaterialBlockV2 matBlock;
     matBlock.Deserialize(stream);
+
+    mModelData->mMaterialTable->mMaterials.reserve(matBlock.Count);
 
     J3DMaterialFactoryV2 materialFactory(&matBlock, stream);
     for (int i = 0; i < matBlock.Count; i++) {
@@ -336,6 +346,8 @@ void J3DModelLoader::ReadMaterialBlockV3(bStream::CStream* stream, uint32_t flag
     J3DMaterialBlockV3 matBlock;
     matBlock.Deserialize(stream);
 
+    mModelData->mMaterialTable->mMaterials.reserve(matBlock.Count);
+
     J3DMaterialFactoryV3 materialFactory(&matBlock, stream);
     for (int i = 0; i < matBlock.Count; i++) {
         mModelData->mMaterialTable->mMaterials.push_back(materialFactory.Create(stream, i));
@@ -349,6 +361,8 @@ void J3DModelLoader::ReadTextureBlock(bStream::CStream* stream, uint32_t flags) 
 
     J3DTextureBlock texBlock;
     texBlock.Deserialize(stream);
+
+    mModelData->mMaterialTable->mTextures.reserve(texBlock.Count);
 
     J3DTextureFactory textureFactory(&texBlock, stream);
     for (int i = 0; i < texBlock.Count; i++) {

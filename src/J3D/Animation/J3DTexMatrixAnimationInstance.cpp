@@ -137,6 +137,8 @@ void J3DAnimation::J3DTexMatrixAnimationInstance::Deserialize(bStream::CStream& 
 
     float rotationScale = (1 << matrixKeyBlock.RotationFraction) * (180.0f / 32768.0f);
 
+    mEntries.reserve(fullTrackCount);
+
     stream.seek(matrixKeyBlock.TrackTableOffset);
     for (int i = 0; i < fullTrackCount; i++) {
         J3DTexMatrixAnimationData animData;

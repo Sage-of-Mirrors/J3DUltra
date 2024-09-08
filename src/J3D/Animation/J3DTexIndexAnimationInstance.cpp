@@ -27,6 +27,8 @@ void J3DAnimation::J3DTexIndexAnimationInstance::Deserialize(bStream::CStream& s
     J3DNameTable materialNames;
     materialNames.Deserialize(&stream);
 
+    mEntries.reserve(indexKeyBlock.TrackCount);
+    
     stream.seek(indexKeyBlock.TrackTableOffset);
     for (int i = 0; i < indexKeyBlock.TrackCount; i++) {
         J3DTexIndexAnimationData animData;

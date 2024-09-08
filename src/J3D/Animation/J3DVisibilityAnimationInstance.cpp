@@ -37,6 +37,8 @@ void J3DAnimation::J3DVisibilityAnimationInstance::Deserialize(bStream::CStream&
 
     size_t fullTrackCount = visBlock.TrackCount;
 
+    mEntries.reserve(fullTrackCount);
+
     stream.seek(visBlock.TrackTableOffset);
     for (int i = 0; i < fullTrackCount; i++) {
         J3DVisibilityAnimationData animData;

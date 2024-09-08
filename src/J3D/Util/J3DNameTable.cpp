@@ -58,6 +58,7 @@ void J3DNameTable::Deserialize(bStream::CStream* stream) {
 
 		mNames.push_back(std::string(buffer));
 	}
+	mNames.shrink_to_fit();
 }
 
 std::string J3DNameTable::GetName(uint16_t index) const {

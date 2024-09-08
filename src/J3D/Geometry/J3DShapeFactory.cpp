@@ -48,6 +48,9 @@ std::shared_ptr<GXShape> J3DShapeFactory::Create(bStream::CStream* stream, uint3
 		vertexAttributes.push_back(vcd);
 	}
 
+	shapeAttributeTable.shrink_to_fit();
+	vertexAttributes.shrink_to_fit();
+
 	auto& shapePrimitives = gxShape->GetPrimitives();
 
 	// Load the primitive data per-packet so we can properly extract the skinning info
@@ -213,10 +216,14 @@ std::shared_ptr<GXShape> J3DShapeFactory::Create(bStream::CStream* stream, uint3
 				primitiveVerts.push_back(newVtx);
 			}
 
+			primitiveVerts.shrink_to_fit();
+
 			//newPrimitive->TriangluatePrimitive();
 			shapePrimitives.push_back(newPrimitive);
 		}
 	}
+
+	shapePrimitives.shrink_to_fit();
 
 	gxShape->CalculateCenterOfMass();
 	return gxShape;

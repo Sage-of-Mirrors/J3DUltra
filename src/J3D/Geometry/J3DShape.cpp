@@ -6,6 +6,7 @@
 #include <glad/glad.h>
 
 void J3DShape::EnableAttributes(std::vector<J3DVCDData>& gxAttributes) {
+	mEnabledAttributes.reserve(gxAttributes.size());
 	for (auto attr : gxAttributes) {
 		switch (attr.Attribute) {
 			case EGXAttribute::PositionMatrixIdx:
@@ -71,6 +72,8 @@ void J3DShape::ConcatenatePacketsToIBO(std::vector<J3DVertexGX>& ibo) {
 			ibo.push_back(t);
 		}
 	}
+
+	ibo.shrink_to_fit();
 }
 
 void J3DShape::RenderShape() {

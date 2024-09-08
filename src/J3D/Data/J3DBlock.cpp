@@ -203,6 +203,15 @@ void J3DVertexBlock::LoadAttributeData(GXAttributeData* vertexData, bStream::CSt
             }
         }
     }
+
+    vertexData->GetPositions().shrink_to_fit();
+    vertexData->GetNormals().shrink_to_fit();
+    vertexData->GetColors(0).shrink_to_fit();
+    vertexData->GetColors(1).shrink_to_fit();
+
+    for (int texcoord = 0; texcoord < 8; texcoord++){
+        vertexData->GetTexCoords(texcoord).shrink_to_fit();
+    }
 }
 
 uint32_t J3DVertexBlock::CalculateAttributeCount(GXVertexAttributeFormat& curAttribute, GXVertexAttributeFormat& nextAttribute) {

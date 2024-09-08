@@ -5,6 +5,8 @@
 J3DMaterialFactoryV2::J3DMaterialFactoryV2(J3DMaterialBlockV2* srcBlock, bStream::CStream* stream) {
 	mBlock = srcBlock;
 
+	mInstanceTable.reserve(mBlock->Count + 1);
+
 	stream->seek(mBlock->InstanceTableOffset);
 	for (int i = 0; i < mBlock->Count; i++)
 		mInstanceTable.push_back(stream->readUInt16());
@@ -146,6 +148,14 @@ std::shared_ptr<J3DMaterial> J3DMaterialFactoryV2::Create(bStream::CStream* stre
 			newMaterial->AnimationKonstColors[i] = newMaterial->TevBlock->mTevKonstColors[i];
 		}
 	}
+
+	newMaterial->LightBlock.mColorChannels.shrink_to_fit();
+	newMaterial->TexGenBlock.mTexCoordInfo.shrink_to_fit();
+	newMaterial->TexGenBlock.mTexCoord2Info.shrink_to_fit();
+	newMaterial->TexGenBlock.mTexMatrix.shrink_to_fit();
+	newMaterial->TevBlock->mTextureIndices.shrink_to_fit();
+	newMaterial->TevBlock->mTevOrders.shrink_to_fit();
+	newMaterial->TevBlock->mTevStages.shrink_to_fit();
 
 	return newMaterial;
 }

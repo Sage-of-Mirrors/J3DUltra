@@ -51,6 +51,7 @@ void J3DModelInstance::CalculateJointMatrices(float deltaTime) {
     }
 
     std::vector<glm::mat4> t;
+    t.reserve(mModelData->GetJoints().size());
 
     for (std::shared_ptr<J3DJoint> jnt : mModelData->GetJoints()) {
         std::shared_ptr<J3DJoint> p = jnt;
@@ -189,6 +190,8 @@ void J3DModelInstance::GatherRenderPackets(std::vector<J3DRenderPacket>& packetL
     glm::mat4 transformMat4 = mReferenceFrame * mTransform.ToMat4();
 
     shared_vector<J3DMaterial> materials = CheckUseInstanceMaterials() ? mInstanceMaterialTable->GetMaterials() : mModelData->GetMaterials();
+
+    packetList.reserve(packetList.size() + materials.size() + 1);
 
     for (std::shared_ptr<J3DMaterial> mat : materials)
     {
