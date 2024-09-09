@@ -8,6 +8,7 @@
 #include "J3D/Material/J3DUniformBufferObject.hpp"
 
 #include <glad/glad.h>
+#include <atomic>
 
 std::atomic<uint16_t> J3DModelData::sInstanceIdSrc = 1;
 

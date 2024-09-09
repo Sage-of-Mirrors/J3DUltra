@@ -8,6 +8,7 @@
 #include <iostream>
 #include <vector>
 #include <glad/glad.h>
+#include <atomic>
 
 std::atomic<uint16_t> J3DMaterial::sMaterialIdSrc = 1;
 
