@@ -9,4 +9,5 @@
 	url = https://github.com/Neargye/magic_enum
 [submodule "lib/libflipper"]
 	path = lib/libflipper
-	url = https://github.com/Sage-of-Mirrors/libflipper
+	url = https://github.com/Astral-C/libflipper
+	branch = reduced-memory-usage

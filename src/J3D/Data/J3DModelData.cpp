@@ -214,6 +214,8 @@ bool J3DModelData::InitializeGL() {
         glVertexArrayAttribFormat(mVAO, texEnumVal, glm::vec3::length(), GL_FLOAT, GL_FALSE, offsetof(ModernVertex, TexCoords[7]));
     }
 
+    mGeometry.CleanupVertexArray();
+
     return true;
 }
 
