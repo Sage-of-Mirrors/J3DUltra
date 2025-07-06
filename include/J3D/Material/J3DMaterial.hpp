@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <atomic>
 
 class GXShape;
 
