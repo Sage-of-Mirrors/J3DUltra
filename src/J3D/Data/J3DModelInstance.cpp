@@ -164,6 +164,10 @@ void J3DModelInstance::SetTransform(const glm::mat4 transform) {
     mTransform.Rotation = rotation;
 }
 
+void J3DModelInstance::GetBoundingBox(glm::vec3& min, glm::vec3& max) const {
+    mModelData->GetBoundingBox(min, max);
+}
+
 J3DLight J3DModelInstance::GetLight(int index) const {
     J3DLight light;
     
