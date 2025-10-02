@@ -296,31 +296,25 @@ std::string J3DVertexShaderGenerator::GenerateTexGen(std::shared_ptr<J3DTexCoord
 	}
 
 	// Apply a texmatrix to the coords we found above.
-	if (texGen->TexMatrix == EGXTexMatrix::Identity) {
-		if (texGen->Type == EGXTexGenType::SRTG)
-			stream << "vec3(" << source.str() << ".xy, 1.0);\n";
-		else
-			stream << source.str() << ".xyz;\n";
-	}
-	else {
-		uint32_t texMatrixIndex = (etoi(texGen->TexMatrix) - etoi(EGXTexMatrix::TexMtx0)) / 3;
+	uint32_t texMatrixIndex = texGen->TexMatrix == EGXTexMatrix::Identity ?
+		index :
+		(etoi(texGen->TexMatrix) - etoi(EGXTexMatrix::TexMtx0)) / 3;
 
-		switch (texGen->Type) {
-			case EGXTexGenType::Matrix2x4:
-				stream << "vec3((TexMatrices[" << texMatrixIndex << "] * " << source.str() << ").xy, 1.0);\n";
-				break;
-			case EGXTexGenType::Matrix3x4:
-			{
-				stream << "(TexMatrices[" << texMatrixIndex << "] * " << source.str() << ").xyz;\n";
-				break;
-			}
-			case EGXTexGenType::SRTG:
-				stream << "vec3(" << source.str() << ".rg, 1.0);\n";
-				break;
-			default:
-				stream << source.str() << ".xyz;\n";
-				break;
-			}
+	switch (texGen->Type) {
+	case EGXTexGenType::Matrix2x4:
+		stream << "vec3((TexMatrices[" << texMatrixIndex << "] * " << source.str() << ").xy, 1.0);\n";
+		break;
+	case EGXTexGenType::Matrix3x4:
+	{
+		stream << "(TexMatrices[" << texMatrixIndex << "] * " << source.str() << ").xyz;\n";
+		break;
+	}
+	case EGXTexGenType::SRTG:
+		stream << "vec3(" << source.str() << ".rg, 1.0);\n";
+		break;
+	default:
+		stream << source.str() << ".xyz;\n";
+		break;
 	}
 
 	return stream.str();
