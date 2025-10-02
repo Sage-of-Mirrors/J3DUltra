@@ -318,7 +318,7 @@ glm::mat4 J3DTexMatrixInfo::CalculateSRTMatrix() {
 
 	srtMtx[3][3] = 1.0f;
 
-	return srtMtx;
+	return glm::transpose(srtMtx);
 }
 
 glm::mat4 envMtxOld = {
