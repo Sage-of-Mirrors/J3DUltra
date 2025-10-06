@@ -78,13 +78,9 @@ std::shared_ptr<GXShape> J3DShapeFactory::Create(bStream::CStream* stream, uint3
 			GXPrimitive* newPrimitive = new GXPrimitive(primType);
 			auto& primitiveVerts = newPrimitive->GetVertices();
 
-			bool orderSwitched = false;
-			if(stream->getOrder() == bStream::Endianess::Little){
-			    stream->setOrder(bStream::Endianess::Big);
-				orderSwitched = true;
-			}
-
+			// These are always big endian!
 			uint16_t vtxCount = stream->readUInt16();
+			if(stream->getOrder() == bStream::Endianess::Little) vtxCount = bStream::swap16(vtxCount);
 			for (int j = 0; j < vtxCount; j++) {
 				ModernVertex newVtx;
 
@@ -95,6 +91,7 @@ std::shared_ptr<GXShape> J3DShapeFactory::Create(bStream::CStream* stream, uint3
 					switch (attribute.Type) {
 						case EGXAttributeIndexType::Index16:
 							value = stream->readUInt16();
+							if(stream->getOrder() == bStream::Endianess::Little) value = bStream::swap16(value);
 							break;
 						case EGXAttributeIndexType::Index8:
 							value = stream->readUInt8();
@@ -220,10 +217,6 @@ std::shared_ptr<GXShape> J3DShapeFactory::Create(bStream::CStream* stream, uint3
 				}
 
 				primitiveVerts.push_back(newVtx);
-			}
-
-			if(orderSwitched){
-			    stream->setOrder(bStream::Endianess::Little);
 			}
 
 			primitiveVerts.shrink_to_fit();
