@@ -50,6 +50,12 @@ std::shared_ptr<J3DTexture> J3DTextureFactory::Create(bStream::CStream* stream, 
 	// Load image data
 	stream->seek(dataOffset + texture->TextureOffset);
 
+	bool swapped = false;
+	if(stream->getOrder() == bStream::Endianess::Little){
+	    stream->setOrder(bStream::Endianess::Big);
+		swapped = true;
+	}
+
 	for (int i = 0; i < texture->MipmapCount; i++) {
 		uint16_t mipWidth = texture->Width / std::pow(2.0f, i);
 		uint16_t mipHeight = texture->Height / std::pow(2.0f, i);
@@ -93,7 +99,11 @@ std::shared_ptr<J3DTexture> J3DTextureFactory::Create(bStream::CStream* stream, 
 		texture->ImageData.push_back(imgData);
 		SetTextureMipImage(texture->TexHandle, i, mipWidth, mipHeight, imgData);
 	}
-	
+
+	if(swapped){
+	    stream->setOrder(bStream::Endianess::Little);
+	}
+
 	texture->ImageData.shrink_to_fit();
 
 	return texture;
@@ -136,7 +146,7 @@ void J3DTextureFactory::DecodeI4(bStream::CStream* stream, uint16_t width, uint1
 
 	uint32_t numBlocksW = width / 8;
 	uint32_t numBlocksH = height / 8;
-	
+
 	// Iterate the blocks in the image
 	for (int blockY = 0; blockY < numBlocksH; blockY++) {
 		for (int blockX = 0; blockX < numBlocksW; blockX++) {
@@ -346,7 +356,7 @@ void J3DTextureFactory::DecodeRGBA32(bStream::CStream* stream, uint16_t width, u
 	for (int blockY = 0; blockY < numBlocksH; blockY++) {
 		for (int blockX = 0; blockX < numBlocksW; blockX++) {
 			// Iterate the pixels in the current block
-			
+
 			// Alpha/red values for current pixel
 			for (int pixelY = 0; pixelY < 4; pixelY++) {
 				for (int pixelX = 0; pixelX < 4; pixelX++) {
