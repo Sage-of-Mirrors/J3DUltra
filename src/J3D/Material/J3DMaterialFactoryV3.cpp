@@ -44,7 +44,7 @@ std::shared_ptr<J3DMaterial> J3DMaterialFactoryV3::Create(bStream::CStream* stre
 
 	// Light block
 	newMaterial->LightBlock.mCullMode = (EGXCullMode)stream->peekUInt32(mBlock->CullModeTableOffset + initData.CullMode * sizeof(uint32_t));
-	
+
 	for (int i = 0; i < 2; i++) {
 		if (initData.MaterialColor[i] != UINT16_MAX) {
 			newMaterial->LightBlock.mMaterialColor[i].r = stream->peekUInt8(mBlock->MaterialColorTableOffset + initData.MaterialColor[i] * sizeof(glm::uint32_t));
@@ -202,14 +202,19 @@ std::shared_ptr<J3DMaterial> J3DMaterialFactoryV3::Create(bStream::CStream* stre
 	newMaterial->TexGenBlock.mTexCoordInfo.shrink_to_fit();
 	newMaterial->TexGenBlock.mTexCoord2Info.shrink_to_fit();
 	newMaterial->TexGenBlock.mTexMatrix.shrink_to_fit();
-	newMaterial->TevBlock->mTextureIndices.shrink_to_fit();
-	newMaterial->TevBlock->mTevOrders.shrink_to_fit();
-	newMaterial->TevBlock->mTevStages.shrink_to_fit();
 
-	newMaterial->IndirectBlock->mIndirectTexOrders.shrink_to_fit();
-	newMaterial->IndirectBlock->mIndirectTexMatrices.shrink_to_fit();
-	newMaterial->IndirectBlock->mIndirectTexCoordScales.shrink_to_fit();
-	newMaterial->IndirectBlock->mIndirectTevStages.shrink_to_fit();
+	if(newMaterial->TevBlock != nullptr){
+	    newMaterial->TevBlock->mTextureIndices.shrink_to_fit();
+	    newMaterial->TevBlock->mTevOrders.shrink_to_fit();
+	    newMaterial->TevBlock->mTevStages.shrink_to_fit();
+	}
+
+	if(newMaterial->IndirectBlock != nullptr){
+	    newMaterial->IndirectBlock->mIndirectTexOrders.shrink_to_fit();
+	    newMaterial->IndirectBlock->mIndirectTexMatrices.shrink_to_fit();
+	    newMaterial->IndirectBlock->mIndirectTexCoordScales.shrink_to_fit();
+	    newMaterial->IndirectBlock->mIndirectTevStages.shrink_to_fit();
+	}
 
 	return newMaterial;
 }
