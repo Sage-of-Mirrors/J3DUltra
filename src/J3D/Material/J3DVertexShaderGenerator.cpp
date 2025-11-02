@@ -6,7 +6,7 @@
 #include "J3D/Util/J3DUtil.hpp"
 
 #include "GXGeometryData.hpp"
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 #include <glad/glad.h>
 #include <sstream>
 #include <algorithm>
