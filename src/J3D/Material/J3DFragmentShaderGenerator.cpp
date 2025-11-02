@@ -7,7 +7,7 @@
 #include "J3D/Util/J3DUtil.hpp"
 #include "GX/GXEnum.hpp"
 
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 #include <glad/glad.h>
 #include <string>
 #include <iostream>
