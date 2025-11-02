@@ -67,6 +67,7 @@ public:
 	std::shared_ptr<J3DModelInstance> CreateInstance();
 
 	void GetBoundingBox(glm::vec3& min, glm::vec3& max) const;
+
 	shared_vector<GXShape>& GetShapes() { return mGeometry.GetShapes(); }
 
 	std::vector<glm::mat4> GetRestPose() const;
