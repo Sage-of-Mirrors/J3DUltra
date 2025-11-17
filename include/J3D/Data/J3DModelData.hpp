@@ -90,7 +90,7 @@ public:
 	/* Returns this model's list of default textures. */
 	shared_vector<J3DTexture>& GetTextures() { return mMaterialTable->GetTextures(); }
 
-	uint32_t GetJointCount() const { return mSkeleton->GetJoints().size(); }
+	uint32_t GetJointCount() const { return (uint32_t)mSkeleton->GetJoints().size(); }
 
 	bool SetTexture(uint32_t idx, uint32_t width, uint32_t height, uint8_t* data, uint32_t size);
 	bool SetTexture(std::string name, uint32_t width, uint32_t height, uint8_t* data, uint32_t size);

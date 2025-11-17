@@ -58,7 +58,7 @@ class J3DMaterialFactoryV2 {
 		T newComp;
 		
 		ptrdiff_t currentOffset = stream->tell();
-		uint32_t pos = offset + (index * newComp.GetElementSize());
+		uint32_t pos = (uint32_t)(offset + (index * newComp.GetElementSize()));
 		stream->seek(pos);
 
 		newComp.Deserialize(stream);

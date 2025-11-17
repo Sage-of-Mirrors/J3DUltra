@@ -125,7 +125,7 @@ void J3DModelInstance::Update(float deltaTime, std::shared_ptr<J3DMaterial> mate
     UpdateShapeVisibility(deltaTime);
     CalculateJointMatrices(deltaTime);
 
-    J3DUniformBufferObject::SetEnvelopeMatrices(mEnvelopeMatrices.data(), mEnvelopeMatrices.size());
+    J3DUniformBufferObject::SetEnvelopeMatrices(mEnvelopeMatrices.data(), (uint32_t)mEnvelopeMatrices.size());
     J3DUniformBufferObject::SetLights(mLights);
 
     glm::mat4 transformMat4 = mReferenceFrame * mTransform.ToMat4();

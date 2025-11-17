@@ -65,9 +65,9 @@ std::string J3DFragmentShaderGenerator::GenerateIOVariables(J3DMaterial* materia
 	stream << "in vec4 oColor0;\n";
 	stream << "in vec4 oColor1;\n\n";
 
-	uint32_t texGenCount = material->TexGenBlock.mTexCoordInfo.size();
+	uint32_t texGenCount = (uint32_t)material->TexGenBlock.mTexCoordInfo.size();
 	stream << "// Tex gen count: " << texGenCount << "\n";
-	for (int i = 0; i < texGenCount; i++) {
+	for (uint32_t i = 0; i < texGenCount; i++) {
 		stream << "in vec3 oTexCoord" << i << ";\n";
 	}
 

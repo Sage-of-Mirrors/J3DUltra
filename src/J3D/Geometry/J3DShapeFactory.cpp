@@ -62,7 +62,7 @@ std::shared_ptr<GXShape> J3DShapeFactory::Create(bStream::CStream* stream, uint3
 		};
 
 		stream->seek(mBlock->DrawTableOffset + drawInitData.Start);
-		uint32_t endOffset = stream->tell() + drawInitData.Size;
+		uint32_t endOffset = (uint32_t)(stream->tell() + drawInitData.Size);
 
 		// Load primitives until we're out of space
 		while (stream->tell() < endOffset) {
@@ -225,7 +225,7 @@ std::shared_ptr<GXShape> J3DShapeFactory::Create(bStream::CStream* stream, uint3
 uint16_t J3DShapeFactory::ConvertPosMtxIndexToDrawIndex(bStream::CStream* stream, const J3DShapeInitData& initData, const uint16_t& packetIndex, const uint16_t& value) {
 	uint32_t index = 0;
 	
-	uint32_t currentStreamPos = stream->tell();
+	uint32_t currentStreamPos = (uint32_t)stream->tell();
 	stream->seek(mBlock->MatrixInitTableOffset + (initData.MatrixOffset * sizeof(J3DShapeMatrixInitData)));
 
 	uint32_t matrixInitIndex = initData.MatrixOffset + packetIndex;
@@ -258,7 +258,7 @@ uint16_t J3DShapeFactory::ConvertPosMtxIndexToDrawIndex(bStream::CStream* stream
 uint16_t J3DShapeFactory::GetUseMatrixValue(bStream::CStream* stream, const J3DShapeInitData& initData, const uint16_t& packetIndex) {
 	uint32_t index = 0;
 
-	uint32_t currentStreamPos = stream->tell();
+	uint32_t currentStreamPos = (uint32_t)stream->tell();
 	stream->seek(mBlock->MatrixInitTableOffset + (initData.MatrixOffset * sizeof(J3DShapeMatrixInitData)));
 
 	uint32_t matrixInitIndex = initData.MatrixOffset + packetIndex;
@@ -273,7 +273,7 @@ uint16_t J3DShapeFactory::GetUseMatrixValue(bStream::CStream* stream, const J3DS
 }
 
 void J3DShapeFactory::ReadMatrixInitData(bStream::CStream* stream, J3DShapeMatrixInitData& data, uint32_t offset) {
-	uint32_t currentStreamPos = stream->tell();
+	uint32_t currentStreamPos = (uint32_t)stream->tell();
 	stream->seek(mBlock->MatrixInitTableOffset + offset);
 
 	data.ID = stream->readUInt16();

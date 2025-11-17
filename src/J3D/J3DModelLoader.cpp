@@ -31,7 +31,7 @@ std::shared_ptr<J3DModelData> J3DModelLoader::Load(bStream::CStream* stream, uin
     J3DDataBase header;
     header.Deserialize(stream);
 
-    for (int i = 0; i < header.BlockCount; i++) {
+    for (uint32_t i = 0; i < header.BlockCount; i++) {
         switch ((EJ3DBlockType)stream->peekUInt32(stream->tell())) {
             case EJ3DBlockType::INF1:
                 ReadInformationBlock(stream, flags);
@@ -218,7 +218,7 @@ void J3DModelLoader::ReadEnvelopeBlock(bStream::CStream* stream, uint32_t flags)
 
     // Read the joints' inverse bind matrices
     uint32_t matrixCount = ((envBlock.BlockOffset + envBlock.BlockSize) - envBlock.MatrixTableOffset) / sizeof(glm::mat4x3);
-    for (int i = 0; i < matrixCount; i++) {
+    for (uint32_t i = 0; i < matrixCount; i++) {
         glm::mat4 matrix;
 
         matrix[3][0] = 0.f;
@@ -271,13 +271,13 @@ void J3DModelLoader::ReadJointBlock(bStream::CStream* stream, uint32_t flags) {
     nameTable.Deserialize(stream);
 
     stream->seek(jointBlock.InitDataTableOffset);
-    for (int i = 0; i < jointBlock.Count; i++) {
+    for (uint16_t i = 0; i < jointBlock.Count; i++) {
         std::shared_ptr<J3DJoint> newJoint = std::make_shared<J3DJoint>();
         
         newJoint->mJointName = nameTable.GetName(i);
         newJoint->mJointID = i;
 
-        newJoint->mMatrixFlag = stream->readUInt16();
+        newJoint->mMatrixFlag = (uint8_t)stream->readUInt16();
         newJoint->mAttachFlag = stream->readUInt8();
 
         stream->skip(1);
