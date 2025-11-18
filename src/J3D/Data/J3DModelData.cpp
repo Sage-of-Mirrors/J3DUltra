@@ -166,6 +166,7 @@ bool J3DModelData::InitializeGL() {
         glVertexArrayAttribBinding(mVAO, colEnumVal, 0);
         glVertexArrayAttribFormat(mVAO, colEnumVal, glm::vec4::length(), GL_FLOAT, GL_FALSE, offsetof(ModernVertex, Colors[0]));
     }
+
     if (mVertexData.HasColors(1)) {
         uint32_t colEnumVal = J3DUtility::EnumToIntegral(EGXAttribute::Color1);
         glEnableVertexArrayAttrib(mVAO, colEnumVal);
@@ -262,6 +263,9 @@ void J3DModelData::BindVAO()
         mGLInitialized = InitializeGL();
 
     glBindVertexArray(mVAO);
+    
+    uint32_t col0Enum = J3DUtility::EnumToIntegral(EGXAttribute::Color0);
+    glVertexAttrib4f(col0Enum, 1.0f, 1.0f, 1.0f, 1.0f);
 }
 
 void J3DModelData::UnbindVAO()

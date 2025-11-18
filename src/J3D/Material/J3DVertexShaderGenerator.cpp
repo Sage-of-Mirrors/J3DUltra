@@ -57,11 +57,13 @@ bool J3DVertexShaderGenerator::GenerateVertexShader(const J3DMaterial* material,
 
   std::string shaderStr = vertexShader.str();
 
-  std::ofstream debugVOut("./shader/" + material->Name + "_vtx.glsl");
+#ifdef _DEBUG
+  std::ofstream debugVOut("./shaderdump/" + material->Name + "_vtx.glsl");
   if (debugVOut.is_open()) {
     debugVOut << shaderStr;
     debugVOut.close();
   }
+#endif
 
   //std::string shaderChars = J3DUtility::LoadTextFile("./res/shaders/Debug_NormalColors.vert");
   const char* s = shaderStr.c_str();

@@ -27,6 +27,7 @@ J3DModelInstance::J3DModelInstance(std::shared_ptr<J3DModelData> modelData, uint
     mReferenceFrame = glm::identity<glm::mat4>();
     mSortBias = 0;
     mModelId = id;
+    bUseInstanceMaterialTable = false;
 }
 
 J3DModelInstance::~J3DModelInstance() {
