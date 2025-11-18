@@ -26,6 +26,9 @@ bool J3DFragmentShaderGenerator::GenerateFragmentShader(J3DMaterial* material, u
 	fragmentShader << GenerateMainFunction(material);
 
 #ifdef _DEBUG
+  if (!std::filesystem::exists("./shaderdump"))
+		std::filesystem::create_directory("./shaderdump");
+
 	std::ofstream debugFOut("./shaderdump/" + material->Name + "_frag.glsl");
 	if (debugFOut.is_open()) {
 		debugFOut << fragmentShader.str();

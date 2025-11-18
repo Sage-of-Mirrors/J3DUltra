@@ -58,6 +58,9 @@ bool J3DVertexShaderGenerator::GenerateVertexShader(const J3DMaterial* material,
   std::string shaderStr = vertexShader.str();
 
 #ifdef _DEBUG
+  if (!std::filesystem::exists("./shaderdump"))
+    std::filesystem::create_directory("./shaderdump");
+
   std::ofstream debugVOut("./shaderdump/" + material->Name + "_vtx.glsl");
   if (debugVOut.is_open()) {
     debugVOut << shaderStr;
