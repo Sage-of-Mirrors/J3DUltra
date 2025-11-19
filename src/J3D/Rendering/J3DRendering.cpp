@@ -19,6 +19,13 @@ void J3D::Rendering::SetSortFunction(std::function<void(RenderPacketVector&)> so
 J3D::Rendering::RenderPacketVector J3D::Rendering::SortPackets(ModelInstanceVector& modelInstances, glm::vec3 cameraPosition) {
     std::vector<J3DRenderPacket> packets;
 
+	size_t materialCount = 0;
+    for (std::shared_ptr<J3DModelInstance> instance : modelInstances) {
+        materialCount += instance->GetMaterials().size();
+    }
+
+	packets.reserve(materialCount);
+
     for (std::shared_ptr<J3DModelInstance> instance : modelInstances) {
         instance->GatherRenderPackets(packets, cameraPosition);
     }
