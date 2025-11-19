@@ -69,8 +69,8 @@ class J3DModelInstance {
     uint8_t mSortBias;
     uint16_t mModelId;
 
-    bool CheckUseInstanceMaterials();
-    bool CheckUseInstanceTextures();
+    bool CheckUseInstanceMaterials() const;
+    bool CheckUseInstanceTextures() const;
 
 public:
     J3DModelInstance(std::shared_ptr<J3DModelData> modelData, uint16_t id);
@@ -84,6 +84,7 @@ public:
     void SetReferenceFrame(const glm::mat4 frame);
 
     void GetBoundingBox(glm::vec3& min, glm::vec3& max) const;
+	const shared_vector<J3DMaterial>& GetMaterials() const;
 
     void GatherRenderPackets(std::vector<J3DRenderPacket>& packetList, glm::vec3 cameraPosition);
 
