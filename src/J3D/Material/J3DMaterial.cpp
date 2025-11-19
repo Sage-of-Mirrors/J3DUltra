@@ -198,30 +198,6 @@ void J3DMaterial::BindJ3DShader(const std::vector<std::shared_ptr<J3DTexture>>& 
     glBindTextureUnit(i, textures[texIndex]->TexHandle);
   }
 
-  if (PEBlock.mBlendMode.Type != EGXBlendMode::None) {
-    glEnable(GL_BLEND);
-
-    switch (PEBlock.mBlendMode.Type) {
-    case EGXBlendMode::Blend:
-      glBlendEquation(GL_FUNC_ADD);
-      glBlendFunc(GXBlendModeSrcControlToGLFactor(PEBlock.mBlendMode.SourceFactor),
-        GXBlendModeDstControlToGLFactor(PEBlock.mBlendMode.DestinationFactor));
-      break;
-    case EGXBlendMode::Subtract:
-      glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
-      glBlendFunc(GL_ONE, GL_ONE);
-      break;
-    case EGXBlendMode::Logic:
-      glBlendEquation(GL_FUNC_ADD);
-      glBlendFunc(GXBlendModeSrcControlToGLFactor(PEBlock.mBlendMode.SourceFactor),
-        GXBlendModeDstControlToGLFactor(PEBlock.mBlendMode.DestinationFactor));
-      break;
-    }
-  }
-  else {
-    glDisable(GL_BLEND);
-  }
-
   J3DUniformBufferObject::SetTexMatrices(TexMatrices);
 
   if (AreRegisterColorsAnimating) {
@@ -242,6 +218,28 @@ void J3DMaterial::BindJ3DShader(const std::vector<std::shared_ptr<J3DTexture>>& 
 }
 
 void J3DMaterial::ConfigureGLState() {
+  if (PEBlock.mBlendMode.Type != EGXBlendMode::None) {
+    glEnable(GL_BLEND);
+
+    switch (PEBlock.mBlendMode.Type) {
+    case EGXBlendMode::Blend:
+      glBlendEquation(GL_FUNC_ADD);
+      break;
+    case EGXBlendMode::Subtract:
+      glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
+      break;
+    case EGXBlendMode::Logic:
+      glBlendEquation(GL_FUNC_ADD);
+      break;
+    }
+
+    glBlendFunc(GXBlendModeSrcControlToGLFactor(PEBlock.mBlendMode.SourceFactor),
+      GXBlendModeDstControlToGLFactor(PEBlock.mBlendMode.DestinationFactor));
+  }
+  else {
+    glDisable(GL_BLEND);
+  }
+
   if (LightBlock.mCullMode != EGXCullMode::None) {
     glEnable(GL_CULL_FACE);
     glCullFace(GXCullModeToGLMode(LightBlock.mCullMode));
@@ -259,14 +257,23 @@ void J3DMaterial::ConfigureGLState() {
     glDisable(GL_DEPTH_TEST);
   }
 
-  glFrontFace(GL_CW);
-
   glPolygonOffset(0.0f, 0.0f);
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+  glFrontFace(GL_CW);
 }
 
 void J3DMaterial::Render(const std::vector<std::shared_ptr<J3DTexture>>& textures,
   uint32_t shaderOverride) {
+  if (mShape.expired()) {
+    return;
+  }
+
+  std::shared_ptr<GXShape> lockedShape = mShape.lock();
+  if (!lockedShape || !lockedShape->GetVisible()) {
+    return;
+  }
+
   if (shaderOverride == 0) {
     BindJ3DShader(textures);
   }
@@ -275,24 +282,15 @@ void J3DMaterial::Render(const std::vector<std::shared_ptr<J3DTexture>>& texture
     J3DUniformBufferObject::SetMaterialId(mMaterialId);
   }
 
-  if (mShape.expired()) {
-    return;
-  }
+  ConfigureGLState();
 
-  std::shared_ptr<GXShape> lockedShape = mShape.lock();
+  J3DUniformBufferObject::SetBillboardType(*lockedShape->GetUserData<uint32_t>());
+  J3DUniformBufferObject::SubmitUBO();
 
-  if (lockedShape->GetVisible()) {
-    ConfigureGLState();
+  uint32_t offset, count;
+  lockedShape->GetVertexOffsetAndCount(offset, count);
 
-    J3DUniformBufferObject::SetBillboardType(*lockedShape->GetUserData<uint32_t>());
-    J3DUniformBufferObject::SubmitUBO();
-
-    uint32_t offset, count;
-    lockedShape->GetVertexOffsetAndCount(offset, count);
-
-    glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT,
-      (const void*)(offset * sizeof(uint32_t)));
-  }
+  glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, (const void*)(offset * sizeof(uint32_t)));
 }
 
 void J3DMaterial::CalculateTexMatrices(const glm::mat4& modelMatrix, const glm::mat4& viewMatrix,
