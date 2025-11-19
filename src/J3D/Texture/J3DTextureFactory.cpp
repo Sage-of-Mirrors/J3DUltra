@@ -4,6 +4,12 @@
 #include "glad/glad.h"
 #include "bstream.h"
 
+#ifdef _DEBUG
+#include <stb_image.h>
+#include <stb_image_write.h>
+#include <filesystem>
+#endif
+
 #include <cmath>
 
 const float ONE_EIGHTH = 0.125f;
@@ -94,6 +100,10 @@ std::shared_ptr<J3DTexture> J3DTextureFactory::Create(bStream::CStream* stream, 
 
     texture->ImageData.push_back(imgData);
     SetTextureMipImage(texture->TexHandle, i, mipWidth, mipHeight, imgData);
+
+#ifdef _DEBUG
+    OutputPNG(i, texture);
+#endif
   }
 
   return texture;
@@ -560,6 +570,18 @@ uint8_t* J3DTextureFactory::DecodeCMPRSubBlock(bStream::CStream* stream) {
   }
 
   return data;
+}
+
+void J3DTextureFactory::OutputPNG(uint32_t index, std::shared_ptr<J3DTexture> texture) {
+#ifdef _DEBUG
+  if (!std::filesystem::is_directory("./texturedump")) {
+    std::filesystem::create_directory("./texturedump");
+  }
+
+  std::string fileName = "./texturedump/" + texture->Name + "_mip" + std::to_string(index) + ".png";
+
+  stbi_write_png(fileName.c_str(), texture->Width, texture->Height, 4, texture->ImageData[index], texture->Width * 4);
+#endif
 }
 
 void J3DTextureFactory::UnpackPixelFromPalette(uint8_t* palette, uint32_t index, uint8_t* dest, uint32_t offset, EGXPaletteFormat format) {
