@@ -103,29 +103,6 @@ bool J3DMaterial::GenerateShaders() {
   return true;
 }
 
-static int GXBlendModeSrcControlToGLFactor(EGXBlendModeControl Control) {
-  switch (Control) {
-  case EGXBlendModeControl::Zero:
-    return GL_ZERO;
-  case EGXBlendModeControl::One:
-    return GL_ONE;
-  case EGXBlendModeControl::SrcColor:
-    return GL_DST_COLOR;
-  case EGXBlendModeControl::SrcAlpha:
-    return GL_SRC_ALPHA;
-  case EGXBlendModeControl::DstAlpha:
-    return GL_DST_ALPHA;
-  case EGXBlendModeControl::InverseSrcColor:
-    return GL_ONE_MINUS_DST_COLOR;
-  case EGXBlendModeControl::InverseSrcAlpha:
-    return GL_ONE_MINUS_SRC_ALPHA;
-  case EGXBlendModeControl::InverseDstAlpha:
-    return GL_ONE_MINUS_DST_ALPHA;
-  default:
-    return GL_ONE;
-  }
-}
-
 int GXBlendModeControlToGLFactor(EGXBlendModeControl Control)
 {
 	switch (Control)
