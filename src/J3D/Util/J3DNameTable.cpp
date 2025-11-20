@@ -17,16 +17,16 @@ uint16_t J3DNameTable::HashName(std::string name) {
 }
 
 void J3DNameTable::Serialize(bStream::CStream* stream) {
-	stream->writeUInt16(mNames.size());
+	stream->writeUInt16((uint16_t)mNames.size());
 	stream->writeUInt16(UINT16_MAX);
 
-	uint16_t runningOffset = HEADER_SIZE + mNames.size() * ENTRY_SIZE;
+	uint16_t runningOffset = (uint16_t)(HEADER_SIZE + mNames.size() * ENTRY_SIZE);
 
 	for (std::string name : mNames) {
 		stream->writeUInt16(HashName(name));
 		stream->writeUInt16(runningOffset);
 
-		runningOffset += name.length() + 1;
+		runningOffset += (uint16_t)(name.length() + 1);
 	}
 
 	for (std::string name : mNames) {
@@ -38,7 +38,7 @@ void J3DNameTable::Serialize(bStream::CStream* stream) {
 }
 
 void J3DNameTable::Deserialize(bStream::CStream* stream) {
-	uint32_t tableStartPos = stream->tell();
+	uint32_t tableStartPos = (uint32_t)stream->tell();
 
 	uint16_t count = stream->readUInt16();
 	stream->skip(2);

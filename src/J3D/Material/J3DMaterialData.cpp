@@ -94,10 +94,10 @@ void J3DFog::Serialize(bStream::CStream* stream) {
 	stream->writeFloat(NearZ);
 	stream->writeFloat(FarZ);
 
-	stream->writeUInt8(Color.r * 255);
-	stream->writeUInt8(Color.g * 255);
-	stream->writeUInt8(Color.b * 255);
-	stream->writeUInt8(Color.a * 255);
+	stream->writeUInt8((uint8_t)(Color.r * 255));
+	stream->writeUInt8((uint8_t)(Color.g * 255));
+	stream->writeUInt8((uint8_t)(Color.b * 255));
+	stream->writeUInt8((uint8_t)(Color.a * 255));
 
 	for (int i = 0; i < 10; i++) {
 		stream->writeUInt16(AdjustmentTable[i]);

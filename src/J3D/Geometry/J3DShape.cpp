@@ -61,10 +61,10 @@ bool J3DShape::HasEnabledAttribute(const EGLAttribute attribute) const {
 }
 
 void J3DShape::ConcatenatePacketsToIBO(std::vector<J3DVertexGX>& ibo) {
-	mIBOStart = ibo.size();
+	mIBOStart = (uint32_t)ibo.size();
 
 	for (auto a : mPackets) {
-		mIBOCount += a.mVertices.size();
+		mIBOCount += (uint32_t)a.mVertices.size();
 
 		for (const auto& t : a.mVertices)
 		{
