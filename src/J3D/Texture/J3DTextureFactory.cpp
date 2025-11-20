@@ -584,8 +584,8 @@ uint8_t* J3DTextureFactory::DecodeCMPRSubBlock(bStream::CStream* stream) {
 
 void J3DTextureFactory::OutputPNG(uint32_t index, std::shared_ptr<J3DTexture> texture) {
 #ifdef _DEBUG
-  uint32_t mip_width = (texture->Width >> index);
-  uint32_t mip_height = (texture->Height >> index);
+  uint16_t mip_width = (texture->Width >> index);
+  uint16_t mip_height = (texture->Height >> index);
   if (mip_width == 0 || mip_height == 0) {
     return;
   }
@@ -596,7 +596,7 @@ void J3DTextureFactory::OutputPNG(uint32_t index, std::shared_ptr<J3DTexture> te
 
   std::string fileName = "./texturedump/" + texture->Name + "_mip" + std::to_string(index) + ".png";
 
-  stbi_write_png(fileName.c_str(), texture->Width, texture->Height, 4, texture->ImageData[index], texture->Width * 4);
+  stbi_write_png(fileName.c_str(), mip_width, mip_height, 4, texture->ImageData[index], mip_width * 4);
 #endif
 }
 
