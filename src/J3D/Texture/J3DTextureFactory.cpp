@@ -584,6 +584,12 @@ uint8_t* J3DTextureFactory::DecodeCMPRSubBlock(bStream::CStream* stream) {
 
 void J3DTextureFactory::OutputPNG(uint32_t index, std::shared_ptr<J3DTexture> texture) {
 #ifdef _DEBUG
+  uint32_t mip_width = (texture->Width >> index);
+  uint32_t mip_height = (texture->Height >> index);
+  if (mip_width == 0 || mip_height == 0) {
+    return;
+  }
+
   if (!std::filesystem::is_directory("./texturedump")) {
     std::filesystem::create_directory("./texturedump");
   }
