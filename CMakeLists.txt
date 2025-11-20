@@ -47,6 +47,6 @@ file(GLOB J3DULTRA_SRC
 )
 
 add_library(j3dultra ${J3DULTRA_SRC})
-target_include_directories(j3dultra PUBLIC include lib/bStream lib/glad/include lib/libflipper/include lib/libflipper/include/geometry lib/magic_enum/include/magic_enum)
+target_include_directories(j3dultra PUBLIC include lib/bStream lib/glad/include lib/libflipper/include lib/libflipper/include/geometry lib/magic_enum/include/magic_enum lib/stb)
 target_link_libraries(j3dultra PUBLIC magic_enum glm libflipper)
 target_compile_definitions(j3dultra PRIVATE GLM_ENABLE_EXPERIMENTAL)

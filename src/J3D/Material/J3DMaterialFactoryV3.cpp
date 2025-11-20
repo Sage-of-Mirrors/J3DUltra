@@ -111,7 +111,7 @@ std::shared_ptr<J3DMaterial> J3DMaterialFactoryV3::Create(bStream::CStream* stre
 		if (initData.TEVOrder[i] != UINT16_MAX)
 			newMaterial->TevBlock->mTevOrders.push_back(std::make_shared<J3DTevOrderInfo>(ReadMaterialComponent<J3DTevOrderInfo>(stream, mBlock->TevOrderTableOffset, initData.TEVOrder[i])));
 
-		uint32_t currentOffset = stream->tell();
+		uint32_t currentOffset = (uint32_t)stream->tell();
 		if (initData.TEVSwapMode[i] != UINT16_MAX) {
 			stream->seek(mBlock->TevSwapModeTableOffset + (initData.TEVSwapMode[i] * 4));
 			J3DSwapModeInfo info;

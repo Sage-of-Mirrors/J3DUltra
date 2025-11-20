@@ -28,12 +28,12 @@ std::string J3DUtility::LoadTextFile(std::filesystem::path filePath) {
 }
 
 void J3DUtility::PadStreamWithString(bStream::CStream* stream, uint32_t padValue, std::string str) {
-	uint32_t nextAligned = (stream->tell() + (padValue - 1)) & ~(padValue - 1);
-	uint32_t delta = nextAligned - stream->tell();
+	uint32_t nextAligned = (uint32_t)((stream->tell() + ((size_t)padValue - 1)) & ~((size_t)padValue - 1));
+	uint32_t delta = (uint32_t)(nextAligned - stream->tell());
 
 	std::string paddingString = str.empty() ? PADDING_STRING : str;
 
-	for (int i = 0; i < delta; i++) {
+	for (uint32_t i = 0; i < delta; i++) {
 		stream->writeUInt8(paddingString[i % paddingString.size()]);
 	}
 }

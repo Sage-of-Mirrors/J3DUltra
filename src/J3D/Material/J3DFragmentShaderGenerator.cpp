@@ -25,11 +25,16 @@ bool J3DFragmentShaderGenerator::GenerateFragmentShader(J3DMaterial* material, u
 	fragmentShader << GenerateUtilityFunctions();
 	fragmentShader << GenerateMainFunction(material);
 
-	std::ofstream debugFOut("E:/Github/Jekyll/shader/" + material->Name + "_frag.glsl");
+#ifdef _DEBUG
+  if (!std::filesystem::exists("./shaderdump"))
+		std::filesystem::create_directory("./shaderdump");
+
+	std::ofstream debugFOut("./shaderdump/" + material->Name + "_frag.glsl");
 	if (debugFOut.is_open()) {
 		debugFOut << fragmentShader.str();
 		debugFOut.close();
 	}
+#endif
 
 	shaderHandle = glCreateShader(GL_FRAGMENT_SHADER);
 
@@ -65,9 +70,9 @@ std::string J3DFragmentShaderGenerator::GenerateIOVariables(J3DMaterial* materia
 	stream << "in vec4 oColor0;\n";
 	stream << "in vec4 oColor1;\n\n";
 
-	uint32_t texGenCount = material->TexGenBlock.mTexCoordInfo.size();
+	uint32_t texGenCount = (uint32_t)material->TexGenBlock.mTexCoordInfo.size();
 	stream << "// Tex gen count: " << texGenCount << "\n";
-	for (int i = 0; i < texGenCount; i++) {
+	for (uint32_t i = 0; i < texGenCount; i++) {
 		stream << "in vec3 oTexCoord" << i << ";\n";
 	}
 

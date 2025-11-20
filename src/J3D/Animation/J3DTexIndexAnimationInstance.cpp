@@ -72,5 +72,5 @@ void J3DAnimation::J3DTexIndexAnimationInstance::ApplyAnimation(std::shared_ptr<
 
     J3DAnimation::J3DTexIndexAnimationData data = *matFindResult;
     //material->AnimationTexIndices[i] = material->TevBlock->mTextureIndices[i];
-    material->AnimationTexIndices[data.TextureSlotIndex] = data.Track.GetValue(GetFrame());
+    material->AnimationTexIndices[data.TextureSlotIndex] = (uint16_t)data.Track.GetValue(GetFrame());
 }

@@ -34,6 +34,8 @@ namespace J3DUniformBufferObject {
 			uint32_t ModelId;
 			uint32_t MaterialId;
 
+			uint32_t Padding0;
+
 			glm::vec4 HighlightColor;
 
 			J3DUniformBufferObject() { ClearUBO(); }
