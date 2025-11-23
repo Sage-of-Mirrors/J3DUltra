@@ -41,6 +41,9 @@ class J3DModelData : public std::enable_shared_from_this<J3DModelData> {
 	// SHP1 data, geometry
 	GXGeometry mGeometry;
 
+	glm::vec3 mBBMin;
+	glm::vec3 mBBMax;
+
 	std::vector<J3DVertexGX> mGXVertices;
 	std::vector<J3DVertexGL> mGLVertices;
 	std::vector<uint16_t> mIndices;
@@ -62,6 +65,8 @@ public:
 	virtual ~J3DModelData();
 
 	std::shared_ptr<J3DModelInstance> CreateInstance();
+
+	void GetBoundingBox(glm::vec3& min, glm::vec3& max) const;
 
 	shared_vector<GXShape>& GetShapes() { return mGeometry.GetShapes(); }
 
@@ -85,7 +90,7 @@ public:
 	/* Returns this model's list of default textures. */
 	shared_vector<J3DTexture>& GetTextures() { return mMaterialTable->GetTextures(); }
 
-	uint32_t GetJointCount() const { return mSkeleton->GetJoints().size(); }
+	uint32_t GetJointCount() const { return (uint32_t)mSkeleton->GetJoints().size(); }
 
 	bool SetTexture(uint32_t idx, uint32_t width, uint32_t height, uint8_t* data, uint32_t size);
 	bool SetTexture(std::string name, uint32_t width, uint32_t height, uint8_t* data, uint32_t size);

@@ -104,6 +104,24 @@ bool J3DModelData::InitializeGL() {
     const auto& verts = mGeometry.GetModelVertices();
     const auto& indices = mGeometry.GetModelIndices();
 
+    mBBMin = { 0, 0, 0 };
+    mBBMax = { 0, 0, 0 };
+    for (const auto& vertex : verts) {
+        if (mBBMin.x > vertex.Position.x)
+            mBBMin.x = vertex.Position.x;
+        if (mBBMin.y > vertex.Position.y)
+            mBBMin.y = vertex.Position.y;
+        if (mBBMin.z > vertex.Position.z)
+            mBBMin.z = vertex.Position.z;
+
+        if (mBBMax.x < vertex.Position.x)
+            mBBMax.x = vertex.Position.x;
+        if (mBBMax.y < vertex.Position.y)
+            mBBMax.y = vertex.Position.y;
+        if (mBBMax.z < vertex.Position.z)
+            mBBMax.z = vertex.Position.z;
+    }
+
     // Create VBO
     glCreateBuffers(1, &mVBO);
     glNamedBufferStorage(mVBO, verts.size() * sizeof(ModernVertex), verts.data(), GL_MAP_WRITE_BIT | GL_DYNAMIC_STORAGE_BIT);
@@ -148,6 +166,7 @@ bool J3DModelData::InitializeGL() {
         glVertexArrayAttribBinding(mVAO, colEnumVal, 0);
         glVertexArrayAttribFormat(mVAO, colEnumVal, glm::vec4::length(), GL_FLOAT, GL_FALSE, offsetof(ModernVertex, Colors[0]));
     }
+
     if (mVertexData.HasColors(1)) {
         uint32_t colEnumVal = J3DUtility::EnumToIntegral(EGXAttribute::Color1);
         glEnableVertexArrayAttrib(mVAO, colEnumVal);
@@ -223,6 +242,11 @@ std::shared_ptr<J3DModelInstance> J3DModelData::CreateInstance() {
     return std::make_shared<J3DModelInstance>(shared_from_this(), sInstanceIdSrc++);
 }
 
+void J3DModelData::GetBoundingBox(glm::vec3& min, glm::vec3& max) const {
+  min = mBBMin;
+  max = mBBMax;
+}
+
 std::vector<glm::mat4> J3DModelData::GetRestPose() const {
     return mSkeleton->GetRestPose();
 }
@@ -241,6 +265,9 @@ void J3DModelData::BindVAO()
         mGLInitialized = InitializeGL();
 
     glBindVertexArray(mVAO);
+    
+    uint32_t col0Enum = J3DUtility::EnumToIntegral(EGXAttribute::Color0);
+    glVertexAttrib4f(col0Enum, 1.0f, 1.0f, 1.0f, 1.0f);
 }
 
 void J3DModelData::UnbindVAO()
