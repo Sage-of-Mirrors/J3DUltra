@@ -265,6 +265,17 @@ void J3DModelInstance::Render(float deltaTime, std::shared_ptr<J3DMaterial> mate
 	mModelData->UnbindVAO();
 }
 
+void J3DModelInstance::StaticRender(std::shared_ptr<J3DMaterial> material, uint32_t materialShaderOverride)
+{
+	J3DUniformBufferObject::SetModelId(mModelId);
+	mModelData->BindVAO();
+
+	auto& textures = CheckUseInstanceTextures() ? mInstanceMaterialTable->GetTextures() : mModelData->GetTextures();
+	material->Render(textures, materialShaderOverride);
+
+	mModelData->UnbindVAO();
+}
+
 bool J3DModelInstance::CheckUseInstanceMaterials() const {
 	return bUseInstanceMaterialTable && mInstanceMaterialTable != nullptr && mInstanceMaterialTable->GetMaterials().size() != 0;
 }

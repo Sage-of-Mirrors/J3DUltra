@@ -14,3 +14,14 @@ void J3DRenderPacket::Render(float deltaTime, glm::mat4& viewMatrix, glm::mat4& 
 
     Instance->Render(deltaTime, Material, viewMatrix, projMatrix, materialShaderOverride);
 }
+
+void J3DRenderPacket::StaticRender(uint32_t materialShaderOverride)
+{
+  if (Material == nullptr || Instance == nullptr)
+  {
+    std::cout << "Material or data pointers were invalid!" << std::endl;
+    return;
+  }
+
+  Instance->StaticRender(Material, materialShaderOverride);
+}
