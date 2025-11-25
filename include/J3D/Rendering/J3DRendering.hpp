@@ -19,5 +19,9 @@ namespace J3D {
 
         void Render(float deltaTime, glm::mat4& viewMatrix, glm::mat4& projMatrix,
                     RenderPacketVector& modelInstances, uint32_t materialShaderOverride = 0);
+
+        // Call this after Render to reuse the model calculations view/proj matrices for static rendering.
+        // Note: This is used by J3D::Picking
+        void StaticRender(RenderPacketVector& modelInstances, uint32_t materialShaderOverride = 0);
     }
 }

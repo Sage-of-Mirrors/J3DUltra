@@ -91,6 +91,9 @@ public:
     void UpdateAnimations(float deltaTime);
     void Render(float deltaTime, std::shared_ptr<J3DMaterial> material, glm::mat4& viewMatrix, glm::mat4& projMatrix, uint32_t materialShaderOverride = 0);
 
+    // Call this after Render to reuse the model calculations view/proj matrices for static rendering.
+    void StaticRender(std::shared_ptr<J3DMaterial> material, uint32_t materialShaderOverride = 0);
+
     J3DLight GetLight(int index) const;
     void SetLight(const J3DLight& light, int index);
 
