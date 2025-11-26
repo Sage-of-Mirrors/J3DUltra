@@ -3,7 +3,7 @@
 #include "J3D/Material/J3DMaterialTable.hpp"
 #include "J3D/Material/J3DMaterial.hpp"
 #include "J3D/Texture/J3DTexture.hpp"
-#include "J3D/Texture/J3DTextureFactory.hpp"
+#include "J3D/Texture/J3DTextureLoader.hpp"
 
 #include "glad/glad.h"
 
@@ -62,8 +62,8 @@ bool J3DMaterialTable::SetTexture(uint32_t idx, uint32_t width, uint32_t height,
     tex->LODBias = 0;
     tex->MaxAnisotropy = EGXMaxAnisotropy::One;
 
-    J3DTextureFactory::InitTexture(tex);
-    J3DTextureFactory::SetTextureMipImage(tex->TexHandle, 0, width, height, data);
+    J3DTextureLoader::InitTexture(tex);
+    J3DTextureLoader::SetTextureMipImage(tex->TexHandle, 0, width, height, data);
 
     return true;
 }
