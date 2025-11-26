@@ -79,3 +79,33 @@ bool J3DMaterialTable::SetTexture(std::string name, uint32_t width, uint32_t hei
   }
   return all_good;
 }
+
+bool J3DMaterialTable::SetTexture(uint32_t idx, std::shared_ptr<J3DTexture> texture) {
+  if (idx >= mTextures.size()) {
+    return false;
+  }
+
+  mTextures[idx] = texture;
+
+  J3DTextureLoader::InitTexture(texture);
+  for (uint32_t i = 0; i < texture->MipmapCount; i++) {
+    uint16_t mipWidth = (uint16_t)(texture->Width / std::pow(2.0f, i));
+    uint16_t mipHeight = (uint16_t)(texture->Height / std::pow(2.0f, i));
+    uint8_t* imgData = texture->ImageData[i];
+    J3DTextureLoader::SetTextureMipImage(texture->TexHandle, i, mipWidth, mipHeight, imgData);
+  }
+
+  return true;
+}
+
+bool J3DMaterialTable::SetTexture(std::string name, std::shared_ptr<J3DTexture> texture) {
+  // Since there may be multiple textures with the same name, set them all
+  // (this is equivalent to behavior found in Super Mario Sunshine).
+  bool all_good = true;
+  for (uint32_t i = 0; i < mTextures.size(); i++) {
+    if (mTextures[i]->Name == name) {
+      all_good &= SetTexture(i, texture);
+    }
+  }
+  return all_good;
+}

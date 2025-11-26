@@ -29,4 +29,7 @@ public:
 
     bool SetTexture(uint32_t idx, uint32_t width, uint32_t height, uint8_t* data, uint32_t size);
     bool SetTexture(std::string name, uint32_t width, uint32_t height, uint8_t* data, uint32_t size);
+
+    bool SetTexture(uint32_t idx, std::shared_ptr<J3DTexture> texture);
+    bool SetTexture(std::string name, std::shared_ptr<J3DTexture> texture);
 };
