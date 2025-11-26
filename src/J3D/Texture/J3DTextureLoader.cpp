@@ -16,7 +16,10 @@ const float ONE_EIGHTH = 0.125f;
 const float ONE_HUNDREDTH = 0.01f;
 
 void J3DTextureLoader::InitTexture(std::shared_ptr<J3DTexture> texture) {
-  texture->Clear();
+  if (texture->TexHandle != UINT32_MAX) {
+    glDeleteTextures(1, &texture->TexHandle);
+    texture->TexHandle = UINT32_MAX;
+  }
 
   glCreateTextures(GL_TEXTURE_2D, 1, &texture->TexHandle);
 
@@ -67,7 +70,7 @@ void J3DTextureLoader::DecodePaletteFormat(bStream::CStream* stream, uint16_t wi
   delete[] paletteData;
 }
 
-std::shared_ptr<J3DTexture> J3DTextureLoader::Load(const std::string &textureName, bStream::CStream* stream) {
+std::shared_ptr<J3DTexture> J3DTextureLoader::Load(const std::string& textureName, bStream::CStream* stream) {
   uint32_t dataOffset = stream->tell();
 
   std::shared_ptr<J3DTexture> texture = std::make_shared<J3DTexture>();
