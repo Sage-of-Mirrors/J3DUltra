@@ -77,7 +77,7 @@ std::shared_ptr<J3DTexture> J3DTextureLoader::Load(const std::string &textureNam
   InitTexture(texture);
 
   // Load image data
-  stream->seek(texture->TextureOffset);
+  stream->seek(dataOffset + texture->TextureOffset);
 
   bool swapped = false;
   if (stream->getOrder() == bStream::Endianess::Little) {
