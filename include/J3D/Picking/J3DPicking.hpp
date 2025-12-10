@@ -39,12 +39,14 @@ namespace J3D {
         void DestroyFramebuffer();
 
         /// <summary>
-        /// Renders a picking scene with the given View and Projection matrices to the picking framebuffer.
+        /// Renders a picking scene to the picking framebuffer.
+        /// Internally this uses J3D::Rendering::StaticRender to reuse the current frame state.
+        /// Make sure to call this AFTER J3D::Rendering::Render or it will not work correctly!
         /// </summary>
         /// <param name="viewMatrix">View matrix to render the picking scene with</param>
         /// <param name="projMatrix">Projection matrix to render the picking scene with</param>
         /// <param name="modelInstances">Model instances to render in the picking scene</param>
-        void RenderPickingScene(glm::mat4& viewMatrix, glm::mat4& projMatrix, J3D::Rendering::RenderPacketVector& renderPackets);
+        void RenderPickingScene(J3D::Rendering::RenderPacketVector& renderPackets);
 
         /// <summary>
         /// Returns a tuple of (Model Id, Material Id) from the picking framebuffer at

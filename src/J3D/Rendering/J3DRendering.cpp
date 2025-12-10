@@ -39,3 +39,10 @@ void J3D::Rendering::Render(float deltaTime, glm::mat4& viewMatrix, glm::mat4& p
         packet.Render(deltaTime, viewMatrix, projMatrix, materialShaderOverride);
     }
 }
+
+void J3D::Rendering::StaticRender(RenderPacketVector& renderPackets, uint32_t materialShaderOverride)
+{
+  for (J3DRenderPacket packet : renderPackets) {
+    packet.StaticRender(materialShaderOverride);
+  }
+}
