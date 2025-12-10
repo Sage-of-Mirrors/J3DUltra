@@ -251,12 +251,12 @@ std::vector<glm::mat4> J3DModelData::GetRestPose() const {
     return mSkeleton->GetRestPose();
 }
 
-bool J3DModelData::SetTexture(uint32_t idx, uint32_t width, uint32_t height, uint8_t* data, uint32_t size) {
-    return mMaterialTable->SetTexture(idx, width, height, data, size);
+bool J3DModelData::SetTexture(uint32_t idx, std::shared_ptr<J3DTexture> texture) {
+    return mMaterialTable->SetTexture(idx, texture);
 }
 
-bool J3DModelData::SetTexture(std::string name, uint32_t width, uint32_t height, uint8_t* data, uint32_t size) {
-    return mMaterialTable->SetTexture(name, width, height, data, size);
+bool J3DModelData::SetTexture(std::string name, std::shared_ptr<J3DTexture> texture) {
+    return mMaterialTable->SetTexture(name, texture);
 }
 
 void J3DModelData::BindVAO()
